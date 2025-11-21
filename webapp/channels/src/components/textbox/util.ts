@@ -231,7 +231,7 @@ export const updateStateWhenSuggestionSelected = (
  * @param onChange - The change handler.
  * @returns
  */
-export const updateStateWhenOnChanged = (rawValue: string, usersByUsername: Record<string, UserProfile> | undefined, teammateNameDisplay = Preferences.DISPLAY_PREFER_USERNAME, setState: (state: any) => void, e: React.ChangeEvent<HTMLInputElement>, onChange: (event: React.ChangeEvent<HTMLInputElement>) => void) => {
+export const updateStateWhenOnChanged = (rawValue: string, usersByUsername: Record<string, UserProfile> | undefined, teammateNameDisplay = Preferences.DISPLAY_PREFER_USERNAME, setState: (state: any) => void, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) => {
     const inputValue = e.target.value;
 
     if (!usersByUsername) {
@@ -254,7 +254,7 @@ export const updateStateWhenOnChanged = (rawValue: string, usersByUsername: Reco
             ...e.target,
             value: newRawValue,
         },
-    } as React.ChangeEvent<HTMLInputElement>;
+    } as React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>;
 
     onChange(syntheticEvent);
 };
