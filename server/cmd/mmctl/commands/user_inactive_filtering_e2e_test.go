@@ -42,7 +42,7 @@ func (s *MmctlE2ETestSuite) assertUserNotInSlice(users []*model.User, targetUser
 }
 
 func (s *MmctlE2ETestSuite) TestUserDeactivationAutocompleteExclusion() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	// Create a test user for deactivation testing
 	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{
@@ -53,8 +53,8 @@ func (s *MmctlE2ETestSuite) TestUserDeactivationAutocompleteExclusion() {
 	s.Require().Nil(appErr)
 
 	// Add user to team and channel for autocomplete testing
-	s.th.LinkUserToTeam(user, s.th.BasicTeam)
-	s.th.AddUserToChannel(user, s.th.BasicChannel)
+	s.th.LinkUserToTeam(s.T(), user, s.th.BasicTeam)
+	s.th.AddUserToChannel(s.T(), user, s.th.BasicChannel)
 
 	s.RunForSystemAdminAndLocal("Deactivated user should be excluded from autocomplete", func(c client.Client) {
 		printer.Clean()
@@ -127,7 +127,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivationAutocompleteExclusion() {
 }
 
 func (s *MmctlE2ETestSuite) TestUserDeactivationAutocompleteExclusionMultipleContexts() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	// Create a test user for deactivation testing
 	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{
@@ -138,8 +138,8 @@ func (s *MmctlE2ETestSuite) TestUserDeactivationAutocompleteExclusionMultipleCon
 	s.Require().Nil(appErr)
 
 	// Add user to team for autocomplete testing
-	s.th.LinkUserToTeam(user, s.th.BasicTeam)
-	s.th.AddUserToChannel(user, s.th.BasicChannel)
+	s.th.LinkUserToTeam(s.T(), user, s.th.BasicTeam)
+	s.th.AddUserToChannel(s.T(), user, s.th.BasicChannel)
 
 	s.RunForSystemAdminAndLocal("Deactivated user should be excluded from all autocomplete contexts", func(c client.Client) {
 		printer.Clean()
