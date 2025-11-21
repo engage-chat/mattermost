@@ -1834,8 +1834,7 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 
 func TestGetMobileAppSessions(t *testing.T) {
 	t.Run("should return sessions that have a VoIP DeviceId value.", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		_, err := th.App.CreateSession(th.Context, &model.Session{
 			UserId:       th.BasicUser.Id,
