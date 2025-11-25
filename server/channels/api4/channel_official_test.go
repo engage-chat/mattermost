@@ -23,11 +23,11 @@ func TestOfficialChannelValidation(t *testing.T) {
 	cleanup := testutils.ResetIntegrationAdmin(officialAdminUsername)
 	defer cleanup()
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	// Create official admin user
-	officialAdmin := th.CreateUser()
+	officialAdmin := th.CreateUser(t)
+	officialAdminPassword := officialAdmin.Password
 	officialAdmin.Username = officialAdminUsername
 	var err error
 	_, appErr := th.App.UpdateUser(th.Context, officialAdmin, false)
@@ -40,7 +40,7 @@ func TestOfficialChannelValidation(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// Create official channel (created by official admin)
-	_, _, err = th.Client.Login(context.Background(), officialAdmin.Email, "Pa$$word11")
+	_, _, err = th.Client.Login(context.Background(), officialAdmin.Email, officialAdminPassword)
 	require.NoError(t, err)
 	officialChannel := &model.Channel{
 		DisplayName: "Official Test Channel",
@@ -52,7 +52,7 @@ func TestOfficialChannelValidation(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create non-official channel (created by regular user)
-	th.LoginBasic()
+	th.LoginBasic(t)
 	regularChannel := &model.Channel{
 		DisplayName: "Regular Test Channel",
 		Name:        "regular-test-channel",
@@ -79,7 +79,7 @@ func TestOfficialChannelValidation(t *testing.T) {
 		}
 
 		// Test 1: Official admin can update title
-		_, _, err = th.Client.Login(context.Background(), officialAdmin.Username, "Pa$$word11")
+		_, _, err = th.Client.Login(context.Background(), officialAdmin.Username, officialAdminPassword)
 		require.NoError(t, err)
 		updatedChannel := *officialChannel
 		updatedChannel.DisplayName = "Updated Official Title"
@@ -87,7 +87,7 @@ func TestOfficialChannelValidation(t *testing.T) {
 		assert.NoError(t, updateErr, "Official admin should be able to update title")
 
 		// Test 2: System admin with permissions cannot update title due to official channel restriction
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 		currentUserId := th.SystemAdminUser.Id
 		t.Logf("System Admin ID: %s, Channel Creator ID: %s", currentUserId, officialChannel.CreatorId)
 		updatedChannel.DisplayName = "Unauthorized Title Change"
@@ -96,7 +96,7 @@ func TestOfficialChannelValidation(t *testing.T) {
 		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
 
 		// Test 3: Official admin can update other properties
-		_, _, err = th.Client.Login(context.Background(), officialAdmin.Username, "Pa$$word11")
+		_, _, err = th.Client.Login(context.Background(), officialAdmin.Username, officialAdminPassword)
 		require.NoError(t, err)
 		updatedChannel.DisplayName = officialChannel.DisplayName // Reset title
 		updatedChannel.Purpose = "Updated purpose by official admin"
@@ -104,7 +104,7 @@ func TestOfficialChannelValidation(t *testing.T) {
 		assert.NoError(t, updateErr, "Official admin should be able to update non-title properties")
 
 		// Test 4: Regular channel works normally with system admin
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 		updatedRegular := *regularChannel
 		updatedRegular.DisplayName = "Updated Regular Title"
 		_, _, updateErr = th.SystemAdminClient.UpdateChannel(context.Background(), &updatedRegular)
@@ -113,7 +113,7 @@ func TestOfficialChannelValidation(t *testing.T) {
 
 	t.Run("patchChannel - Official Channel Title Restriction", func(t *testing.T) {
 		// Test 1: Official admin can patch title
-		_, _, err := th.Client.Login(context.Background(), officialAdmin.Email, "Pa$$word11")
+		_, _, err := th.Client.Login(context.Background(), officialAdmin.Email, officialAdminPassword)
 		require.NoError(t, err)
 		newTitle := "Patched Official Title"
 		patch := &model.ChannelPatch{DisplayName: &newTitle}
@@ -121,7 +121,7 @@ func TestOfficialChannelValidation(t *testing.T) {
 		assert.NoError(t, err, "Official admin should be able to patch title")
 
 		// Test 2: Regular user cannot patch title
-		th.LoginBasic()
+		th.LoginBasic(t)
 		unauthorizedTitle := "Unauthorized Patch Title"
 		patch = &model.ChannelPatch{DisplayName: &unauthorizedTitle}
 		_, resp, err := th.Client.PatchChannel(context.Background(), officialChannel.Id, patch)
@@ -129,7 +129,7 @@ func TestOfficialChannelValidation(t *testing.T) {
 		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
 
 		// Test 3: System Admin can patch non-title properties on official channel
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 		newPurpose := "Patched purpose by system admin"
 		patch = &model.ChannelPatch{Purpose: &newPurpose}
 		_, _, err = th.SystemAdminClient.PatchChannel(context.Background(), officialChannel.Id, patch)
@@ -144,12 +144,12 @@ func TestOfficialChannelValidation(t *testing.T) {
 
 	t.Run("addChannelMember - Official Channel Member Management", func(t *testing.T) {
 		// Create a new user to add
-		newUser := th.CreateUser()
+		newUser := th.CreateUser(t)
 		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, newUser.Id, "")
 		require.Nil(t, appErr)
 
 		// Test 1: Official admin can add members
-		_, _, err := th.Client.Login(context.Background(), officialAdmin.Email, "Pa$$word11")
+		_, _, err := th.Client.Login(context.Background(), officialAdmin.Email, officialAdminPassword)
 		require.NoError(t, err)
 		_, _, err = th.Client.AddChannelMember(context.Background(), officialChannel.Id, newUser.Id)
 		assert.NoError(t, err, "Official admin should be able to add members")
@@ -159,7 +159,7 @@ func TestOfficialChannelValidation(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Test 2: Regular user cannot add members
-		th.LoginBasic()
+		th.LoginBasic(t)
 		_, resp, err := th.Client.AddChannelMember(context.Background(), officialChannel.Id, newUser.Id)
 		assert.Error(t, err)
 		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
@@ -171,10 +171,10 @@ func TestOfficialChannelValidation(t *testing.T) {
 
 	t.Run("removeChannelMember - Official Channel Member Management", func(t *testing.T) {
 		// Add a user to remove
-		testUser := th.CreateUser()
+		testUser := th.CreateUser(t)
 		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, testUser.Id, "")
 		require.Nil(t, appErr)
-		_, _, err := th.Client.Login(context.Background(), officialAdmin.Email, "Pa$$word11")
+		_, _, err := th.Client.Login(context.Background(), officialAdmin.Email, officialAdminPassword)
 		require.NoError(t, err)
 		_, _, err = th.Client.AddChannelMember(context.Background(), officialChannel.Id, testUser.Id)
 		require.NoError(t, err)
@@ -188,7 +188,7 @@ func TestOfficialChannelValidation(t *testing.T) {
 		require.NoError(t, err4)
 
 		// Test 2: Regular user cannot remove other members
-		th.LoginBasic()
+		th.LoginBasic(t)
 		resp, err := th.Client.RemoveUserFromChannel(context.Background(), officialChannel.Id, testUser.Id)
 		assert.Error(t, err)
 		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
@@ -201,7 +201,7 @@ func TestOfficialChannelValidation(t *testing.T) {
 		})
 		require.NoError(t, err5)
 
-		th.LoginBasic2()
+		th.LoginBasic2(t)
 		_, resp, err = th.Client.AddChannelMember(context.Background(), officialChannel.Id, testUser.Id)
 		assert.Error(t, err)
 		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
@@ -209,7 +209,7 @@ func TestOfficialChannelValidation(t *testing.T) {
 
 	t.Run("deleteChannel - Official Channel Archive Restriction", func(t *testing.T) {
 		// Create a temporary official channel for deletion test
-		_, _, err := th.Client.Login(context.Background(), officialAdmin.Email, "Pa$$word11")
+		_, _, err := th.Client.Login(context.Background(), officialAdmin.Email, officialAdminPassword)
 		require.NoError(t, err)
 		tempOfficial := &model.Channel{
 			DisplayName: "Temp Official Channel",
@@ -221,13 +221,13 @@ func TestOfficialChannelValidation(t *testing.T) {
 		require.NoError(t, err2)
 
 		// Test 1: Regular user cannot delete official channel
-		th.LoginBasic()
+		th.LoginBasic(t)
 		resp, err := th.Client.DeleteChannel(context.Background(), tempOfficial.Id)
 		assert.Error(t, err)
 		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
 
 		// Test 2: Official admin can delete official channel
-		_, _, err3 := th.Client.Login(context.Background(), officialAdmin.Email, "Pa$$word11")
+		_, _, err3 := th.Client.Login(context.Background(), officialAdmin.Email, officialAdminPassword)
 		require.NoError(t, err3)
 		_, err = th.Client.DeleteChannel(context.Background(), tempOfficial.Id)
 		assert.NoError(t, err, "Official admin should be able to delete channel")
@@ -235,7 +235,7 @@ func TestOfficialChannelValidation(t *testing.T) {
 
 	t.Run("restoreChannel - Official Channel Restore Restriction", func(t *testing.T) {
 		// Create and delete a temporary official channel for restore test
-		_, _, err := th.Client.Login(context.Background(), officialAdmin.Email, "Pa$$word11")
+		_, _, err := th.Client.Login(context.Background(), officialAdmin.Email, officialAdminPassword)
 		require.NoError(t, err)
 		tempOfficial := &model.Channel{
 			DisplayName: "Temp Official Restore",
@@ -251,13 +251,13 @@ func TestOfficialChannelValidation(t *testing.T) {
 		require.NoError(t, err)
 
 		// Test 1: Regular user cannot restore official channel
-		th.LoginBasic()
+		th.LoginBasic(t)
 		_, resp, err := th.Client.RestoreChannel(context.Background(), tempOfficial.Id)
 		assert.Error(t, err)
 		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
 
 		// Test 2: Official channel creator can restore official channel
-		_, _, err3 := th.Client.Login(context.Background(), officialAdmin.Email, "Pa$$word11")
+		_, _, err3 := th.Client.Login(context.Background(), officialAdmin.Email, officialAdminPassword)
 		require.NoError(t, err3)
 		_, _, err = th.Client.RestoreChannel(context.Background(), tempOfficial.Id)
 		assert.NoError(t, err, "Official channel creator should be able to restore channel")
@@ -265,20 +265,20 @@ func TestOfficialChannelValidation(t *testing.T) {
 
 	t.Run("updateChannelMemberRoles - Official Channel Role Management", func(t *testing.T) {
 		// Create test user for role changes
-		testUser := th.CreateUser()
+		testUser := th.CreateUser(t)
 
 		// Add user to team first (required before adding to channel)
 		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, testUser.Id, "")
 		require.Nil(t, appErr)
 
 		// First add the user to the official channel as the creator
-		_, _, err := th.Client.Login(context.Background(), officialAdmin.Email, "Pa$$word11")
+		_, _, err := th.Client.Login(context.Background(), officialAdmin.Email, officialAdminPassword)
 		require.NoError(t, err)
 		_, _, err2 := th.Client.AddChannelMember(context.Background(), officialChannel.Id, testUser.Id)
 		require.NoError(t, err2)
 
 		// Test: Non-creator System Admin tries to change member roles in official channel (should fail)
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 		newRoles := "channel_user channel_admin"
 		_, err = th.SystemAdminClient.UpdateChannelRoles(context.Background(), officialChannel.Id, testUser.Id, newRoles)
 		require.Error(t, err)
@@ -289,24 +289,24 @@ func TestOfficialChannelValidation(t *testing.T) {
 		}
 
 		// Test: Creator user changes member roles in official channel (should succeed)
-		_, _, err3 := th.Client.Login(context.Background(), officialAdmin.Email, "Pa$$word11")
+		_, _, err3 := th.Client.Login(context.Background(), officialAdmin.Email, officialAdminPassword)
 		require.NoError(t, err3)
 		resp, err := th.Client.UpdateChannelRoles(context.Background(), officialChannel.Id, testUser.Id, "channel_user")
 		require.NoError(t, err)
 		require.NotNil(t, resp)
 
 		// Test: Regular channel role management works normally
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 		_, err = th.SystemAdminClient.UpdateChannelRoles(context.Background(), regularChannel.Id, th.BasicUser.Id, "channel_user channel_admin")
 		require.NoError(t, err)
 	})
 
 	t.Run("updateChannelMemberSchemeRoles - Official Channel Scheme Role Management", func(t *testing.T) {
 		// Add a test user to the official channel
-		testUser := th.CreateUser()
+		testUser := th.CreateUser(t)
 		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, testUser.Id, "")
 		require.Nil(t, appErr)
-		_, _, err := th.Client.Login(context.Background(), officialAdmin.Email, "Pa$$word11")
+		_, _, err := th.Client.Login(context.Background(), officialAdmin.Email, officialAdminPassword)
 		require.NoError(t, err)
 		_, _, err2 := th.Client.AddChannelMember(context.Background(), officialChannel.Id, testUser.Id)
 		require.NoError(t, err2)
@@ -321,14 +321,14 @@ func TestOfficialChannelValidation(t *testing.T) {
 		assert.NoError(t, err3, "Official admin should be able to update scheme roles")
 
 		// Test 2: Non-creator cannot update scheme roles
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 		schemeRoles.SchemeAdmin = false
 		resp, err := th.SystemAdminClient.UpdateChannelMemberSchemeRoles(context.Background(), officialChannel.Id, testUser.Id, schemeRoles)
 		assert.Error(t, err)
 		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
 
 		// Test 3: Regular channel works normally - use SystemAdmin for consistency
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, th.BasicUser.Id, "")
 		require.Nil(t, appErr)
 		_, _, err4 := th.SystemAdminClient.AddChannelMember(context.Background(), regularChannel.Id, th.BasicUser.Id)
@@ -342,7 +342,7 @@ func TestOfficialChannelValidation(t *testing.T) {
 		os.Unsetenv("INTEGRATION_ADMIN_USERNAME")
 
 		// Should still work for regular operations but not identify as official
-		th.LoginBasic()
+		th.LoginBasic(t)
 		updatedChannel := *regularChannel
 		updatedChannel.DisplayName = "Title change without env var"
 		_, _, err := th.Client.UpdateChannel(context.Background(), &updatedChannel)
@@ -365,7 +365,7 @@ func TestOfficialChannelValidation(t *testing.T) {
 
 		// This should be handled gracefully by the IsOfficialChannel function
 		// (it returns false for non-existent creators)
-		th.LoginBasic()
+		th.LoginBasic(t)
 		tempChannel.CreatorId = th.BasicUser.Id // Set valid creator for creation
 		tempChannel, _, err = th.Client.CreateChannel(context.Background(), tempChannel)
 		require.NoError(t, err)
@@ -386,12 +386,11 @@ func TestIntegrationAdminConfiguration(t *testing.T) {
 		defer cleanup()
 
 		// Reset the app cache as well
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 		th.App.ResetIntegrationAdminUsernameCache()
 
 		// Create a test channel
-		th.LoginBasic()
+		th.LoginBasic(t)
 		channel := &model.Channel{
 			DisplayName: "Test Channel",
 			Name:        "test-channel",
@@ -414,15 +413,15 @@ func TestIntegrationAdminConfiguration(t *testing.T) {
 
 // Benchmark tests for performance impact
 func BenchmarkOfficialChannelValidation(b *testing.B) {
-	th := Setup(b).InitBasic()
-	defer th.TearDown()
+	th := Setup(b).InitBasic(b)
 
 	// Set up official admin
 	officialAdminUsername := "bench-admin"
 	os.Setenv("INTEGRATION_ADMIN_USERNAME", officialAdminUsername)
 	defer os.Unsetenv("INTEGRATION_ADMIN_USERNAME")
 
-	officialAdmin := th.CreateUser()
+	officialAdmin := th.CreateUser(b)
+	officialAdminPassword := officialAdmin.Password
 	officialAdmin.Username = officialAdminUsername
 	_, appErr2 := th.App.UpdateUser(th.Context, officialAdmin, false)
 	if appErr2 != nil {
@@ -434,7 +433,7 @@ func BenchmarkOfficialChannelValidation(b *testing.B) {
 	}
 
 	// Create official channel
-	_, _, err := th.Client.Login(context.Background(), officialAdmin.Email, "Pa$$word11")
+	_, _, err := th.Client.Login(context.Background(), officialAdmin.Email, officialAdminPassword)
 	if err != nil {
 		b.Fatal(err)
 	}

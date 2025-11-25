@@ -24,8 +24,7 @@ func resetIntegrationAdminUsernameForTesting() {
 }
 
 func TestIsOfficialChannel(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	// Save original environment variable
 	originalValue := os.Getenv("INTEGRATION_ADMIN_USERNAME")
