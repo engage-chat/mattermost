@@ -40,7 +40,7 @@ func (a *App) ResetIntegrationAdminUsernameCache() {
 }
 
 // IsOfficialChannel checks if a channel is official by comparing creator with integration admin user.
-func (a *App) IsOfficialChannel(c request.CTX, channel *model.Channel) (bool, *model.AppError) {
+func (a *App) IsOfficialChannel(rctx request.CTX, channel *model.Channel) (bool, *model.AppError) {
 	if channel == nil {
 		return false, model.NewAppError("IsOfficialChannel", "app.channel.invalid", nil, "channel is nil", http.StatusBadRequest)
 	}

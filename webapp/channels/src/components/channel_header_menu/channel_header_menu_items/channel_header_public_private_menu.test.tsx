@@ -14,7 +14,7 @@ describe('components/ChannelHeaderMenu/ChannelHeaderPublicPrivateMenu', () => {
         channel: TestHelper.getChannelMock({
             id: 'channel_id',
             name: 'channel_name',
-            type: 'O' as const,
+            type: 'O',
         }),
         user: TestHelper.getUserMock({
             id: 'user_id',
@@ -28,7 +28,7 @@ describe('components/ChannelHeaderMenu/ChannelHeaderPublicPrivateMenu', () => {
         isLicensedForLDAPGroups: false,
         pluginItems: [],
         isChannelBookmarksEnabled: false,
-        leadingElement: <div/>,
+        isChannelAutotranslated: false,
         onItemActivated: jest.fn(),
         isMenuOpen: false,
         menuId: 'test-menu',
@@ -137,7 +137,7 @@ describe('components/ChannelHeaderMenu/ChannelHeaderPublicPrivateMenu', () => {
         const officialChannel = TestHelper.getChannelMock({
             id: 'tunag_channel_id',
             name: 'tunag-12345-subdomain-admin',
-            type: 'O' as const,
+            type: 'O',
         });
 
         const props = {
@@ -158,7 +158,7 @@ describe('components/ChannelHeaderMenu/ChannelHeaderPublicPrivateMenu', () => {
         const defaultChannel = TestHelper.getChannelMock({
             id: 'default_channel_id',
             name: 'town-square',
-            type: 'O' as const,
+            type: 'O',
         });
 
         const props = {
@@ -181,7 +181,7 @@ describe('components/ChannelHeaderMenu/ChannelHeaderPublicPrivateMenu', () => {
         const regularChannel = TestHelper.getChannelMock({
             id: 'regular_channel_id',
             name: 'regular-channel',
-            type: 'O' as const,
+            type: 'O',
         });
 
         const guestUser = TestHelper.getUserMock({
