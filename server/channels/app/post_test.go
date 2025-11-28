@@ -4154,5 +4154,3 @@ func TestPopulateEditHistoryFileMetadata(t *testing.T) {
 		require.Greater(t, post2.Metadata.Files[0].DeleteAt, int64(0))
 	})
 }
-
-
