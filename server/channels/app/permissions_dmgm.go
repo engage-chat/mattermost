@@ -11,6 +11,14 @@ import (
 )
 
 func (a *App) CheckDMGMChannelPermissions(c request.CTX, channel *model.Channel, userID string) *model.AppError {
+	isOfficial, err := a.IsOfficialChannel(c, channel)
+	if err != nil {
+		return err
+	}
+	if isOfficial {
+		return nil
+	}
+
 	session := c.Session()
 	if session == nil || session.Id == "" {
 		return nil // No session means no DM/GM permission check needed
@@ -45,6 +53,8 @@ func (a *App) CheckDMGMChannelPermissions(c request.CTX, channel *model.Channel,
 		requiredPermission = model.PermissionCreateDirectChannel
 	case model.ChannelTypeGroup:
 		requiredPermission = model.PermissionCreateGroupChannel
+	case model.ChannelTypePrivate:
+		requiredPermission = model.PermissionCreatePrivateChannel
 	}
 
 	if requiredPermission != nil && !a.SessionHasPermissionTo(*session, requiredPermission) {
