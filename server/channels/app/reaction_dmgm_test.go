@@ -5,8 +5,8 @@ package app
 
 import (
 	"net/http"
-	"testing"
 	"os"
+	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -31,7 +31,7 @@ func TestChannelPermissionChecksForReactions(t *testing.T) {
 	// Create users
 	user1 := th.BasicUser
 	user2 := th.BasicUser2
-	adminUser := th.SystemAdminUser 
+	adminUser := th.SystemAdminUser
 	bot := th.CreateBot()
 	botUser, appErr := th.App.GetUser(bot.UserId)
 	require.Nil(t, appErr)
@@ -69,10 +69,10 @@ func TestChannelPermissionChecksForReactions(t *testing.T) {
 	// Create official channel
 	channel1 := &model.Channel{
 		DisplayName: "test channel",
-		Name:		"test-channel-"+model.NewId(),
-		Type:		model.ChannelTypePrivate,
-		TeamId:		th.BasicTeam.Id,
-		CreatorId:	adminUser.Id,
+		Name:        "test-channel-" + model.NewId(),
+		Type:        model.ChannelTypePrivate,
+		TeamId:      th.BasicTeam.Id,
+		CreatorId:   adminUser.Id,
 	}
 	officialChannel, appErr := th.App.CreateChannel(th.Context, channel1, false)
 	require.Nil(t, appErr)
@@ -81,10 +81,10 @@ func TestChannelPermissionChecksForReactions(t *testing.T) {
 	// Create unofficial channel
 	channel2 := &model.Channel{
 		DisplayName: "test channel",
-		Name:		"test-channel-"+model.NewId(),
-		Type:		model.ChannelTypePrivate,
-		TeamId:		th.BasicTeam.Id,
-		CreatorId:	user2.Id,
+		Name:        "test-channel-" + model.NewId(),
+		Type:        model.ChannelTypePrivate,
+		TeamId:      th.BasicTeam.Id,
+		CreatorId:   user2.Id,
 	}
 	unofficialChannel, appErr := th.App.CreateChannel(th.Context, channel2, true)
 	require.Nil(t, appErr)
@@ -146,8 +146,6 @@ func TestChannelPermissionChecksForReactions(t *testing.T) {
 	})
 
 	t.Run("System admin can add reaction in DM without permission", func(t *testing.T) {
-		adminUser := th.SystemAdminUser
-
 		reaction := &model.Reaction{
 			UserId:    adminUser.Id,
 			PostId:    dmPost.Id,
@@ -165,9 +163,9 @@ func TestChannelPermissionChecksForReactions(t *testing.T) {
 		resetIntegrationAdminUsernameForTesting()
 
 		reaction := &model.Reaction{
-			UserId:		user1.Id,
-			PostId:		oChannelPost.Id,
-			EmojiName:	"smile",
+			UserId:    user1.Id,
+			PostId:    oChannelPost.Id,
+			EmojiName: "smile",
 		}
 
 		ctxWithSession := th.Context.WithSession(user1Session)
@@ -176,15 +174,16 @@ func TestChannelPermissionChecksForReactions(t *testing.T) {
 		require.NotNil(t, createdReaction)
 	})
 
-	t.Run("SaveReactionForPost denied in unofficial channel without permisson", func(t *testing.T) {
+	t.Run("SaveReactionForPost denied in unofficial channel without permission", func(t *testing.T) {
 		reaction := &model.Reaction{
-			UserId:		user1.Id,
-			PostId:		uoChannelPost.Id,
-			EmojiName:	"smile",
+			UserId:    user1.Id,
+			PostId:    uoChannelPost.Id,
+			EmojiName: "smile",
 		}
 
 		ctxWithSession := th.Context.WithSession(user1Session)
 		_, appErr := th.App.SaveReactionForPost(ctxWithSession, reaction)
 		require.NotNil(t, appErr)
 		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
-	})}
+	})
+}

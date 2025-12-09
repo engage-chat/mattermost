@@ -71,7 +71,7 @@ func (a *App) CheckChannelPermissions(c request.CTX, channel *model.Channel, use
 		hasPermission = a.SessionHasPermissionToTeam(*session, channel.TeamId, requiredPermission)
 	}
 
-	if requiredPermission != nil && !hasPermission{
+	if requiredPermission != nil && !hasPermission {
 		return model.NewAppError(
 			"CheckChannelPermissions",
 			"api.context.permissions.app_error",

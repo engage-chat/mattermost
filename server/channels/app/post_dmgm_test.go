@@ -5,8 +5,8 @@ package app
 
 import (
 	"net/http"
-	"testing"
 	"os"
+	"testing"
 
 	"github.com/stretchr/testify/require"
 
@@ -32,17 +32,17 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 	adminUser := th.SystemAdminUser
 
 	// Create sessions
-	session, err := th.App.CreateSession(th.Context, &model.Session{
+	session, appErr := th.App.CreateSession(th.Context, &model.Session{
 		UserId: user1.Id,
 		Roles:  model.SystemUserRoleId,
 	})
-	require.Nil(t, err)
+	require.Nil(t, appErr)
 
-	adminSession, err := th.App.CreateSession(th.Context, &model.Session{
+	adminSession, appErr := th.App.CreateSession(th.Context, &model.Session{
 		UserId: adminUser.Id,
 		Roles:  model.SystemAdminRoleId,
 	})
-	require.Nil(t, err)
+	require.Nil(t, appErr)
 
 	// Create DM channel (with permissions)
 	dmChannel, appErr := th.App.GetOrCreateDirectChannel(th.Context, user1.Id, user2.Id)
@@ -58,10 +58,10 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 	// Create official channel
 	channel1 := &model.Channel{
 		DisplayName: "test channel",
-		Name:		"test-channel-"+model.NewId(),
-		Type:		model.ChannelTypePrivate,
-		TeamId:		th.BasicTeam.Id,
-		CreatorId:	adminUser.Id,
+		Name:        "test-channel-" + model.NewId(),
+		Type:        model.ChannelTypePrivate,
+		TeamId:      th.BasicTeam.Id,
+		CreatorId:   adminUser.Id,
 	}
 	officialChannel, appErr := th.App.CreateChannel(th.Context, channel1, false)
 	require.Nil(t, appErr)
@@ -70,10 +70,10 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 	// Create unofficial channel
 	channel2 := &model.Channel{
 		DisplayName: "test channel",
-		Name:		"test-channel-"+model.NewId(),
-		Type:		model.ChannelTypePrivate,
-		TeamId:		th.BasicTeam.Id,
-		CreatorId:	user2.Id,
+		Name:        "test-channel-" + model.NewId(),
+		Type:        model.ChannelTypePrivate,
+		TeamId:      th.BasicTeam.Id,
+		CreatorId:   user2.Id,
 	}
 	unofficialChannel, appErr := th.App.CreateChannel(th.Context, channel2, true)
 	require.Nil(t, appErr)
@@ -120,9 +120,9 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 		resetIntegrationAdminUsernameForTesting()
 
 		post := &model.Post{
-			UserId:		user1.Id,
-			ChannelId:	unofficialChannel.Id,
-			Message:	"test message",
+			UserId:    user1.Id,
+			ChannelId: unofficialChannel.Id,
+			Message:   "test message",
 		}
 
 		ctxWithSession := th.Context.WithSession(session)
@@ -148,10 +148,9 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 		updatedPost := createdPost.Clone()
 		updatedPost.Message = "updated message"
 
-		ctxWithSession := th.Context.WithSession(session)
-		_, appErr := th.App.UpdatePost(ctxWithSession, updatedPost, nil)
-		require.NotNil(t, appErr)
-		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		_, err := th.App.UpdatePost(ctxWithSession, updatedPost, nil)
+		require.NotNil(t, err)
+		require.Equal(t, http.StatusForbidden, err.StatusCode)
 	})
 
 	t.Run("PatchPost denied in DM without permission", func(t *testing.T) {
@@ -160,23 +159,21 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 			Message: &patchedMessage,
 		}
 
-		ctxWithSession := th.Context.WithSession(session)
-		_, appErr := th.App.PatchPost(ctxWithSession, createdPost.Id, patch, nil)
-		require.NotNil(t, appErr)
-		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		_, err := th.App.PatchPost(ctxWithSession, createdPost.Id, patch, nil)
+		require.NotNil(t, err)
+		require.Equal(t, http.StatusForbidden, err.StatusCode)
 	})
 
 	t.Run("DeletePost denied in DM without permission", func(t *testing.T) {
-		ctxWithSession := th.Context.WithSession(session)
-		_, appErr := th.App.DeletePost(ctxWithSession, createdPost.Id, user1.Id)
-		require.NotNil(t, appErr)
-		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		_, err := th.App.DeletePost(ctxWithSession, createdPost.Id, user1.Id)
+		require.NotNil(t, err)
+		require.Equal(t, http.StatusForbidden, err.StatusCode)
 	})
 
 	t.Run("Bot can create post in DM without permission", func(t *testing.T) {
 		bot := th.CreateBot()
-		botUser, appErr := th.App.GetUser(bot.UserId)
-		require.Nil(t, appErr)
+		botUser, err := th.App.GetUser(bot.UserId)
+		require.Nil(t, err)
 
 		post := &model.Post{
 			UserId:    botUser.Id,
@@ -189,10 +186,10 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 		})
 		require.Nil(t, err)
 
-		ctxWithSession := th.Context.WithSession(botSession)
-		createdPost, appErr := th.App.CreatePostAsUser(ctxWithSession, post, botSession.Id, true)
-		require.Nil(t, appErr)
-		require.NotNil(t, createdPost)
+		botctxWithSession := th.Context.WithSession(botSession)
+		createdPostByBot, err := th.App.CreatePostAsUser(botctxWithSession, post, botSession.Id, true)
+		require.Nil(t, err)
+		require.NotNil(t, createdPostByBot)
 	})
 
 	t.Run("System admin can create post in DM without permission", func(t *testing.T) {
@@ -202,10 +199,10 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 			Message:   "admin message",
 		}
 
-		ctxWithSession := th.Context.WithSession(adminSession)
-		createdPost, appErr := th.App.CreatePostAsUser(ctxWithSession, post, adminSession.Id, true)
-		require.Nil(t, appErr)
-		require.NotNil(t, createdPost)
+		adminctxWithSession := th.Context.WithSession(adminSession)
+		createdPostByAdmin, err := th.App.CreatePostAsUser(adminctxWithSession, post, adminSession.Id, true)
+		require.Nil(t, err)
+		require.NotNil(t, createdPostByAdmin)
 	})
 
 	t.Run("System admin can create post in unofficial channel without permission", func(t *testing.T) {
@@ -218,10 +215,10 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 			Message:   "admin message",
 		}
 
-		ctxWithSession := th.Context.WithSession(adminSession)
-		createdPost, appErr := th.App.CreatePostAsUser(ctxWithSession, post, adminSession.Id, true)
-		require.Nil(t, appErr)
-		require.NotNil(t, createdPost)
+		adminctxWithSession := th.Context.WithSession(adminSession)
+		createdPostByAdmin, err := th.App.CreatePostAsUser(adminctxWithSession, post, adminSession.Id, true)
+		require.Nil(t, err)
+		require.NotNil(t, createdPostByAdmin)
 	})
 
 	// Create a post in unofficial channel for update/patch/delete tests (temporarily restore permissions)
@@ -241,9 +238,9 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 		updatedPost := createdPost.Clone()
 		updatedPost.Message = "updated message"
 
-		_, appErr := th.App.UpdatePost(ctxWithSession, updatedPost, nil)
-		require.NotNil(t, appErr)
-		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		_, err := th.App.UpdatePost(ctxWithSession, updatedPost, nil)
+		require.NotNil(t, err)
+		require.Equal(t, http.StatusForbidden, err.StatusCode)
 	})
 
 	t.Run("PatchPost denied in unofficial channel without permission", func(t *testing.T) {
@@ -252,14 +249,14 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 			Message: &patchedMessage,
 		}
 
-		_, appErr := th.App.PatchPost(ctxWithSession, createdPost.Id, patch, nil)
-		require.NotNil(t, appErr)
-		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		_, err := th.App.PatchPost(ctxWithSession, createdPost.Id, patch, nil)
+		require.NotNil(t, err)
+		require.Equal(t, http.StatusForbidden, err.StatusCode)
 	})
 
 	t.Run("DeletePost denied in unofficial channel without permission", func(t *testing.T) {
-		_, appErr := th.App.DeletePost(ctxWithSession, createdPost.Id, user1.Id)
-		require.NotNil(t, appErr)
-		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		_, err := th.App.DeletePost(ctxWithSession, createdPost.Id, user1.Id)
+		require.NotNil(t, err)
+		require.Equal(t, http.StatusForbidden, err.StatusCode)
 	})
 }
