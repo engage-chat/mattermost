@@ -6,18 +6,43 @@ package app
 import (
 	"net/http"
 	"testing"
+	"os"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-func TestDMGMPermissionChecksForPosts(t *testing.T) {
+func TestChannelPermissionChecksForPosts(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+	// Save original environment variable
+	originalValue := os.Getenv("INTEGRATION_ADMIN_USERNAME")
+	defer func() {
+		if originalValue == "" {
+			os.Unsetenv("INTEGRATION_ADMIN_USERNAME")
+		} else {
+			os.Setenv("INTEGRATION_ADMIN_USERNAME", originalValue)
+		}
+	}()
+
 	user1 := th.BasicUser
 	user2 := th.BasicUser2
+	adminUser := th.SystemAdminUser
+
+	// Create sessions
+	session, err := th.App.CreateSession(th.Context, &model.Session{
+		UserId: user1.Id,
+		Roles:  model.SystemUserRoleId,
+	})
+	require.Nil(t, err)
+
+	adminSession, err := th.App.CreateSession(th.Context, &model.Session{
+		UserId: adminUser.Id,
+		Roles:  model.SystemAdminRoleId,
+	})
+	require.Nil(t, err)
 
 	// Create DM channel (with permissions)
 	dmChannel, appErr := th.App.GetOrCreateDirectChannel(th.Context, user1.Id, user2.Id)
@@ -30,12 +55,39 @@ func TestDMGMPermissionChecksForPosts(t *testing.T) {
 	require.Nil(t, appErr)
 	require.NotNil(t, gmChannel)
 
+	// Create official channel
+	channel1 := &model.Channel{
+		DisplayName: "test channel",
+		Name:		"test-channel-"+model.NewId(),
+		Type:		model.ChannelTypePrivate,
+		TeamId:		th.BasicTeam.Id,
+		CreatorId:	adminUser.Id,
+	}
+	officialChannel, appErr := th.App.CreateChannel(th.Context, channel1, false)
+	require.Nil(t, appErr)
+	require.NotNil(t, officialChannel)
+
+	// Create unofficial channel
+	channel2 := &model.Channel{
+		DisplayName: "test channel",
+		Name:		"test-channel-"+model.NewId(),
+		Type:		model.ChannelTypePrivate,
+		TeamId:		th.BasicTeam.Id,
+		CreatorId:	user2.Id,
+	}
+	unofficialChannel, appErr := th.App.CreateChannel(th.Context, channel2, true)
+	require.Nil(t, appErr)
+	require.NotNil(t, unofficialChannel)
+
 	// Now remove permissions for testing
 	th.RemovePermissionFromRole(model.PermissionCreateDirectChannel.Id, model.SystemUserRoleId)
 	defer th.AddPermissionToRole(model.PermissionCreateDirectChannel.Id, model.SystemUserRoleId)
 
 	th.RemovePermissionFromRole(model.PermissionCreateGroupChannel.Id, model.SystemUserRoleId)
 	defer th.AddPermissionToRole(model.PermissionCreateGroupChannel.Id, model.SystemUserRoleId)
+
+	th.RemovePermissionFromRole(model.PermissionCreatePrivateChannel.Id, model.TeamUserRoleId)
+	defer th.AddPermissionToRole(model.PermissionCreatePrivateChannel.Id, model.TeamUserRoleId)
 
 	t.Run("CreatePost denied in DM without permission", func(t *testing.T) {
 		post := &model.Post{
@@ -44,7 +96,6 @@ func TestDMGMPermissionChecksForPosts(t *testing.T) {
 			Message:   "test message",
 		}
 
-		session := &model.Session{Id: model.NewId(), UserId: user1.Id, Roles: model.SystemUserRoleId}
 		ctxWithSession := th.Context.WithSession(session)
 		_, err := th.App.CreatePostAsUser(ctxWithSession, post, session.Id, true)
 		require.NotNil(t, err)
@@ -58,7 +109,22 @@ func TestDMGMPermissionChecksForPosts(t *testing.T) {
 			Message:   "test message",
 		}
 
-		session := &model.Session{Id: model.NewId(), UserId: user1.Id, Roles: model.SystemUserRoleId}
+		ctxWithSession := th.Context.WithSession(session)
+		_, err := th.App.CreatePostAsUser(ctxWithSession, post, session.Id, true)
+		require.NotNil(t, err)
+		require.Equal(t, http.StatusForbidden, err.StatusCode)
+	})
+
+	t.Run("CreatePost denied in unofficial channel without permission", func(t *testing.T) {
+		os.Setenv("INTEGRATION_ADMIN_USERNAME", adminUser.Username)
+		resetIntegrationAdminUsernameForTesting()
+
+		post := &model.Post{
+			UserId:		user1.Id,
+			ChannelId:	unofficialChannel.Id,
+			Message:	"test message",
+		}
+
 		ctxWithSession := th.Context.WithSession(session)
 		_, err := th.App.CreatePostAsUser(ctxWithSession, post, session.Id, true)
 		require.NotNil(t, err)
@@ -72,7 +138,6 @@ func TestDMGMPermissionChecksForPosts(t *testing.T) {
 		ChannelId: dmChannel.Id,
 		Message:   "original message",
 	}
-	session := &model.Session{Id: model.NewId(), UserId: user1.Id, Roles: model.SystemUserRoleId}
 	ctxWithSession := th.Context.WithSession(session)
 	createdPost, appErr := th.App.CreatePostAsUser(ctxWithSession, post, session.Id, true)
 	require.Nil(t, appErr)
@@ -83,7 +148,6 @@ func TestDMGMPermissionChecksForPosts(t *testing.T) {
 		updatedPost := createdPost.Clone()
 		updatedPost.Message = "updated message"
 
-		session := &model.Session{Id: model.NewId(), UserId: user1.Id, Roles: model.SystemUserRoleId}
 		ctxWithSession := th.Context.WithSession(session)
 		_, appErr := th.App.UpdatePost(ctxWithSession, updatedPost, nil)
 		require.NotNil(t, appErr)
@@ -96,7 +160,6 @@ func TestDMGMPermissionChecksForPosts(t *testing.T) {
 			Message: &patchedMessage,
 		}
 
-		session := &model.Session{Id: model.NewId(), UserId: user1.Id, Roles: model.SystemUserRoleId}
 		ctxWithSession := th.Context.WithSession(session)
 		_, appErr := th.App.PatchPost(ctxWithSession, createdPost.Id, patch, nil)
 		require.NotNil(t, appErr)
@@ -104,7 +167,6 @@ func TestDMGMPermissionChecksForPosts(t *testing.T) {
 	})
 
 	t.Run("DeletePost denied in DM without permission", func(t *testing.T) {
-		session := &model.Session{Id: model.NewId(), UserId: user1.Id, Roles: model.SystemUserRoleId}
 		ctxWithSession := th.Context.WithSession(session)
 		_, appErr := th.App.DeletePost(ctxWithSession, createdPost.Id, user1.Id)
 		require.NotNil(t, appErr)
@@ -121,27 +183,83 @@ func TestDMGMPermissionChecksForPosts(t *testing.T) {
 			ChannelId: dmChannel.Id,
 			Message:   "bot message",
 		}
+		botSession, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: botUser.Id,
+			Roles:  model.SystemUserRoleId,
+		})
+		require.Nil(t, err)
 
-		session := &model.Session{Id: model.NewId(), UserId: botUser.Id, Roles: model.SystemUserRoleId}
-		ctxWithSession := th.Context.WithSession(session)
-		createdPost, appErr := th.App.CreatePostAsUser(ctxWithSession, post, session.Id, true)
+		ctxWithSession := th.Context.WithSession(botSession)
+		createdPost, appErr := th.App.CreatePostAsUser(ctxWithSession, post, botSession.Id, true)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdPost)
 	})
 
 	t.Run("System admin can create post in DM without permission", func(t *testing.T) {
-		adminUser := th.SystemAdminUser
-
 		post := &model.Post{
 			UserId:    adminUser.Id,
 			ChannelId: dmChannel.Id,
 			Message:   "admin message",
 		}
 
-		session := &model.Session{Id: model.NewId(), UserId: adminUser.Id, Roles: model.SystemAdminRoleId}
-		ctxWithSession := th.Context.WithSession(session)
-		createdPost, appErr := th.App.CreatePostAsUser(ctxWithSession, post, session.Id, true)
+		ctxWithSession := th.Context.WithSession(adminSession)
+		createdPost, appErr := th.App.CreatePostAsUser(ctxWithSession, post, adminSession.Id, true)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdPost)
+	})
+
+	t.Run("System admin can create post in unofficial channel without permission", func(t *testing.T) {
+		os.Setenv("INTEGRATION_ADMIN_USERNAME", adminUser.Username)
+		resetIntegrationAdminUsernameForTesting()
+
+		post := &model.Post{
+			UserId:    adminUser.Id,
+			ChannelId: unofficialChannel.Id,
+			Message:   "admin message",
+		}
+
+		ctxWithSession := th.Context.WithSession(adminSession)
+		createdPost, appErr := th.App.CreatePostAsUser(ctxWithSession, post, adminSession.Id, true)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdPost)
+	})
+
+	// Create a post in unofficial channel for update/patch/delete tests (temporarily restore permissions)
+	th.AddPermissionToRole(model.PermissionCreatePrivateChannel.Id, model.TeamUserRoleId)
+	post2 := &model.Post{
+		UserId:    user1.Id,
+		ChannelId: unofficialChannel.Id,
+		Message:   "original message",
+	}
+	ctxWithSession = th.Context.WithSession(session)
+	createdPost, appErr = th.App.CreatePostAsUser(ctxWithSession, post2, session.Id, true)
+	require.Nil(t, appErr)
+	require.NotNil(t, createdPost)
+	th.RemovePermissionFromRole(model.PermissionCreatePrivateChannel.Id, model.TeamUserRoleId)
+
+	t.Run("UpdatePost denied in unofficial channel without permission", func(t *testing.T) {
+		updatedPost := createdPost.Clone()
+		updatedPost.Message = "updated message"
+
+		_, appErr := th.App.UpdatePost(ctxWithSession, updatedPost, nil)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+	})
+
+	t.Run("PatchPost denied in unofficial channel without permission", func(t *testing.T) {
+		patchedMessage := "patched message"
+		patch := &model.PostPatch{
+			Message: &patchedMessage,
+		}
+
+		_, appErr := th.App.PatchPost(ctxWithSession, createdPost.Id, patch, nil)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+	})
+
+	t.Run("DeletePost denied in unofficial channel without permission", func(t *testing.T) {
+		_, appErr := th.App.DeletePost(ctxWithSession, createdPost.Id, user1.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
 	})
 }

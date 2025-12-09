@@ -54,36 +54,6 @@ func (a *App) CheckChannelPermissions(c request.CTX, channel *model.Channel, use
 		return nil
 	}
 
-// 	// When 「個人チャット・グループチャット・ルーム作成を許可する」is off, only this permission is removed from user role.
-// 	requiredPermission := model.PermissionCreatePrivateChannel
-// 
-// 	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
-// 		// ユーザーが所属する全チームで権限をチェック (team_userのロールにOermissionCreatePrivateChannel権限があるため & DMGMにはTeamの情報はない)
-// 		for _, teamMember := range session.TeamMembers {
-// 			if !a.RolesGrantPermission(teamMember.GetRoles(), requiredPermission.Id) {
-// 				return model.NewAppError(
-// 					"CheckChannelPermissions",
-// 					"api.context.permissions.app_error",
-// 					nil,
-// 					"",
-// 					http.StatusForbidden,
-// 				)
-// 			}
-// 		}
-// 	} else {
-// 		// チームチャンネルの場合は既存のロジック
-// 		if requiredPermission != nil && !a.SessionHasPermissionToTeam(*session, channel.TeamId, requiredPermission) {
-// 			return model.NewAppError(
-// 				"CheckChannelPermissions",
-// 				"api.context.permissions.app_error",
-// 				nil,
-// 				"",
-// 				http.StatusForbidden,
-// 			)
-// 		}
-// 	}
-
-	/////// DM GM Privatechannel の三つの権限をそれぞれ剥奪する場合
 	var requiredPermission *model.Permission
 	var hasPermission bool
 
