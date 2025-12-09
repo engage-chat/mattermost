@@ -73,11 +73,7 @@ func (a *App) CheckChannelPermissions(c request.CTX, channel *model.Channel, use
 
 	case model.ChannelTypePrivate:
 		requiredPermission = model.PermissionCreatePrivateChannel
-		if channel.TeamId != "" {
-			hasPermission = a.SessionHasPermissionToTeam(*session, channel.TeamId, requiredPermission)
-		} else {
-			hasPermission = true
-		}
+		hasPermission = a.SessionHasPermissionToTeam(*session, channel.TeamId, requiredPermission)
 	}
 
 	if requiredPermission != nil && !hasPermission {
