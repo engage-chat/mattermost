@@ -4,6 +4,8 @@
 package app
 
 import (
+	"github.com/golang-jwt/jwt/v5"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -53,7 +55,7 @@ func (a *App) SendNotificationCallEnd(c request.CTX, post *model.Post) *model.Ap
 
 	notification := &model.PushNotification{
 		Version:     model.PushMessageV2,
-		Type:        model.PushTypeMessage,
+		Type:        model.PushTypeUpdateBadge,
 		SubType:     PushSubTypeCallsEnded,
 		TeamId:      channel.TeamId,
 		ChannelId:   post.ChannelId,
@@ -93,6 +95,22 @@ func (a *App) SendNotificationCallEnd(c request.CTX, post *model.Post) *model.Ap
 			deviceID := session.DeviceId
 			tmpMessage.SetDeviceIdAndPlatform(deviceID)
 			tmpMessage.AckId = model.NewId()
+			signature, err := jwt.NewWithClaims(jwt.SigningMethodES256, pushJWTClaims{
+				AckId:    tmpMessage.AckId,
+				DeviceId: tmpMessage.DeviceId,
+		  }).SignedString(a.AsymmetricSigningKey())
+			if err != nil {
+			  a.NotificationsLog().Error("Notification error",
+					mlog.String("ackId", tmpMessage.AckId),
+					mlog.String("type", tmpMessage.Type),
+					mlog.String("userId", session.UserId),
+					mlog.String("postId", tmpMessage.PostId),
+					mlog.String("channelId", tmpMessage.ChannelId),
+					mlog.String("deviceId", tmpMessage.DeviceId),
+					mlog.String("status", err.Error()),
+				)
+			}
+		  tmpMessage.Signature = signature
 
 			if err := a.sendToPushProxy(tmpMessage, session); err != nil {
 				c.Logger().Error("Failed to send call end notification to session",
