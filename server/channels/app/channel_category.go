@@ -47,6 +47,21 @@ func (a *App) GetSidebarCategoriesForTeamForUser(c request.CTX, userID, teamID s
 		}
 	}
 
+	if !a.SessionHasPermissionToTeam(*c.Session(), teamID, model.PermissionCreatePrivateChannel) {
+		filteredCategories := make(model.SidebarCategoriesWithChannels, 0)
+		filteredOrder := make(model.SidebarCategoryOrder, 0)
+
+		for _, category := range categories.Categories {
+			if category.Type != model.SidebarCategoryDirectMessages {
+				filteredCategories = append(filteredCategories, category)
+				filteredOrder = append(filteredOrder, category.Id)
+			}
+		}
+
+		categories.Categories = filteredCategories
+		categories.Order = filteredOrder
+	}
+
 	return categories, nil
 }
 
