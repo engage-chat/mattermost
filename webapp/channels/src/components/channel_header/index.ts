@@ -46,6 +46,7 @@ import {isFileAttachmentsEnabled} from 'utils/file_utils';
 import type {GlobalState} from 'types/store';
 
 import ChannelHeader from './channel_header';
+import { isAvailableUnofficialChannel } from 'utils/available_unofficial_channel';
 
 function makeMapStateToProps() {
     const doGetProfilesInChannel = makeGetProfilesInChannel();
@@ -106,7 +107,7 @@ function makeMapStateToProps() {
             isLastActiveEnabled,
             timestampUnits,
             hideGuestTags: config.HideGuestTags === 'true',
-            sharedChannelsPluginsEnabled,
+            sharedChannelsPluginsEnabled: sharedChannelsPluginsEnabled && isAvailableUnofficialChannel(channel?.id || ''),
         };
     };
 }

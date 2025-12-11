@@ -1,28 +1,24 @@
 import { getChannel } from "mattermost-redux/selectors/entities/channels";
-import { useSelector } from "react-redux";
-import { GlobalState } from "types/store";
 import { isOfficialTunagChannel } from "./official_channel_utils";
 import {Permissions} from 'mattermost-redux/constants';
 import { haveIChannelPermission } from "mattermost-redux/selectors/entities/roles";
+import store from 'stores/redux_store';
 
+export const isAvailableUnofficialChannel = (channelId: string): boolean => {
+    const state = store.getState();
+    const channel = getChannel(state, channelId);
+    
+    if (!channel) {
+        return false;
+    }
 
-export const useIsAvailableUnofficialChannel = (channelId: string): boolean => {
-    return useSelector((state: GlobalState) => {
-        const channel = getChannel(state, channelId);
+    if (isOfficialTunagChannel(channel)) {
+        return true;
+    }
 
-        if (!channel) {
-            return false;
-        }
+    let permission: string | undefined;
 
-        const isOfficial = isOfficialTunagChannel(channel);
-
-        if (isOfficial) {
-            return true;
-        }
-
-        let permission: string;
-
-        switch (channel.type) {
+    switch (channel.type) {
         case 'P':
             permission = Permissions.CREATE_PRIVATE_CHANNEL;
             break;
@@ -34,8 +30,7 @@ export const useIsAvailableUnofficialChannel = (channelId: string): boolean => {
             break;
         default:
             return true;
-        }
+    }
 
-        return haveIChannelPermission(state, channel.team_id, channel.id, permission);
-    });
+    return haveIChannelPermission(state, channel.team_id, channel.id, permission); 
 }

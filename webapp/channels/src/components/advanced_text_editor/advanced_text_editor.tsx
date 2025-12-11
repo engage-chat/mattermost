@@ -87,7 +87,8 @@ import useTextboxFocus from './use_textbox_focus';
 import useUploadFiles from './use_upload_files';
 
 import './advanced_text_editor.scss';
-import { useIsAvailableUnofficialChannel } from 'utils/available_unofficial_channel';
+import { isAvailableUnofficialChannel } from 'utils/available_unofficial_channel';
+import store from 'stores/redux_store';
 
 const FileLimitStickyBanner = makeAsyncComponent('FileLimitStickyBanner', lazy(() => import('components/file_limit_sticky_banner')));
 
@@ -227,7 +228,7 @@ const AdvancedTextEditor = ({
     const [renderScrollbar, setRenderScrollbar] = useState(false);
     const [keepEditorInFocus, setKeepEditorInFocus] = useState(false);
 
-    const readOnlyChannel = !canPost || !useIsAvailableUnofficialChannel(channelId);
+    const readOnlyChannel = !canPost || !isAvailableUnofficialChannel(channelId);
     const hasDraftMessage = Boolean(draft.message);
     const showFormattingBar = !isFormattingBarHidden && !readOnlyChannel;
     const enableSharedChannelsDMs = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true');
