@@ -2113,6 +2113,23 @@ func (a *App) GetChannelsForUser(c request.CTX, userID string, includeDeleted bo
 		}
 	}
 
+	hasPermissionDM := a.SessionHasPermissionTo(*c.Session(), model.PermissionCreateDirectChannel)
+	hasPermissionGM := a.SessionHasPermissionTo(*c.Session(), model.PermissionCreateGroupChannel)
+	hasPermissionPrivate := a.SessionHasPermissionTo(*c.Session(), model.PermissionCreatePrivateChannel)
+
+	if !hasPermissionDM || !hasPermissionGM || !hasPermissionPrivate {
+		filteredList := make(model.ChannelList, 0)
+
+		for _, channel := range list {
+			err := a.CheckChannelPermissions(c, channel, userID)
+			if err != nil {
+				continue
+			}
+			filteredList = append(filteredList, channel)
+		}
+		list = filteredList
+	}
+
 	return list, nil
 }
 
