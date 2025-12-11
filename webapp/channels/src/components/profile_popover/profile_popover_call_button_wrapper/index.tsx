@@ -23,6 +23,7 @@ import WithTooltip from 'components/with_tooltip';
 import {getDirectChannelName} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
+import { useIsAvailableUnofficialChannel } from 'utils/available_unofficial_channel';
 
 type Props = {
     userId: string;
@@ -92,6 +93,10 @@ const CallButton = ({
     });
 
     if (!shouldRenderButton) {
+        return null;
+    }
+
+    if (!useIsAvailableUnofficialChannel(dmChannel?.id || '')) {
         return null;
     }
 
