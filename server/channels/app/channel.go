@@ -2098,7 +2098,41 @@ func (s *Server) getChannelsForTeamForUser(c request.CTX, teamID string, userID 
 }
 
 func (a *App) GetChannelsForTeamForUser(c request.CTX, teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
-	return a.Srv().getChannelsForTeamForUser(c, teamID, userID, opts)
+	list, err := a.Srv().getChannelsForTeamForUser(c, teamID, userID, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	hasPermissionPrivate := true
+	session := *c.Session()
+
+	for _, teamMember := range session.TeamMembers {
+		if !a.SessionHasPermissionToTeam(*c.Session(), teamMember.TeamId, model.PermissionCreatePrivateChannel) {
+			hasPermissionPrivate = false
+			break
+		}
+	}
+
+	if !hasPermissionPrivate {
+		filteredList := make(model.ChannelList, 0)
+
+		for _, channel := range list {
+			if channel.Type == model.ChannelTypeDirect {
+				continue
+			} else if channel.Type == model.ChannelTypeGroup {
+				continue
+			} else if channel.Type == model.ChannelTypePrivate {
+				isOfficial, err := a.IsOfficialChannel(c, channel)
+				if err != nil || !isOfficial {
+					continue
+				}
+			}
+			filteredList = append(filteredList, channel)
+		}
+		list = filteredList
+	}
+
+	return list, nil
 }
 
 func (a *App) GetChannelsForUser(c request.CTX, userID string, includeDeleted bool, lastDeleteAt, pageSize int, fromChannelID string) (model.ChannelList, *model.AppError) {
