@@ -157,10 +157,6 @@ func (a *App) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, 
 		return nil, appErr
 	}
 
-	if appErr := a.Srv().InvalidateAllCaches(); appErr != nil {
-		return nil, appErr
-	}
-
 	return role, err
 }
 
