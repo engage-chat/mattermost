@@ -2131,7 +2131,15 @@ func (a *App) GetChannelsForUser(c request.CTX, userID string, includeDeleted bo
 // 	}
 
 	// hasPermissionDM := a.SessionHasPermissionTo(*c.Session(), model.PermissionCreateDirectChannel)
-	hasPermissionPrivate := a.SessionHasPermissionTo(*c.Session(), model.PermissionCreatePrivateChannel)
+	hasPermissionPrivate := true
+	session := *c.Session()
+	
+	for _, teamMember := range session.TeamMembers {
+		if !a.SessionHasPermissionToTeam(*c.Session(), teamMember.TeamId, model.PermissionCreatePrivateChannel) {
+			hasPermissionPrivate = false
+			break
+		}
+	}
 
 	if !hasPermissionPrivate {
 		filteredList := make(model.ChannelList, 0)
@@ -2141,6 +2149,11 @@ func (a *App) GetChannelsForUser(c request.CTX, userID string, includeDeleted bo
 				continue
 			} else if channel.Type == model.ChannelTypeGroup {
 				continue
+			} else if channel.Type == model.ChannelTypePrivate {
+				isOfficial, err := a.IsOfficialChannel(c, channel)
+				if err != nil || !isOfficial {
+					continue
+				}
 			}
 			filteredList = append(filteredList, channel)
 		}
