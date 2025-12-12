@@ -270,6 +270,11 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
         } else if (category.type === CategoryTypes.DIRECT_MESSAGES) {
             const addHelpLabel = localizeMessage({id: 'sidebar.createDirectMessage', defaultMessage: 'Create new direct message'});
 
+            // Only show the direct message category if there are channels in the category
+            if (!channelIds || !channelIds.length) {
+                return null;
+            }
+
             categoryMenu = (
                 <>
                     <SidebarCategorySortingMenu
