@@ -18,6 +18,7 @@ import {Constants} from 'utils/constants';
 import type {CallButtonAction} from 'types/store/plugins';
 
 import './call_button.scss';
+import { isAvailableUnofficialChannel } from 'utils/available_unofficial_channel';
 
 type Props = {
     currentChannel?: Channel;
@@ -42,7 +43,7 @@ export default function CallButton({pluginCallComponents, currentChannel, channe
         prevSidebarOpen.current = sidebarOpen;
     }, [sidebarOpen]);
 
-    if (pluginCallComponents.length === 0) {
+    if (pluginCallComponents.length === 0 || !isAvailableUnofficialChannel(currentChannel?.id || '')) {
         return null;
     }
 
