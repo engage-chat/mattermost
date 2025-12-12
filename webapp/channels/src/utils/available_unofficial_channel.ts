@@ -1,7 +1,7 @@
 import { getChannel } from "mattermost-redux/selectors/entities/channels";
 import { isOfficialTunagChannel } from "./official_channel_utils";
 import {Permissions} from 'mattermost-redux/constants';
-import { haveIChannelPermission } from "mattermost-redux/selectors/entities/roles";
+import { haveIChannelPermission, haveICurrentTeamPermission } from "mattermost-redux/selectors/entities/roles";
 import store from 'stores/redux_store';
 
 export const isAvailableUnofficialChannel = (channelId: string): boolean => {
@@ -33,4 +33,9 @@ export const isAvailableUnofficialChannel = (channelId: string): boolean => {
     }
 
     return haveIChannelPermission(state, channel.team_id, channel.id, permission); 
+}
+
+export const isAvailableDMGMChannel = (): boolean => {
+    const state = store.getState();
+    return haveICurrentTeamPermission(state, Permissions.CREATE_DIRECT_CHANNEL) && haveICurrentTeamPermission(state, Permissions.CREATE_GROUP_CHANNEL);
 }

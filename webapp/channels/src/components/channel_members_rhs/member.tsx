@@ -20,6 +20,7 @@ import GuestTag from 'components/widgets/tag/guest_tag';
 import WithTooltip from 'components/with_tooltip';
 
 import type {ChannelMember as ChannelMemberType} from './member_list';
+import { isAvailableDMGMChannel } from 'utils/available_unofficial_channel';
 
 interface Props {
     channel: Channel;
@@ -124,7 +125,7 @@ const Member = ({channel, member, index, totalUsers, editing, actions}: Props) =
                     />
                 )}
             </div>
-            {!editing && (
+            {!editing && isAvailableDMGMChannel() && (
                 <WithTooltip
                     title={formatMessage({
                         id: 'channel_members_rhs.member.send_message',

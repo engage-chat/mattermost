@@ -33,6 +33,7 @@ import AddChannelsCtaButton from '../add_channels_cta_button';
 import InviteMembersButton from '../invite_members_button';
 import {SidebarCategoryHeader} from '../sidebar_category_header';
 import SidebarChannel from '../sidebar_channel';
+import { isAvailableDMGMChannel } from 'utils/available_unofficial_channel';
 
 type Props = {
     category: ChannelCategory;
@@ -275,7 +276,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                         category={category}
                         handleOpenDirectMessagesModal={this.handleOpenDirectMessagesModal}
                     />
-                    <WithTooltip
+                    {isAvailableDMGMChannel() && (<WithTooltip
                         title={
                             <>
                                 {addHelpLabel}
@@ -295,7 +296,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                         >
                             <i className='icon-plus'/>
                         </button>
-                    </WithTooltip>
+                    </WithTooltip>)}
                 </>
             );
 
