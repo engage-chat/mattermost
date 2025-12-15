@@ -20,10 +20,10 @@ import {
 import ProfilePopoverCallButton from 'components/profile_popover/profile_popover_calls_button';
 import WithTooltip from 'components/with_tooltip';
 
+import {isAvailableUnofficialChannel} from 'utils/available_unofficial_channel';
 import {getDirectChannelName} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
-import { isAvailableUnofficialChannel } from 'utils/available_unofficial_channel';
 
 type Props = {
     userId: string;

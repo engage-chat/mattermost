@@ -12,8 +12,9 @@ import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import ProfilePopoverAddToChannel from 'components/profile_popover/profile_popover_add_to_channel';
 import ProfilePopoverCallButtonWrapper from 'components/profile_popover/profile_popover_call_button_wrapper';
 
+import {isAvailableDMGMChannel} from 'utils/available_unofficial_channel';
+
 import type {GlobalState} from 'types/store';
-import { isAvailableDMGMChannel } from 'utils/available_unofficial_channel';
 
 type Props = {
     user: UserProfile;

@@ -13,12 +13,12 @@ import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
+import {isAvailableUnofficialChannel} from 'utils/available_unofficial_channel';
 import {Constants} from 'utils/constants';
 
 import type {CallButtonAction} from 'types/store/plugins';
 
 import './call_button.scss';
-import { isAvailableUnofficialChannel } from 'utils/available_unofficial_channel';
 
 type Props = {
     currentChannel?: Channel;

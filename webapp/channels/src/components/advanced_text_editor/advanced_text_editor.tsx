@@ -47,6 +47,7 @@ import {convertDisplayPositionToRawPosition, convertRawPositionToDisplayPosition
 import {OnboardingTourSteps, OnboardingTourStepsForGuestUsers, TutorialTourName} from 'components/tours/constant';
 import {SendMessageTour} from 'components/tours/onboarding_tour';
 
+import {isAvailableUnofficialChannel} from 'utils/available_unofficial_channel';
 import Constants, {
     Locations,
     StoragePrefixes,
@@ -87,8 +88,6 @@ import useTextboxFocus from './use_textbox_focus';
 import useUploadFiles from './use_upload_files';
 
 import './advanced_text_editor.scss';
-import { isAvailableUnofficialChannel } from 'utils/available_unofficial_channel';
-import store from 'stores/redux_store';
 
 const FileLimitStickyBanner = makeAsyncComponent('FileLimitStickyBanner', lazy(() => import('components/file_limit_sticky_banner')));
 

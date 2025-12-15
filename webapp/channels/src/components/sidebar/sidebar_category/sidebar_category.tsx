@@ -21,6 +21,7 @@ import KeyboardShortcutSequence, {
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import WithTooltip from 'components/with_tooltip';
 
+import {isAvailableDMGMChannel} from 'utils/available_unofficial_channel';
 import Constants, {A11yCustomEventTypes, DraggingStateTypes, DraggingStates} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
@@ -33,7 +34,6 @@ import AddChannelsCtaButton from '../add_channels_cta_button';
 import InviteMembersButton from '../invite_members_button';
 import {SidebarCategoryHeader} from '../sidebar_category_header';
 import SidebarChannel from '../sidebar_channel';
-import { isAvailableDMGMChannel } from 'utils/available_unofficial_channel';
 
 type Props = {
     category: ChannelCategory;
@@ -281,27 +281,28 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                         category={category}
                         handleOpenDirectMessagesModal={this.handleOpenDirectMessagesModal}
                     />
-                    {isAvailableDMGMChannel() && (<WithTooltip
-                        title={
-                            <>
-                                {addHelpLabel}
-                                <KeyboardShortcutSequence
-                                    shortcut={KEYBOARD_SHORTCUTS.navDMMenu}
-                                    hideDescription={true}
-                                    isInsideTooltip={true}
-                                />
-                            </>
-                        }
-                    >
-                        <button
-                            id='newDirectMessageButton'
-                            className='SidebarChannelGroupHeader_addButton'
-                            onClick={this.handleOpenDirectMessagesModal}
-                            aria-label={addHelpLabel}
+                    {isAvailableDMGMChannel() && (
+                        <WithTooltip
+                            title={
+                                <>
+                                    {addHelpLabel}
+                                    <KeyboardShortcutSequence
+                                        shortcut={KEYBOARD_SHORTCUTS.navDMMenu}
+                                        hideDescription={true}
+                                        isInsideTooltip={true}
+                                    />
+                                </>
+                            }
                         >
-                            <i className='icon-plus'/>
-                        </button>
-                    </WithTooltip>)}
+                            <button
+                                id='newDirectMessageButton'
+                                className='SidebarChannelGroupHeader_addButton'
+                                onClick={this.handleOpenDirectMessagesModal}
+                                aria-label={addHelpLabel}
+                            >
+                                <i className='icon-plus'/>
+                            </button>
+                        </WithTooltip>)}
                 </>
             );
 

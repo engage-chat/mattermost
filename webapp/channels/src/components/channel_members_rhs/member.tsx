@@ -19,8 +19,9 @@ import SharedChannelIndicator from 'components/shared_channel_indicator';
 import GuestTag from 'components/widgets/tag/guest_tag';
 import WithTooltip from 'components/with_tooltip';
 
+import {isAvailableDMGMChannel} from 'utils/available_unofficial_channel';
+
 import type {ChannelMember as ChannelMemberType} from './member_list';
-import { isAvailableDMGMChannel } from 'utils/available_unofficial_channel';
 
 interface Props {
     channel: Channel;
