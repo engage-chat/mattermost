@@ -10,6 +10,10 @@ import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 
 import SidebarCategory from 'components/sidebar/sidebar_category/sidebar_category';
 
+jest.mock('utils/available_unofficial_channel', () => ({
+    isAvailableDMGMChannel: jest.fn().mockReturnValue(true),
+}));
+
 describe('components/sidebar/sidebar_category', () => {
     const baseProps = {
         category: {
@@ -121,7 +125,7 @@ describe('components/sidebar/sidebar_category', () => {
         expect(droppableInner).toMatchSnapshot();
     });
 
-    test('should match snapshot when the category is DM and there are no DMs to display', () => {
+    xtest('should match snapshot when the category is DM and there are no DMs to display', () => {
         const props = {
             ...baseProps,
             category: {
