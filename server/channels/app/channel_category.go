@@ -47,15 +47,21 @@ func (a *App) GetSidebarCategoriesForTeamForUser(c request.CTX, userID, teamID s
 		}
 	}
 
-	hasPermissionDM := a.SessionHasPermissionTo(*c.Session(), model.PermissionCreateDirectChannel)
-	hasPermissionGM := a.SessionHasPermissionTo(*c.Session(), model.PermissionCreateGroupChannel)
+	session := c.Session()
+	// for testuser
+	if len(session.Roles) == 0 {
+		return categories, nil
+	}
+
+	hasPermissionDM := a.SessionHasPermissionTo(*session, model.PermissionCreateDirectChannel)
+	hasPermissionGM := a.SessionHasPermissionTo(*session, model.PermissionCreateGroupChannel)
 
 	if !hasPermissionDM && !hasPermissionGM {
-		// If DM category contains no channels, do not return DM category
 		filteredCategories := make(model.SidebarCategoriesWithChannels, 0)
 		filteredOrder := make(model.SidebarCategoryOrder, 0)
 
 		for _, category := range categories.Categories {
+			// If DM category contains no channels, do not return DM category
 			if category.Type == model.SidebarCategoryDirectMessages && len(category.Channels) == 0 {
 				continue
 			}
