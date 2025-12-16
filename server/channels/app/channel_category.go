@@ -49,7 +49,7 @@ func (a *App) GetSidebarCategoriesForTeamForUser(c request.CTX, userID, teamID s
 
 	session := c.Session()
 	// for testuser
-	if len(session.Roles) == 0 {
+	if session.Roles == "" {
 		return categories, nil
 	}
 
