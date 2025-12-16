@@ -125,7 +125,7 @@ describe('components/sidebar/sidebar_category', () => {
         expect(droppableInner).toMatchSnapshot();
     });
 
-    xtest('should match snapshot when the category is DM and there are no DMs to display', () => {
+    test('should match snapshot when the category is DM and there are no DMs to display', () => {
         const props = {
             ...baseProps,
             category: {
