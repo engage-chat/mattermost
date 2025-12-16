@@ -14,6 +14,7 @@ import {TestHelper} from 'utils/test_helper';
 import type {GlobalState} from 'types/store';
 
 import DotMenu from './dot_menu';
+import type {DotMenuClass} from './dot_menu';
 
 jest.mock('./utils');
 
