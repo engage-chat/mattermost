@@ -11,6 +11,10 @@ import type {GlobalState} from 'types/store';
 
 import ProfilePopoverOtherUserRow from './profile_popover_other_user_row';
 
+jest.mock('utils/available_unofficial_channel', () => ({
+    isAvailableDMGMChannel: jest.fn().mockReturnValue(true),
+}));
+
 describe('components/ProfilePopoverOtherUserRow', () => {
     const baseProps = {
         user: TestHelper.getUserMock({id: 'user1'}),
