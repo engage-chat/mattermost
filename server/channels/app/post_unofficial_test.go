@@ -79,13 +79,14 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 	require.Nil(t, appErr)
 	require.NotNil(t, unofficialChannel)
 
+	ctxWithSession := th.Context.WithSession(session)
+
 	// Create a post in DM for update/patch/delete tests
 	post := &model.Post{
 		UserId:    user1.Id,
 		ChannelId: dmChannel.Id,
 		Message:   "original message",
 	}
-	ctxWithSession := th.Context.WithSession(session)
 	createdPost, appErr := th.App.CreatePostAsUser(ctxWithSession, post, session.Id, true)
 	require.Nil(t, appErr)
 	require.NotNil(t, createdPost)
@@ -96,7 +97,6 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 		ChannelId: unofficialChannel.Id,
 		Message:   "original message",
 	}
-	ctxWithSession = th.Context.WithSession(session)
 	createdPost, appErr = th.App.CreatePostAsUser(ctxWithSession, post2, session.Id, true)
 	require.Nil(t, appErr)
 	require.NotNil(t, createdPost)
@@ -118,7 +118,6 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 			Message:   "test message",
 		}
 
-		ctxWithSession := th.Context.WithSession(session)
 		_, err := th.App.CreatePostAsUser(ctxWithSession, post, session.Id, true)
 		require.NotNil(t, err)
 		require.Equal(t, http.StatusForbidden, err.StatusCode)
@@ -131,7 +130,6 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 			Message:   "test message",
 		}
 
-		ctxWithSession := th.Context.WithSession(session)
 		_, err := th.App.CreatePostAsUser(ctxWithSession, post, session.Id, true)
 		require.NotNil(t, err)
 		require.Equal(t, http.StatusForbidden, err.StatusCode)
@@ -147,7 +145,6 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 			Message:   "test message",
 		}
 
-		ctxWithSession := th.Context.WithSession(session)
 		_, err := th.App.CreatePostAsUser(ctxWithSession, post, session.Id, true)
 		require.NotNil(t, err)
 		require.Equal(t, http.StatusForbidden, err.StatusCode)
