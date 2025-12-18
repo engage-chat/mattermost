@@ -47,8 +47,6 @@ func (a *App) GetSidebarCategoriesForTeamForUser(c request.CTX, userID, teamID s
 		}
 	}
 
-	a.filterSidebarCategories(c, categories)
-
 	return categories, nil
 }
 

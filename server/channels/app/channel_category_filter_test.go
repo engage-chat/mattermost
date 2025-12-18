@@ -32,7 +32,7 @@ func TestFilterSidebarCategories(t *testing.T) {
 			},
 		}
 
-		th.App.filterSidebarCategories(ctx, categories)
+		th.App.FilterSidebarCategories(ctx, categories)
 		require.Len(t, categories.Categories, 1)
 	})
 
@@ -58,7 +58,7 @@ func TestFilterSidebarCategories(t *testing.T) {
 			},
 		}
 
-		th.App.filterSidebarCategories(ctx, categories)
+		th.App.FilterSidebarCategories(ctx, categories)
 		require.Len(t, categories.Categories, 0)
 	})
 
@@ -84,7 +84,7 @@ func TestFilterSidebarCategories(t *testing.T) {
 			},
 		}
 
-		th.App.filterSidebarCategories(ctx, categories)
+		th.App.FilterSidebarCategories(ctx, categories)
 		require.Len(t, categories.Categories, 1)
 	})
 
@@ -106,7 +106,7 @@ func TestFilterSidebarCategories(t *testing.T) {
 			},
 		}
 
-		th.App.filterSidebarCategories(ctx, categories)
+		th.App.FilterSidebarCategories(ctx, categories)
 		require.Len(t, categories.Categories, 1)
 	})
 }
