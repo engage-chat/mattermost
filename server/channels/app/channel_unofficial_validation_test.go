@@ -116,7 +116,7 @@ func TestCheckChannelPermissions(t *testing.T) {
 		assert.Nil(t, err)
 	})
 
-	t.Run("should not allow unofficial channel access with CREATE_PRIVATE_CHANNEL permission", func(t *testing.T) {
+	t.Run("should not allow unofficial channel access without CREATE_PRIVATE_CHANNEL permission", func(t *testing.T) {
 		resetIntegrationAdminUsernameForTesting()
 		os.Setenv("INTEGRATION_ADMIN_USERNAME", adminUser.Username)
 

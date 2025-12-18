@@ -27,7 +27,10 @@ func (a *App) CheckChannelPermissions(c request.CTX, channel *model.Channel, use
 		return nil
 	}
 
-	// Check if the user is a bot - bots should be allowed to post in DM/GM channels
+	// Check if user is a bot, bot is always assumed to have permissions
+	if session.IsBotUser() {
+		return nil
+	}
 	if userID != "" {
 		user, err := a.GetUser(userID)
 		if err != nil {
@@ -63,7 +66,7 @@ func (a *App) CheckChannelPermissions(c request.CTX, channel *model.Channel, use
 		hasPermission = a.SessionHasPermissionTo(*session, requiredPermission)
 
 	case model.ChannelTypePrivate:
-		// If channel is official channel, user always have permission to access.
+		// If channel is official channel, user always has permission to access.
 		isOfficial, err := a.IsOfficialChannel(c, channel)
 		if err != nil {
 			return err
@@ -74,6 +77,9 @@ func (a *App) CheckChannelPermissions(c request.CTX, channel *model.Channel, use
 
 		requiredPermission = model.PermissionCreatePrivateChannel
 		hasPermission = a.SessionHasPermissionToTeam(*session, channel.TeamId, requiredPermission)
+
+	default:
+		return nil
 	}
 
 	if requiredPermission != nil && !hasPermission {

@@ -79,6 +79,28 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 	require.Nil(t, appErr)
 	require.NotNil(t, unofficialChannel)
 
+	// Create a post in DM for update/patch/delete tests
+	post := &model.Post{
+		UserId:    user1.Id,
+		ChannelId: dmChannel.Id,
+		Message:   "original message",
+	}
+	ctxWithSession := th.Context.WithSession(session)
+	createdPost, appErr := th.App.CreatePostAsUser(ctxWithSession, post, session.Id, true)
+	require.Nil(t, appErr)
+	require.NotNil(t, createdPost)
+
+	// Create a post in unofficial channel for update/patch/delete tests
+	post2 := &model.Post{
+		UserId:    user1.Id,
+		ChannelId: unofficialChannel.Id,
+		Message:   "original message",
+	}
+	ctxWithSession = th.Context.WithSession(session)
+	createdPost, appErr = th.App.CreatePostAsUser(ctxWithSession, post2, session.Id, true)
+	require.Nil(t, appErr)
+	require.NotNil(t, createdPost)
+
 	// Now remove permissions for testing
 	th.RemovePermissionFromRole(model.PermissionCreateDirectChannel.Id, model.SystemUserRoleId)
 	defer th.AddPermissionToRole(model.PermissionCreateDirectChannel.Id, model.SystemUserRoleId)
@@ -130,19 +152,6 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 		require.NotNil(t, err)
 		require.Equal(t, http.StatusForbidden, err.StatusCode)
 	})
-
-	// Create a post in DM for update/patch/delete tests (temporarily restore permissions)
-	th.AddPermissionToRole(model.PermissionCreateDirectChannel.Id, model.SystemUserRoleId)
-	post := &model.Post{
-		UserId:    user1.Id,
-		ChannelId: dmChannel.Id,
-		Message:   "original message",
-	}
-	ctxWithSession := th.Context.WithSession(session)
-	createdPost, appErr := th.App.CreatePostAsUser(ctxWithSession, post, session.Id, true)
-	require.Nil(t, appErr)
-	require.NotNil(t, createdPost)
-	th.RemovePermissionFromRole(model.PermissionCreateDirectChannel.Id, model.SystemUserRoleId)
 
 	t.Run("UpdatePost denied in DM without permission", func(t *testing.T) {
 		updatedPost := createdPost.Clone()
@@ -220,19 +229,6 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, createdPostByAdmin)
 	})
-
-	// Create a post in unofficial channel for update/patch/delete tests (temporarily restore permissions)
-	th.AddPermissionToRole(model.PermissionCreatePrivateChannel.Id, model.TeamUserRoleId)
-	post2 := &model.Post{
-		UserId:    user1.Id,
-		ChannelId: unofficialChannel.Id,
-		Message:   "original message",
-	}
-	ctxWithSession = th.Context.WithSession(session)
-	createdPost, appErr = th.App.CreatePostAsUser(ctxWithSession, post2, session.Id, true)
-	require.Nil(t, appErr)
-	require.NotNil(t, createdPost)
-	th.RemovePermissionFromRole(model.PermissionCreatePrivateChannel.Id, model.TeamUserRoleId)
 
 	t.Run("UpdatePost denied in unofficial channel without permission", func(t *testing.T) {
 		updatedPost := createdPost.Clone()
