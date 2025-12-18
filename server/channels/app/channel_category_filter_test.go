@@ -95,7 +95,7 @@ func TestFilterSidebarCategories(t *testing.T) {
 		}
 		ctx := th.Context.WithSession(session)
 
-		originalCategories := &model.OrderedSidebarCategories{
+		categories := &model.OrderedSidebarCategories{
 			Categories: model.SidebarCategoriesWithChannels{
 				{
 					SidebarCategory: model.SidebarCategory{
@@ -106,7 +106,7 @@ func TestFilterSidebarCategories(t *testing.T) {
 			},
 		}
 
-		th.App.filterSidebarCategories(ctx, originalCategories)
-		require.Len(t, originalCategories.Categories, 1)
+		th.App.filterSidebarCategories(ctx, categories)
+		require.Len(t, categories.Categories, 1)
 	})
 }

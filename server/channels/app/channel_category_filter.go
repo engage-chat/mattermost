@@ -11,7 +11,6 @@ import (
 func (a *App) filterSidebarCategories(c request.CTX, categories *model.OrderedSidebarCategories) {
 	session := c.Session()
 
-	// for testuser
 	if session.Roles == "" {
 		return
 	}
@@ -23,8 +22,8 @@ func (a *App) filterSidebarCategories(c request.CTX, categories *model.OrderedSi
 		return
 	}
 
-	filteredCategories := make(model.SidebarCategoriesWithChannels, 0)
-	filteredOrder := make(model.SidebarCategoryOrder, 0)
+	filteredCategories := make(model.SidebarCategoriesWithChannels, 0, len(categories.Categories))
+	filteredOrder := make(model.SidebarCategoryOrder, 0, len(categories.Order))
 
 	for _, category := range categories.Categories {
 		// When the user lacks permissions to create DMGM and DM category is empty, remove DM category
