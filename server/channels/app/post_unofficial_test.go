@@ -87,9 +87,9 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 		ChannelId: dmChannel.Id,
 		Message:   "original message",
 	}
-	createdPost, appErr := th.App.CreatePostAsUser(ctxWithSession, post, session.Id, true)
+	createdPostInDM, appErr := th.App.CreatePostAsUser(ctxWithSession, post, session.Id, true)
 	require.Nil(t, appErr)
-	require.NotNil(t, createdPost)
+	require.NotNil(t, createdPostInDM)
 
 	// Create a post in unofficial channel for update/patch/delete tests
 	post2 := &model.Post{
@@ -97,9 +97,9 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 		ChannelId: unofficialChannel.Id,
 		Message:   "original message",
 	}
-	createdPost, appErr = th.App.CreatePostAsUser(ctxWithSession, post2, session.Id, true)
+	createdPostInUnofficial, appErr := th.App.CreatePostAsUser(ctxWithSession, post2, session.Id, true)
 	require.Nil(t, appErr)
-	require.NotNil(t, createdPost)
+	require.NotNil(t, createdPostInUnofficial)
 
 	// Now remove permissions for testing
 	th.RemovePermissionFromRole(model.PermissionCreateDirectChannel.Id, model.SystemUserRoleId)
@@ -151,7 +151,7 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 	})
 
 	t.Run("UpdatePost denied in DM without permission", func(t *testing.T) {
-		updatedPost := createdPost.Clone()
+		updatedPost := createdPostInDM.Clone()
 		updatedPost.Message = "updated message"
 
 		_, err := th.App.UpdatePost(ctxWithSession, updatedPost, nil)
@@ -165,13 +165,13 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 			Message: &patchedMessage,
 		}
 
-		_, err := th.App.PatchPost(ctxWithSession, createdPost.Id, patch, nil)
+		_, err := th.App.PatchPost(ctxWithSession, createdPostInDM.Id, patch, nil)
 		require.NotNil(t, err)
 		require.Equal(t, http.StatusForbidden, err.StatusCode)
 	})
 
 	t.Run("DeletePost denied in DM without permission", func(t *testing.T) {
-		_, err := th.App.DeletePost(ctxWithSession, createdPost.Id, user1.Id)
+		_, err := th.App.DeletePost(ctxWithSession, createdPostInDM.Id, user1.Id)
 		require.NotNil(t, err)
 		require.Equal(t, http.StatusForbidden, err.StatusCode)
 	})
@@ -228,7 +228,7 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 	})
 
 	t.Run("UpdatePost denied in unofficial channel without permission", func(t *testing.T) {
-		updatedPost := createdPost.Clone()
+		updatedPost := createdPostInUnofficial.Clone()
 		updatedPost.Message = "updated message"
 
 		_, err := th.App.UpdatePost(ctxWithSession, updatedPost, nil)
@@ -242,13 +242,13 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 			Message: &patchedMessage,
 		}
 
-		_, err := th.App.PatchPost(ctxWithSession, createdPost.Id, patch, nil)
+		_, err := th.App.PatchPost(ctxWithSession, createdPostInUnofficial.Id, patch, nil)
 		require.NotNil(t, err)
 		require.Equal(t, http.StatusForbidden, err.StatusCode)
 	})
 
 	t.Run("DeletePost denied in unofficial channel without permission", func(t *testing.T) {
-		_, err := th.App.DeletePost(ctxWithSession, createdPost.Id, user1.Id)
+		_, err := th.App.DeletePost(ctxWithSession, createdPostInUnofficial.Id, user1.Id)
 		require.NotNil(t, err)
 		require.Equal(t, http.StatusForbidden, err.StatusCode)
 	})
