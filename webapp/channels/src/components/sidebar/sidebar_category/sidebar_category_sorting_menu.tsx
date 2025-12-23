@@ -29,6 +29,7 @@ import {trackEvent} from 'actions/telemetry_actions';
 
 import * as Menu from 'components/menu';
 
+import {isAvailableDMGMChannel} from 'utils/available_unofficial_channel';
 import Constants from 'utils/constants';
 
 type Props = {
@@ -210,7 +211,7 @@ const SidebarCategorySortingMenu = ({
                 {sortDirectMessagesMenuItem}
                 {showMessagesCountMenuItem}
                 <Menu.Separator/>
-                {openDirectMessageMenuItem}
+                {isAvailableDMGMChannel() && openDirectMessageMenuItem}
             </Menu.Container>
         </div>
     );
