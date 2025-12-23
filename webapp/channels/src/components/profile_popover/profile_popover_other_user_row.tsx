@@ -12,6 +12,8 @@ import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import ProfilePopoverAddToChannel from 'components/profile_popover/profile_popover_add_to_channel';
 import ProfilePopoverCallButtonWrapper from 'components/profile_popover/profile_popover_call_button_wrapper';
 
+import {isAvailableDMGMChannel} from 'utils/available_unofficial_channel';
+
 import type {GlobalState} from 'types/store';
 
 type Props = {
@@ -43,7 +45,7 @@ const ProfilePopoverOtherUserRow = ({
 
     // Hide Message button for remote users when EnableSharedChannelsDMs feature flag is off
     const isRemoteUser = Boolean(user.remote_id);
-    const showMessageButton = isSharedChannelsDMsEnabled || !isRemoteUser;
+    const showMessageButton = (isSharedChannelsDMsEnabled || !isRemoteUser) && isAvailableDMGMChannel();
 
     return (
         <div className='user-popover__bottom-row-container'>
