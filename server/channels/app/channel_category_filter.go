@@ -8,8 +8,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-func (a *App) FilterSidebarCategories(c request.CTX, categories *model.OrderedSidebarCategories) {
-	session := c.Session()
+func (a *App) FilterSidebarCategories(rctx request.CTX, categories *model.OrderedSidebarCategories) {
+	session := rctx.Session()
 
 	if session.Roles == "" {
 		return

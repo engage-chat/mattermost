@@ -21,6 +21,10 @@ jest.mock('utils/available_unofficial_channel', () => ({
     isAvailableUnofficialChannel: jest.fn().mockReturnValue(true),
 }));
 
+jest.mock('utils/available_unofficial_channel', () => ({
+    isAvailableUnofficialChannel: jest.fn().mockReturnValue(true),
+}));
+
 describe('components/dot_menu/DotMenu', () => {
     const latestPost = {
         id: 'latest_post_id',

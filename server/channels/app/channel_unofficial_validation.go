@@ -10,16 +10,15 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-// Validates the setting 「個人チャット・グループチャット・ルーム作成を許可する」 in TUNAG.
-// If user is not allowed to create these, the permission checked by this function has been removed from the role.
+// Validates for the TUNAG setting "Allow DM, GM, and creation of unofficial channel".
+// If the permission checked by this function has been removed from the role,
+// the user is considered not to be allowed the corresponding TUNAG setting.
 //
-//   - 個人チャット:     DM
-//   - グループチャット:  GM
-//   - ルーム:           Unofficial channel (not created via TUNAG). This can be checked by isOfficialChannel().
-func (a *App) CheckChannelPermissions(c request.CTX, channel *model.Channel, userID string) *model.AppError {
-	session := c.Session()
+//   - unofficial channel:    channel not created via TUNAG. It can be checked by isOfficialChannel().
+func (a *App) CheckChannelPermissions(rctx request.CTX, channel *model.Channel, userID string) *model.AppError {
+	session := rctx.Session()
 	if session == nil || session.Id == "" {
-		return nil // No session means no DM/GM permission check needed
+		return nil // No session means no permission check needed
 	}
 
 	// If channel is nil, skip permission check
@@ -27,7 +26,7 @@ func (a *App) CheckChannelPermissions(c request.CTX, channel *model.Channel, use
 		return nil
 	}
 
-	// Check if user is a bot, bot is always assumed to have permissions
+	// Bot is always assumed to have permissions
 	if session.IsBotUser() {
 		return nil
 	}
@@ -48,7 +47,7 @@ func (a *App) CheckChannelPermissions(c request.CTX, channel *model.Channel, use
 		return nil
 	}
 
-	// System admins always have permission to DM/GM/Channels
+	// System admins always assumed to have permission to DM/GM/Channels
 	if a.SessionHasPermissionTo(*session, model.PermissionManageSystem) {
 		return nil
 	}
@@ -67,7 +66,7 @@ func (a *App) CheckChannelPermissions(c request.CTX, channel *model.Channel, use
 
 	case model.ChannelTypePrivate:
 		// If channel is official channel, user always has permission to access.
-		isOfficial, err := a.IsOfficialChannel(c, channel)
+		isOfficial, err := a.IsOfficialChannel(rctx, channel)
 		if err != nil {
 			return err
 		}
