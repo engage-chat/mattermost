@@ -9,6 +9,10 @@ import {TestHelper} from 'utils/test_helper';
 
 import SidebarCategorySortingMenu from './sidebar_category_sorting_menu';
 
+jest.mock('utils/available_unofficial_channel', () => ({
+    isAvailableDMGMChannel: jest.fn().mockReturnValue(true),
+}));
+
 const initialState = {
     entities: {
         users: {
