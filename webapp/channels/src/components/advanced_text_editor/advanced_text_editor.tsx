@@ -47,6 +47,7 @@ import {convertDisplayPositionToRawPosition, convertRawPositionToDisplayPosition
 import {OnboardingTourSteps, OnboardingTourStepsForGuestUsers, TutorialTourName} from 'components/tours/constant';
 import {SendMessageTour} from 'components/tours/onboarding_tour';
 
+import {isAvailableUnofficialChannel} from 'utils/available_unofficial_channel';
 import Constants, {
     Locations,
     StoragePrefixes,
@@ -226,7 +227,7 @@ const AdvancedTextEditor = ({
     const [renderScrollbar, setRenderScrollbar] = useState(false);
     const [keepEditorInFocus, setKeepEditorInFocus] = useState(false);
 
-    const readOnlyChannel = !canPost;
+    const readOnlyChannel = !canPost || !isAvailableUnofficialChannel(channelId);
     const hasDraftMessage = Boolean(draft.message);
     const showFormattingBar = !isFormattingBarHidden && !readOnlyChannel;
     const enableSharedChannelsDMs = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true');
