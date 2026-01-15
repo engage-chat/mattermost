@@ -96,9 +96,9 @@ func (a *App) SendNotificationCallEnd(c request.CTX, post *model.Post) *model.Ap
 			signature, err := jwt.NewWithClaims(jwt.SigningMethodES256, pushJWTClaims{
 				AckId:    tmpMessage.AckId,
 				DeviceId: tmpMessage.DeviceId,
-		  }).SignedString(a.AsymmetricSigningKey())
+			}).SignedString(a.AsymmetricSigningKey())
 			if err != nil {
-			  a.NotificationsLog().Error("Notification error",
+				a.NotificationsLog().Error("Notification error",
 					mlog.String("ackId", tmpMessage.AckId),
 					mlog.String("type", tmpMessage.Type),
 					mlog.String("userId", session.UserId),
@@ -108,7 +108,7 @@ func (a *App) SendNotificationCallEnd(c request.CTX, post *model.Post) *model.Ap
 					mlog.String("status", err.Error()),
 				)
 			}
-		  tmpMessage.Signature = signature
+			tmpMessage.Signature = signature
 
 			if err := a.sendToPushProxy(tmpMessage, session); err != nil {
 				c.Logger().Error("Failed to send call end notification to session",
