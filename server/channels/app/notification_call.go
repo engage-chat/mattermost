@@ -55,7 +55,7 @@ func (a *App) SendNotificationCallEnd(c request.CTX, post *model.Post) *model.Ap
 
 	notification := &model.PushNotification{
 		Version:     model.PushMessageV2,
-		Type:        model.PushTypeUpdateBadge,
+		Type:        model.PushTypeMessage,
 		SubType:     PushSubTypeCallsEnded,
 		TeamId:      channel.TeamId,
 		ChannelId:   post.ChannelId,
