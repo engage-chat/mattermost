@@ -12,7 +12,6 @@ import (
 )
 
 const (
-	NotificationCallEndMessage = "Call ended"
 	PushSubTypeCallsEnded = "calls_ended"
 )
 
@@ -55,12 +54,11 @@ func (a *App) SendNotificationCallEnd(c request.CTX, post *model.Post) *model.Ap
 
 	notification := &model.PushNotification{
 		Version:     model.PushMessageV2,
-		Type:        model.PushTypeMessage,
+		Type:        model.PushTypeClear,
 		SubType:     PushSubTypeCallsEnded,
 		TeamId:      channel.TeamId,
 		ChannelId:   post.ChannelId,
 		PostId:      post.Id,
-		Message:     NotificationCallEndMessage,
 		ChannelName: channel.DisplayName,
 	}
 
