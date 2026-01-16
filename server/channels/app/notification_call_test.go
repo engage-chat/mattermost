@@ -193,13 +193,22 @@ func TestSendNotificationCallEnd(t *testing.T) {
 			Props:     model.StringMap{model.SessionPropOs: "Android"},
 		}
 
-		// Create iOS session without VoipDeviceId
+		// Create iOS session: one with VoipID, one without VoipID
+		withVoipSession := &model.Session{
+			Id:           model.NewId(),
+			UserId:       userId,
+			DeviceId:     "ios_device",
+			ExpiresAt:    model.GetMillis() + 100000, // Active
+			VoipDeviceId: "ios_voip_device",
+			Props:        model.StringMap{model.SessionPropOs: "iOS"},
+		}
+
 		withoutVoipSession := &model.Session{
 			Id:           model.NewId(),
 			UserId:       userId,
 			DeviceId:     "ios_device",
 			ExpiresAt:    model.GetMillis() + 100000, // Active
-			VoipDeviceId: "",                         // Empty - should be skipped
+			VoipDeviceId: "",
 			Props:        model.StringMap{model.SessionPropOs: "iOS"},
 		}
 
@@ -213,7 +222,12 @@ func TestSendNotificationCallEnd(t *testing.T) {
 		}).Return(channelMembers, nil)
 		mockStore.On("Channel").Return(&mockChannelStore)
 
-		mockSessionStore.On("GetSessionsWithActiveDeviceIds", userId).Return([]*model.Session{activeSession, expiredSession, withoutVoipSession}, nil)
+		mockSessionStore.On("GetSessionsWithActiveDeviceIds", userId).Return([]*model.Session{
+			activeSession,      // shoud send
+			expiredSession,     // should not send
+			withVoipSession,    // should send
+			withoutVoipSession, // should not send
+		}, nil)
 		mockStore.On("Session").Return(&mockSessionStore)
 
 		// Start mock push proxy & set proxy server url
@@ -235,7 +249,7 @@ func TestSendNotificationCallEnd(t *testing.T) {
 		require.Nil(t, err)
 
 		time.Sleep(1 * time.Second)
-		assert.Equal(t, 1, handler.numReqs(), "The number of sessions that should send push notification does not match the actual number of requests")
+		assert.Equal(t, 2, handler.numReqs(), "The number of sessions that should send push notification does not match the actual number of requests")
 
 		mockChannelStore.AssertExpectations(t)
 		mockSessionStore.AssertExpectations(t)
