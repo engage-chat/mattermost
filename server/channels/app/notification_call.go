@@ -85,7 +85,7 @@ func (a *App) SendNotificationCallEnd(c request.CTX, post *model.Post) *model.Ap
 			}
 
 			// Do not send notifications to devices that do not ring
-			if session.Props["os"] == "iOS" && session.VoipDeviceId == "" {
+			if session.Props[model.SessionPropOs] == "iOS" && session.VoipDeviceId == "" {
 				continue
 			}
 
@@ -107,6 +107,7 @@ func (a *App) SendNotificationCallEnd(c request.CTX, post *model.Post) *model.Ap
 					mlog.String("deviceId", tmpMessage.DeviceId),
 					mlog.String("status", err.Error()),
 				)
+				continue
 			}
 			tmpMessage.Signature = signature
 
