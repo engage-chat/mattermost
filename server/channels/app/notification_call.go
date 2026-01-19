@@ -13,16 +13,20 @@ import (
 
 const (
 	PushSubTypeCallsEnded = "calls_ended"
+
+	// constants originating from the calls plugin
+	PostTypeCallsPluginCustomCall = "custom_calls"
+	PostPropsCallsPluginEndAt = "end_at"
 )
 
 // SendNotificationCallEnd sends a notification to mobile app users when a call ends
 // This function is intended to be called from UpdatePost
 func (a *App) SendNotificationCallEnd(c request.CTX, post *model.Post) *model.AppError {
-	if post.Type != "custom_calls" {
+	if post.Type != PostTypeCallsPluginCustomCall {
 		return nil
 	}
 
-	endAt, exists := post.Props["end_at"]
+	endAt, exists := post.Props[PostPropsCallsPluginEndAt]
 	if !exists || endAt == nil {
 		return nil
 	}
