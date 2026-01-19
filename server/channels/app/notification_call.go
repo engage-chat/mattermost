@@ -16,7 +16,7 @@ const (
 
 	// constants originating from the calls plugin
 	PostTypeCallsPluginCustomCall = "custom_calls"
-	PostPropsCallsPluginEndAt = "end_at"
+	PostPropsCallsPluginEndAt     = "end_at"
 )
 
 // SendNotificationCallEnd sends a notification to mobile app users when a call ends
