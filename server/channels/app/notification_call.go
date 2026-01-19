@@ -34,7 +34,7 @@ func (a *App) SendNotificationCallEnd(c request.CTX, post *model.Post) *model.Ap
 		return err
 	}
 
-	if channel.Type != model.ChannelTypeDirect && channel.Type != model.ChannelTypeGroup {
+	if !channel.IsGroupOrDirect() {
 		return nil
 	}
 
