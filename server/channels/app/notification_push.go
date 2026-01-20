@@ -148,7 +148,7 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 		)
 	}
 
-	// store already sent deviceIDs to prevent duplicate incomming call notifications
+	// sentDeviceIDs tracks unique deviceIDs to prevent duplicate incoming call notifications
 	sentDeviceIDs := make(map[string]struct{})
 
 	for _, session := range sessions {
@@ -170,7 +170,7 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 		deviceID := session.DeviceId
 		if msg.SubType == model.PushSubTypeCalls && session.VoipDeviceId != "" {
 			deviceID = session.VoipDeviceId
-			// Check only incoming call where duplicate notification bug has been confirmed
+			// For incoming calls, ensure we only send once per VoIP deviceID
 			if _, exist := sentDeviceIDs[deviceID]; exist {
 				continue
 			}
@@ -215,6 +215,7 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 			continue
 		}
 
+		// Record the deviceID as sent
 		sentDeviceIDs[tmpMessage.DeviceId] = struct{}{}
 
 		a.NotificationsLog().Trace("Notification sent to push proxy",
