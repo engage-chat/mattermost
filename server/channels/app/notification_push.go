@@ -171,7 +171,7 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 		if msg.SubType == model.PushSubTypeCalls && session.VoipDeviceId != "" {
 			deviceID = session.VoipDeviceId
 			// For incoming calls, ensure we only send once per VoIP deviceID
-			if _, exist := sentDeviceIDs[deviceID]; exist {
+			if _, exists := sentDeviceIDs[deviceID]; exists {
 				continue
 			}
 		}
@@ -216,7 +216,7 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 		}
 
 		// Record the deviceID as sent
-		sentDeviceIDs[tmpMessage.DeviceId] = struct{}{}
+		sentDeviceIDs[deviceID] = struct{}{}
 
 		a.NotificationsLog().Trace("Notification sent to push proxy",
 			mlog.String("type", model.NotificationTypePush),
