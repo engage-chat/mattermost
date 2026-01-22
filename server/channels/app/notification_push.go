@@ -174,7 +174,7 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 			if _, exists := sentVoipDeviceIDs[deviceID]; exists {
 				continue
 			}
-			// Record the deviceID regardless of send success or failure
+			// Record the VoIP deviceID before attempting to send, preventing retries even if the send fails
 			sentVoipDeviceIDs[deviceID] = struct{}{}
 		}
 		tmpMessage.SetDeviceIdAndPlatform(deviceID)
