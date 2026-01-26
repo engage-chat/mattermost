@@ -649,7 +649,7 @@ func (fs SqlFileInfoStore) likesearch(rctx request.CTX, paramsList []*model.Sear
 		terms := params.Terms
 		excludedTerms := params.ExcludedTerms
 
-		for _, c := range fs.specialSearchChars() {
+		for _, c := range specialSearchChars {
 			terms = strings.Replace(terms, c, " ", -1)
 			excludedTerms = strings.Replace(excludedTerms, c, " ", -1)
 		}

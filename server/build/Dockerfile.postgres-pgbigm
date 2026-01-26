@@ -1,9 +1,9 @@
-FROM postgres:13
+FROM postgres:14
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         build-essential \
-        postgresql-server-dev-13 \
+        postgresql-server-dev-14 \
         git \
         ca-certificates \
         libicu-dev && \
@@ -13,7 +13,7 @@ RUN apt-get update && \
     make USE_PGXS=1 install && \
     apt-get purge -y --auto-remove \
         build-essential \
-        postgresql-server-dev-13 \
+        postgresql-server-dev-14 \
         git \
         ca-certificates \
         libicu-dev && \
