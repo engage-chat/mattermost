@@ -41,7 +41,10 @@ services:
     volumes:
       - ./docker/mysql.conf.d/replica.cnf:/etc/mysql/conf.d/mysql.cnf
   postgres:
-    image: "postgres:13"
+    # image: "postgres:13"
+    build:
+      context: ./
+      dockerfile: Dockerfile.postgres-pgbigm
     restart: always
     networks:
       - mm-test
