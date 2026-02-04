@@ -371,3 +371,9 @@ export const validHttpUrl = (input: string) => {
 
     return url;
 };
+
+export function isDevServer(serverURL: string): boolean {
+    const serverHost = new URL(serverURL).hostname;
+
+    return serverHost === 'localhost';
+}

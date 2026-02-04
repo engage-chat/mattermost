@@ -7,6 +7,7 @@ import {
     getSiteURLFromWindowObject,
     isPermalinkURL,
     validateChannelUrl,
+    isDevServer,
 } from 'utils/url';
 
 describe('Utils.URL', () => {
@@ -131,6 +132,18 @@ describe('Utils.URL', () => {
             ['https://example.com/teamname-1/pl/affe2344234', false],
         ])('is permalink for %s should return %s', (url, expected) => {
             expect(isPermalinkURL(url)).toBe(expected);
+        });
+    });
+
+    describe('isDevServer', () => {
+        test.each([
+            [true, 'http://localhost:8065'],
+            [true, 'http://localhost:8065/some/path'],
+
+            [false, 'https://example.com'],
+            [false, 'https://example.jp'],
+        ])('should return %s for %s', (expected, url) => {
+            expect(isDevServer(url)).toBe(expected);
         });
     });
 });

@@ -369,4 +369,32 @@ describe('components/login/Login', () => {
 
         expect(history.push).toHaveBeenCalledWith(redirectPath);
     });
+
+    it('should hide login form when server is not dev', () => {
+        const spy = jest.spyOn(require('utils/url'), 'isDevServer').mockReturnValue(false);
+
+        const state = mergeObjects(baseState, {
+            entities: {
+                general: {
+                    config: {
+                        EnableSignInWithEmail: 'true',
+                    },
+                },
+                users: {
+                    currentUserId: 'user1',
+                },
+            },
+        });
+
+        renderWithContext(
+            <Login/>,
+            state,
+        );
+
+        expect(screen.queryByLabelText('Email')).not.toBeInTheDocument();
+        expect(screen.queryByLabelText('Password')).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: 'Log in'})).not.toBeInTheDocument();
+
+        spy.mockRestore();
+    });
 });

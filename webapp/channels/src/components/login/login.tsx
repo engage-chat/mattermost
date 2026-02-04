@@ -51,6 +51,7 @@ import DesktopApp from 'utils/desktop_api';
 import {isEmbedded} from 'utils/embed';
 import {t} from 'utils/i18n';
 import {showNotification} from 'utils/notifications';
+import {getSiteURL, isDevServer} from 'utils/url';
 import {isDesktopApp} from 'utils/user_agent';
 import {setCSRFFromCookie} from 'utils/utils';
 
@@ -140,10 +141,15 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const enableSignUpWithSaml = isLicensed && enableSaml;
     const siteName = SiteName ?? '';
 
-    const enableBaseLogin = enableSignInWithEmail || enableSignInWithUsername || ldapEnabled;
+    let enableBaseLogin = enableSignInWithEmail || enableSignInWithUsername || ldapEnabled;
     const enableExternalSignup = enableSignUpWithGitLab || enableSignUpWithOffice365 || enableSignUpWithGoogle || enableSignUpWithOpenId || enableSignUpWithSaml;
     const showSignup = enableOpenServer && (enableExternalSignup || enableSignUpWithEmail || enableLdap);
     const onlyLdapEnabled = enableLdap && !(enableSaml || enableSignInWithEmail || enableSignInWithUsername || enableSignUpWithEmail || enableSignUpWithGitLab || enableSignUpWithGoogle || enableSignUpWithOffice365 || enableSignUpWithOpenId);
+
+    // Disable ID/PW login in non-dev server
+    if (!isDevServer(getSiteURL())) {
+        enableBaseLogin = false;
+    }
 
     const query = new URLSearchParams(search);
     const redirectTo = query.get('redirect_to');
