@@ -32,7 +32,7 @@ const (
 const maxMultipartFormDataBytes = 10 * 1024 // 10Kb
 
 func (api *API) InitFile() {
-	api.BaseRoutes.Files.Handle("", api.APISessionRequired(uploadFileStream, handlerParamFileAPI)).Methods(http.MethodPost)
+	api.BaseRoutes.Files.Handle("", api.APISessionRequired(uploadFile, handlerParamFileAPI)).Methods(http.MethodPost)
 	api.BaseRoutes.File.Handle("", api.APISessionRequiredTrustRequester(getFile)).Methods(http.MethodGet)
 	api.BaseRoutes.File.Handle("/thumbnail", api.APISessionRequiredTrustRequester(getFileThumbnail)).Methods(http.MethodGet)
 	api.BaseRoutes.File.Handle("/link", api.APISessionRequired(getFileLink)).Methods(http.MethodGet)
@@ -43,6 +43,125 @@ func (api *API) InitFile() {
 	api.BaseRoutes.Files.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchFilesInAllTeams)).Methods(http.MethodPost)
 
 	api.BaseRoutes.PublicFile.Handle("", api.APIHandler(getPublicFile)).Methods(http.MethodGet, http.MethodHead)
+}
+
+func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
+	defer io.Copy(io.Discard, r.Body)
+
+	if !*c.App.Config().FileSettings.EnableFileAttachments {
+		c.Err = model.NewAppError("uploadFile", "api.file.attachments.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if r.ContentLength > *c.App.Config().FileSettings.MaxFileSize {
+		c.Err = model.NewAppError("uploadFile", "api.file.upload_file.too_large.app_error", nil, "", http.StatusRequestEntityTooLarge)
+		return
+	}
+
+	var resStruct *model.FileUploadResponse
+
+	if err := r.ParseMultipartForm(*c.App.Config().FileSettings.MaxFileSize); err != nil && err != http.ErrNotMultipart {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	} else if err == http.ErrNotMultipart {
+		defer r.Body.Close()
+
+		c.RequireChannelId()
+		c.RequireFilename()
+
+		if c.Err != nil {
+			return
+		}
+
+		channelId := c.Params.ChannelId
+		filename := c.Params.Filename
+
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionUploadFile) {
+			c.SetPermissionError(model.PermissionUploadFile)
+			return
+		}
+
+		resStruct, appErr := c.App.UploadFileX(c.AppContext, c.Params.ChannelId, filename, r.Body,
+			app.UploadFileSetTeamId(FileTeamId),
+			app.UploadFileSetUserId(c.AppContext.Session().UserId),
+			app.UploadFileSetTimestamp(time.Now()),
+			app.UploadFileSetContentLength(-1),
+			app.UploadFileSetClientId(""))
+
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+
+		w.WriteHeader(http.StatusCreated)
+		if err := json.NewEncoder(w).Encode(resStruct); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
+	} else {
+		m := r.MultipartForm
+
+		props := m.Value
+		if len(props["channel_id"]) == 0 {
+			c.SetInvalidParam("channel_id")
+			return
+		}
+		channelId := props["channel_id"][0]
+		if len(channelId) == 0 {
+			c.SetInvalidParam("channel_id")
+			return
+		}
+
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionUploadFile) {
+			c.SetPermissionError(model.PermissionUploadFile)
+			return
+		}
+
+		resStruct = &model.FileUploadResponse{
+			FileInfos: []*model.FileInfo{},
+			ClientIds: []string{},
+		}
+
+		clientIds := props["client_ids"]
+		fileHeaders := m.File["files"]
+
+		for i, fileHeader := range fileHeaders {
+			f, err := fileHeader.Open()
+			if err != nil {
+				c.Err = model.NewAppError("uploadFile", "api.file.read_request.app_error", nil, err.Error(), http.StatusBadRequest)
+				return
+			}
+
+			clientId := ""
+			if len(clientIds) > i {
+				clientId = clientIds[i]
+			}
+
+			res, appErr := c.App.UploadFileX(c.AppContext, channelId, fileHeader.Filename, f,
+				app.UploadFileSetTeamId(FileTeamId),
+				app.UploadFileSetUserId(c.AppContext.Session().UserId),
+				app.UploadFileSetTimestamp(time.Now()),
+				app.UploadFileSetContentLength(-1),
+				app.UploadFileSetClientId(clientId))
+			f.Close()
+
+			if appErr != nil {
+				c.Err = appErr
+				return
+			}
+
+			resStruct.FileInfos = append(resStruct.FileInfos, res)
+			if clientId != "" {
+				resStruct.ClientIds = append(resStruct.ClientIds, clientId)
+			}
+		}
+
+		w.Header().Set("X-Debug-Path", "ALIVE-AND-PASSING-NEW-FUNC")
+		w.WriteHeader(http.StatusCreated)
+		if err := json.NewEncoder(w).Encode(resStruct); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
+	}
+
 }
 
 func parseMultipartRequestHeader(req *http.Request) (boundary string, err error) {
