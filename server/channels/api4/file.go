@@ -32,7 +32,7 @@ const (
 const maxMultipartFormDataBytes = 10 * 1024 // 10Kb
 
 func (api *API) InitFile() {
-	api.BaseRoutes.Files.Handle("", api.APISessionRequired(uploadFile, handlerParamFileAPI)).Methods(http.MethodPost)
+	api.BaseRoutes.Files.Handle("", api.APISessionRequired(uploadFileStream, handlerParamFileAPI)).Methods(http.MethodPost)
 	api.BaseRoutes.File.Handle("", api.APISessionRequiredTrustRequester(getFile)).Methods(http.MethodGet)
 	api.BaseRoutes.File.Handle("/thumbnail", api.APISessionRequiredTrustRequester(getFileThumbnail)).Methods(http.MethodGet)
 	api.BaseRoutes.File.Handle("/link", api.APISessionRequired(getFileLink)).Methods(http.MethodGet)
@@ -46,7 +46,9 @@ func (api *API) InitFile() {
 }
 
 func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
-	defer io.Copy(io.Discard, r.Body)
+	defer func() {
+		_, _ = io.Copy(io.Discard, r.Body)
+	}()
 
 	if !*c.App.Config().FileSettings.EnableFileAttachments {
 		c.Err = model.NewAppError("uploadFile", "api.file.attachments.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -161,7 +163,6 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
 	}
-
 }
 
 func parseMultipartRequestHeader(req *http.Request) (boundary string, err error) {
@@ -195,6 +196,11 @@ func multipartReader(req *http.Request, stream io.Reader) (*multipart.Reader, er
 }
 
 func uploadFileStream(c *Context, w http.ResponseWriter, r *http.Request) {
+	if true {
+		// avoid to use stream upload
+		uploadFile(c, w, r)
+	}
+
 	if !*c.App.Config().FileSettings.EnableFileAttachments {
 		c.Err = model.NewAppError("uploadFileStream",
 			"api.file.attachments.disabled.app_error",
