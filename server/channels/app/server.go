@@ -502,6 +502,10 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	})
 
+	// サーバーが起動完了する前に有効化されていると、サーバー初期化のGoroutineやGCなどの影響でエラーになる
+	// サーバー起動が終わるこのタイミングで有効化することで、エラーを回避する
+	s.platform.WebsocketEventHookEnabled = true
+
 	return s, nil
 }
 

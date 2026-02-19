@@ -114,6 +114,10 @@ type PlatformService struct {
 	forceEnableRedis bool
 
 	pdpService einterfaces.PolicyDecisionPointInterface
+
+	// WSイベント配信時に任意の処理をはさむフック
+	WebSocketEventHooks map[string]WebSocketEventHook
+	WebsocketEventHookEnabled bool
 }
 
 type HookRunner interface {
@@ -371,6 +375,11 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 			*cfg.ServiceSettings.EnableLocalMode = true
 		})
 	}
+
+	// WebSocketEventHooks の初期化（起動時は無効）
+	// 各フックの登録と、それらが必要とするメモリの確保をサーバー起動時に一度だけ行う
+	ps.WebSocketEventHooks = ps.makeWebSocketEventHook()
+	ps.WebsocketEventHookEnabled = false
 
 	ps.AddLicenseListener(func(oldLicense, newLicense *model.License) {
 		wasLicensed := (oldLicense != nil && *oldLicense.Features.Metrics) || (model.BuildNumber == "dev")

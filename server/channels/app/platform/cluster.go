@@ -178,6 +178,9 @@ func (ps *PlatformService) Publish(message *model.WebSocketEvent) {
 
 	ps.PublishSkipClusterSend(message)
 
+	// Websocketイベントを配信した後に、フック処理を行う
+	ps.runWebSocketEventHooks(message)
+
 	if ps.clusterIFace != nil {
 		data, err := message.ToJSON()
 		if err != nil {
