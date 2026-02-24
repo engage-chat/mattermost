@@ -57,7 +57,8 @@ func (ps *PlatformService) runWebSocketEventHooks(message *model.WebSocketEvent)
 type CallRoom struct {
 	callID string
 	counter int
-	timer *time.Timer
+	scheduledTask *model.ScheduledTask
+	ended bool
 	mu sync.Mutex
 }
 
@@ -81,12 +82,9 @@ func (h *callTimeoutEventHook) Process(message *model.WebSocketEvent) error {
 		mlog.Int("eventPart_length", len(eventPart)),
 	)
 
-// 	if len(eventPart) < 3 || !(eventPart[0] == "custom") || !(eventPart[1] == callsPluginId) {
-// 		return nil
-// 	}
-// 	if (eventPart[0] == "posted") {
-// 		mlog.Debug("***********************postedのWSイベントを受信しました")
-// 	}
+	if len(eventPart) < 3 || !(eventPart[0] == "custom") || !(eventPart[1] == callsPluginId) {
+		return nil
+	}
 
 	mlog.Debug("@@@@@@@@@@@@@@@@@@@@ 関数内に入っています！",
 		mlog.String("part1", event),
@@ -98,18 +96,19 @@ func (h *callTimeoutEventHook) Process(message *model.WebSocketEvent) error {
 	return nil
 }
 
-
-// func (ps *PlatformService) メモリ管理して解放する定期実行(){
-//
+/**
+ * TODO: どこかで登録
+ */
+// CallRoomのメモリ解放を行う定期処理（通常Jobと違いDBアクセスなし）
+// func runCallRoomCleanup() {
+// 	model.CreateRecurringTask("taskName", func(){
+// 		doCallRoomCleanup()
+// 	}, time.Hour*2)
 // }
 //
-
-
-
-
-
-// サーバー起動後、メモリリークを防ぐための定期的なクリーンアップ
-// これはMattermostのJobにSchedule登録してもいいかも
+// func (ps *PlatformService) doCallRoomCleanup() {
+//
+// }
 
 // func (ps *PlatformService) memoryManagementLoop(ctx context.Context) {
 // 	ticker := time.NewTicker(1 * time.Hour)
