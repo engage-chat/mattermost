@@ -13,10 +13,11 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
+	"github.com/pkg/errors"
 )
 
 const callsPluginId = "com.mattermost.calls"
-const callsTimeoutDuration = time.Minute*3
+const callsTimeoutDuration = time.Minute * 3
 
 const (
 	callTimeoutEventHookName = "call_timeout"
@@ -59,16 +60,16 @@ func (ps *PlatformService) runWebSocketEventHooks(message *model.WebSocketEvent)
 
 // 各通話の状態と、専用のタイマーを管理する構造体
 type CallRoom struct {
-	channelId string
+	channelId     string
 	scheduledTask *model.ScheduledTask
-	mu sync.Mutex
+	mu            sync.Mutex
 }
 
 // callTimeoutEventHook	が必要とするものを格納する構造体
 // PlatformService起動時に一度だけ確保され、サーバー終了時まで保持される。
-type callTimeoutEventHook struct{
-	ps *PlatformService // Storeアクセスのため、親を依存性注入しておく
-	mu sync.Mutex
+type callTimeoutEventHook struct {
+	ps    *PlatformService // Storeアクセスのため、親を依存性注入しておく
+	mu    sync.Mutex
 	rooms map[string]*CallRoom // メモリ解放はdelete()ではされないため注意　CallRoomを更新するごとにマップ作り直す処理が必要
 }
 
@@ -97,7 +98,7 @@ func (h *callTimeoutEventHook) Process(message *model.WebSocketEvent) error {
 	// 	// mlog.Any("struct.mu_state", h.mu),
 	// )
 
-	data :=  message.GetData()
+	data := message.GetData()
 	callId := data["id"].(string) // 各通話の識別番号
 	channelId := data["channelID"].(string)
 
@@ -107,8 +108,8 @@ func (h *callTimeoutEventHook) Process(message *model.WebSocketEvent) error {
 		defer h.mu.Unlock()
 
 		h.rooms[callId] = &CallRoom{
-			channelId: channelId,
-			scheduledTask: model.CreateTask(callId, func(){h.checkTimeoutCondition(callId)}, callsTimeoutDuration),
+			channelId:     channelId,
+			scheduledTask: model.CreateTask(callId, func() { h.checkTimeoutCondition(callId) }, callsTimeoutDuration),
 		}
 		return nil
 	}
@@ -128,7 +129,7 @@ func (h *callTimeoutEventHook) Process(message *model.WebSocketEvent) error {
 				callRoom.scheduledTask.Cancel()
 				callRoom.scheduledTask = nil
 			}
-			callRoom.scheduledTask = model.CreateTask(callId, func(){h.checkTimeoutCondition(callId)}, callsTimeoutDuration)
+			callRoom.scheduledTask = model.CreateTask(callId, func() { h.checkTimeoutCondition(callId) }, callsTimeoutDuration)
 		case "call_end":
 			if callRoom.scheduledTask != nil {
 				callRoom.scheduledTask.Cancel()
@@ -146,7 +147,7 @@ func (h *callTimeoutEventHook) Process(message *model.WebSocketEvent) error {
 func (h *callTimeoutEventHook) checkTimeoutCondition(callId string) {
 	// タイムアウトのタイマーが途中で止められなければの関数内に入る
 
-	callInfo, err := GetCallByID(callId)
+	callInfo, err := h.GetCallByID(callId)
 	if err != nil {
 		// エラー処理
 	}
@@ -154,12 +155,12 @@ func (h *callTimeoutEventHook) checkTimeoutCondition(callId string) {
 }
 
 type callInfo struct {
-	ID string
-	ChannelID string
-	EndAt string
+	ID           string
+	ChannelID    string
+	EndAt        string
 	Participants string
-	Stats string
-	Props string
+	Stats        string
+	Props        string
 }
 
 func (h *callTimeoutEventHook) GetCallByID(callId string) (*callInfo, error) {
@@ -175,7 +176,7 @@ func (h *callTimeoutEventHook) GetCallByID(callId string) (*callInfo, error) {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Call", callId)
 		}
-		return nil,
+		return nil, errors.Wrapf(err, "failed to get call with callId=%s", callId)
 	}
 	return call, nil
 }

@@ -116,7 +116,7 @@ type PlatformService struct {
 	pdpService einterfaces.PolicyDecisionPointInterface
 
 	// WSイベント配信時に任意の処理をはさむフック
-	WebSocketEventHooks map[string]WebSocketEventHook
+	WebSocketEventHooks       map[string]WebSocketEventHook
 	WebsocketEventHookEnabled bool
 }
 
