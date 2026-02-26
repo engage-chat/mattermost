@@ -51,7 +51,7 @@ customize-assets:
 	grep -l "login-body-card-form" $(CUSTOMIZE_SOURCE_DIR)/*.css | while read -r css_file; do \
 		if [ -n "$${css_file}" ]; then \
 			echo "-> Found file: $${css_file}. Appending login form hiding rules..."; \
-			echo ".login-body-card-form { display: none !important; } .login-body-card-form-divider { display: none !important; }" >> "$${css_file}"; \
+			echo ".login-body-card-form { display: none !important; } .login-body-card-form-divider { display: none !important; } .login-body-alternate-link { display: none !important; }" >> "$${css_file}"; \
 		else \
 			echo "::error title=Hiding login form Error::login-body-card-form pattern not found in any CSS file."; \
 			exit 1; \
