@@ -47,6 +47,10 @@ customize-assets:
 		fi; \
 	done
 
+	@echo "hiding ID/password login form..."
+	echo ".login-body-card-form { display: none !important; }" >> $(CUSTOMIZE_SOURCE_DIR)/css/initial_loading_screen.css
+	echo ".login-body-card-form-divider { display: none !important; }" >> $(CUSTOMIZE_SOURCE_DIR)/css/initial_loading_screen.css
+
 	@echo "hiding loading screen icon..."
 	echo ".LoadingAnimation__compass { display: none; }" >> $(CUSTOMIZE_SOURCE_DIR)/css/initial_loading_screen.css
 
