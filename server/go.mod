@@ -5,13 +5,13 @@ go 1.24.6
 require (
 	code.sajari.com/docconv/v2 v2.0.0-pre.4
 	github.com/Masterminds/semver/v3 v3.3.1
-	github.com/anthonynsimon/bild v0.14.0
 	github.com/avct/uasurfer v0.0.0-20250506104815-f2613aa2d406
 	github.com/aws/aws-sdk-go v1.55.7
 	github.com/bep/imagemeta v0.12.0
 	github.com/blang/semver/v4 v4.0.0
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
+	github.com/disintegration/imaging v1.6.2
 	github.com/dyatlov/go-opengraph/opengraph v0.0.0-20220524092352-606d7b1e5f8a
 	github.com/elastic/go-elasticsearch/v8 v8.18.0
 	github.com/fatih/color v1.18.0
