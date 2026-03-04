@@ -108,7 +108,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AttributeBasedAccessControl = true
 	f.ContentFlagging = false
 	f.InteractiveDialogAppsForm = true
-	f.EnableMattermostEntry = true
+	f.EnableMattermostEntry = false
 	f.MobileSSOCodeExchange = true
 }
 
