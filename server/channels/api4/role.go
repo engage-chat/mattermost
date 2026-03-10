@@ -110,6 +110,12 @@ func getRolesByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	appErr := c.App.CheckCustomRolesHook(c.AppContext, cleanedRoleNames)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
 	roles, appErr := c.App.GetRolesByNames(cleanedRoleNames)
 	if appErr != nil {
 		c.Err = appErr
