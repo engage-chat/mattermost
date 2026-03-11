@@ -110,10 +110,16 @@ func getRolesByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appErr := c.App.CheckCustomRolesHook(c.AppContext, cleanedRoleNames)
-	if appErr != nil {
-		c.Err = appErr
-		return
+	// TODO:
+	// ・権限チェックが正しく機能しているか確認
+	// ・CheckCustomRolesHookの中で、二重にロール作成されないように対策する
+	// ・エラー処理をどうするか考える
+	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageRoles) {
+		appErr := c.App.CheckCustomRolesHook(c.AppContext, cleanedRoleNames)
+		if appErr != nil {
+			c.Err = appErr
+			return // Hookなのでエラーが出ても return せずログ出しに留めたほうがいいか？
+		}
 	}
 
 	roles, appErr := c.App.GetRolesByNames(cleanedRoleNames)
