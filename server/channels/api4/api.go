@@ -363,6 +363,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitCustomProfileAttributes()
 	api.InitAuditLogging()
 	api.InitAccessControlPolicy()
+	api.InitTunagCustom()
 
 	// If we allow testing then listen for manual testing URL hits
 	if *srv.Config().ServiceSettings.EnableTesting {
