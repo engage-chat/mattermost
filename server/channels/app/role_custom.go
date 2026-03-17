@@ -10,7 +10,8 @@ import (
 )
 
 /*
-customRoleGroupが指定されていない場合は全てのカスタムロールを、指定されている場合はそのグループのカスタムロールをDBから取得する関数
+グループが指定されていればグループに属するカスタムロールを、指定されていなければ全てのカスタムロールをDBから取得する関数
+（DBに存在しているものは、論理削除されているもの含め全て取得される）
 */
 func (a *App) GetCustomRolesForGroup(c request.CTX, customRoleGroup string) ([]*model.Role, *model.AppError) {
 	var targetRoleNames []string
@@ -26,6 +27,9 @@ func (a *App) GetCustomRolesForGroup(c request.CTX, customRoleGroup string) ([]*
 	return a.GetRolesByNames(targetRoleNames)
 }
 
+/*
+渡されたグループに属するカスタムロールが作成されているかを確認し、作成されていない場合は新規作成、論理削除されている場合はリストア処理を行う関数
+*/
 func (a *App) EnableCustomRoles(c request.CTX, customRoleGroup string) ([]*model.Role, *model.AppError) {
 	customRoleNames := model.CustomRoleNamesForGroup(customRoleGroup)
 	if len(customRoleNames) == 0 {
@@ -47,7 +51,6 @@ func (a *App) EnableCustomRoles(c request.CTX, customRoleGroup string) ([]*model
 
 	enabledRoles := make([]*model.Role, 0, len(customRoleNames))
 
-	// カスタムロールが作成されているかを確認し、作成されていない場合は新規作成、論理削除されている場合はリストア処理を行う
 	for _, rolename := range customRoleNames {
 		role, exists := roleMap[rolename]
 
@@ -114,6 +117,9 @@ func (a *App) restoreCustomRole(c request.CTX, role *model.Role) (*model.Role, *
 	return role, nil
 }
 
+/*
+渡されたグループに属するカスタムロールをDBから論理削除する関数
+*/
 func (a *App) DisableCustomRoles(c request.CTX, customRoleGroup string) *model.AppError {
 	customRoles, err := a.GetRolesByNames(model.CustomRoleNamesForGroup(customRoleGroup))
 	if err != nil {

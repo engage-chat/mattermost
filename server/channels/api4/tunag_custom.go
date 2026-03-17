@@ -13,12 +13,10 @@ import (
 )
 
 func (api *API) InitTunagCustom() {
-	TunagCustom := api.BaseRoutes.APIRoot.PathPrefix("/tunag_custom").Subrouter()
-
-	TunagCustom.Handle("/roles", api.APISessionRequired(getAllTunagCustomRoles)).Methods(http.MethodGet)
-	TunagCustom.Handle("/roles/{role_group:[a-z0-9_]+}", api.APISessionRequired(getTunagCustomRoles)).Methods(http.MethodGet)
-	TunagCustom.Handle("/roles/enable/{role_group:[a-z0-9_]+}", api.APISessionRequired(enableTunagCustomRoles)).Methods(http.MethodPost)
-	TunagCustom.Handle("/roles/disable/{role_group:[a-z0-9_]+}", api.APISessionRequired(disableTunagCustomRoles)).Methods(http.MethodDelete)
+	api.BaseRoutes.TunagCustom.Handle("/roles", api.APISessionRequired(getAllTunagCustomRoles)).Methods(http.MethodGet)
+	api.BaseRoutes.TunagCustom.Handle("/roles/{role_group:[a-z0-9_]+}", api.APISessionRequired(getTunagCustomRoles)).Methods(http.MethodGet)
+	api.BaseRoutes.TunagCustom.Handle("/roles/enable/{role_group:[a-z0-9_]+}", api.APISessionRequired(enableTunagCustomRoles)).Methods(http.MethodPost)
+	api.BaseRoutes.TunagCustom.Handle("/roles/disable/{role_group:[a-z0-9_]+}", api.APISessionRequired(disableTunagCustomRoles)).Methods(http.MethodDelete)
 }
 
 func getAllTunagCustomRoles(c *Context, w http.ResponseWriter, r *http.Request) {

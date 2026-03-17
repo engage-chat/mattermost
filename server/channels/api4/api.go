@@ -162,6 +162,8 @@ type Routes struct {
 
 	AccessControlPolicies *mux.Router // 'api/v4/access_control_policies'
 	AccessControlPolicy   *mux.Router // 'api/v4/access_control_policies/{policy_id:[A-Za-z0-9]+}'
+
+	TunagCustom           *mux.Router // 'api/v4/tunag_custom'
 }
 
 type API struct {
@@ -309,6 +311,8 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.BaseRoutes.AccessControlPolicies = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies").Subrouter()
 	api.BaseRoutes.AccessControlPolicy = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies/{policy_id:[A-Za-z0-9]+}").Subrouter()
+
+	api.BaseRoutes.TunagCustom = api.BaseRoutes.APIRoot.PathPrefix("/tunag_custom").Subrouter()
 
 	api.InitUser()
 	api.InitBot()
