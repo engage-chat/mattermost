@@ -6,12 +6,15 @@ package model
 // カスタムロールのグループ
 const (
 	CustomRolesUnofficial = "unofficial"
+	CustomRolesTest = "test_group"
 )
 
 // カスタムロール
 const (
 	SystemTunagAdmin = "system_tunag_admin"
 	TeamTunagAdmin   = "team_tunag_admin"
+
+	TestTunagAdmin = "test_tunag_admin"
 )
 
 /*
@@ -22,6 +25,7 @@ const (
 */
 var customRoleGroupFactories = map[string]func() map[string]Role{
 	CustomRolesUnofficial: makeTunagCustomRolesUnofficial,
+	CustomRolesTest: makeTunagCustomRolesTest,
 }
 
 func AllCustomRoleGroups() []string {
@@ -54,6 +58,19 @@ func MakeTunagCustomRoles(customRoleGroup string) map[string]Role {
 		return factory()
 	}
 	return nil
+}
+
+func makeTunagCustomRolesTest() map[string]Role {
+	return map[string]Role{
+		TestTunagAdmin: {
+			Name:        TestTunagAdmin,
+			DisplayName: TestTunagAdmin,
+			Description: "",
+			Permissions: []string{
+				PermissionCreateBot.Id,
+			},
+		},
+	}
 }
 
 func makeTunagCustomRolesUnofficial() map[string]Role {
