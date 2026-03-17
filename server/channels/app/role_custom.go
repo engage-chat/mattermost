@@ -17,9 +17,7 @@ func (a *App) GetCustomRolesForGroup(c request.CTX, customRoleGroup string) ([]*
 
 	if customRoleGroup == "" {
 		for _, group := range model.AllCustomRoleGroups() {
-			for _, roleName := range model.CustomRoleNamesForGroup(group) {
-				targetRoleNames = append(targetRoleNames, roleName)
-			}
+			targetRoleNames = append(targetRoleNames, model.CustomRoleNamesForGroup(group)...)
 		}
 	} else {
 		targetRoleNames = model.CustomRoleNamesForGroup(customRoleGroup)

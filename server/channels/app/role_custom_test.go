@@ -118,12 +118,12 @@ func TestEnableCustomRoles(t *testing.T) {
 
 		for _, role := range roles {
 			// Soft-delete them
-			_, err := th.App.DeleteRole(role.Id)
-			require.Nil(t, err)
+			_, deleteErr := th.App.DeleteRole(role.Id)
+			require.Nil(t, deleteErr)
 
 			// Verify it's deleted
-			deletedRole, err := th.App.GetRole(role.Id)
-			require.Nil(t, err)
+			deletedRole, getErr := th.App.GetRole(role.Id)
+			require.Nil(t, getErr)
 			require.NotEqual(t, int64(0), deletedRole.DeleteAt)
 		}
 
@@ -133,8 +133,8 @@ func TestEnableCustomRoles(t *testing.T) {
 
 		// Verify it's restored
 		for _, role := range roles {
-			restoredRole, err := th.App.GetRole(role.Id)
-			require.Nil(t, err)
+			restoredRole, restoreErr := th.App.GetRole(role.Id)
+			require.Nil(t, restoreErr)
 			require.Equal(t, int64(0), restoredRole.DeleteAt)
 		}
 	})

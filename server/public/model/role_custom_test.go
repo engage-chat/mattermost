@@ -19,11 +19,11 @@ func TestAllCustomRoleGroups(t *testing.T) {
 
 func TestCustomRoleNamesForGroup(t *testing.T) {
 	testCase := []struct {
-		name string
-		groupName string
+		name          string
+		groupName     string
 		requiredNames []string
-		isNil bool
-	} {
+		isNil         bool
+	}{
 		{"should return role names for unofficial group", CustomRolesUnofficial, []string{SystemTunagAdmin, TeamTunagAdmin}, false},
 		{"should return role names for test group", CustomRolesTest, []string{TestTunagAdmin}, false},
 		{"should return nil for invalid group", "invalid_group", nil, true},
