@@ -110,6 +110,7 @@ func enableTunagCustomRoles(c *Context, w http.ResponseWriter, r *http.Request) 
 func disableTunagCustomRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageRoles) {
 		c.SetPermissionError(model.PermissionManageRoles)
+		return
 	}
 
 	params := mux.Vars(r)
