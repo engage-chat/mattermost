@@ -38,7 +38,6 @@ build-v4: node_modules playbooks
 	@cat $(V4_SRC)/dataretention.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/plugins.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/roles.yaml >> $(V4_YAML)
-	@cat $(V4_SRC)/tunag_custom.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/schemes.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/service_terms.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/remoteclusters.yaml >> $(V4_YAML)
