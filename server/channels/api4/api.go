@@ -163,7 +163,7 @@ type Routes struct {
 	AccessControlPolicies *mux.Router // 'api/v4/access_control_policies'
 	AccessControlPolicy   *mux.Router // 'api/v4/access_control_policies/{policy_id:[A-Za-z0-9]+}'
 
-	TunagCustom           *mux.Router // 'api/v4/tunag_custom'
+	TunagCustom *mux.Router // 'api/v4/tunag_custom'
 }
 
 type API struct {
