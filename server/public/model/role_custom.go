@@ -6,15 +6,12 @@ package model
 // Custom role groups
 const (
 	CustomRolesUnofficial = "unofficial_channel"
-	CustomRolesTest       = "test_group"
 )
 
 // Custom roles
 const (
 	SystemTunagAdmin = "system_tunag_admin"
 	TeamTunagAdmin   = "team_tunag_admin"
-
-	TestTunagAdmin = "test_tunag_admin"
 )
 
 // customRoleGroupFactories is the master list of all custom role group definitions.
@@ -22,7 +19,6 @@ const (
 // This factory pattern is used to avoid initialization-order errors with permissions.
 var customRoleGroupFactories = map[string]func() map[string]Role{
 	CustomRolesUnofficial: makeTunagCustomRolesUnofficial,
-	CustomRolesTest:       makeTunagCustomRolesTest,
 }
 
 func AllCustomRoleGroups() []string {
@@ -53,19 +49,6 @@ func MakeTunagCustomRoles(customRoleGroup string) map[string]Role {
 		return factory()
 	}
 	return nil
-}
-
-func makeTunagCustomRolesTest() map[string]Role {
-	return map[string]Role{
-		TestTunagAdmin: {
-			Name:        TestTunagAdmin,
-			DisplayName: TestTunagAdmin,
-			Description: "",
-			Permissions: []string{
-				PermissionCreateBot.Id,
-			},
-		},
-	}
 }
 
 func makeTunagCustomRolesUnofficial() map[string]Role {

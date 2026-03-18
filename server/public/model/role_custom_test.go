@@ -10,7 +10,7 @@ import (
 )
 
 func TestAllCustomRoleGroups(t *testing.T) {
-	definedGroups := []string{CustomRolesUnofficial, CustomRolesTest}
+	definedGroups := []string{CustomRolesUnofficial}
 	groups := AllCustomRoleGroups()
 	require.NotNil(t, groups)
 	require.Len(t, groups, len(customRoleGroupFactories))
@@ -25,7 +25,6 @@ func TestCustomRoleNamesForGroup(t *testing.T) {
 		isNil         bool
 	}{
 		{"should return role names for unofficial group", CustomRolesUnofficial, []string{SystemTunagAdmin, TeamTunagAdmin}, false},
-		{"should return role names for test group", CustomRolesTest, []string{TestTunagAdmin}, false},
 		{"should return nil for invalid group", "invalid_group", nil, true},
 	}
 
@@ -62,18 +61,6 @@ func TestMakeTunagCustomRoles(t *testing.T) {
 		require.Equal(t, TeamTunagAdmin, role.Name)
 		require.Equal(t, TeamTunagAdmin, role.DisplayName)
 		require.Equal(t, []string{PermissionCreateDirectChannel.Id, PermissionCreateGroupChannel.Id}, role.Permissions)
-	})
-
-	t.Run("should return roles for test group", func(t *testing.T) {
-		roles := MakeTunagCustomRoles(CustomRolesTest)
-		require.NotNil(t, roles)
-		require.Len(t, roles, len(makeTunagCustomRolesTest()))
-
-		role, ok := roles[TestTunagAdmin]
-		require.True(t, ok)
-		require.Equal(t, TestTunagAdmin, role.Name)
-		require.Equal(t, TestTunagAdmin, role.DisplayName)
-		require.Equal(t, []string{PermissionCreateBot.Id}, role.Permissions)
 	})
 
 	t.Run("should return nil for invalid group", func(t *testing.T) {
