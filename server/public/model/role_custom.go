@@ -5,13 +5,13 @@ package model
 
 // Custom role groups
 const (
-	CustomRolesUnofficial = "unofficial_channel"
+	CustomRolesUnofficial = "unofficial"
 )
 
 // Custom roles
 const (
-	SystemTunagAdmin = "system_tunag_admin"
-	TeamTunagAdmin   = "team_tunag_admin"
+	SystemTunagUnofficial = "system_tunag_unofficial"
+	TeamTunagUnofficial   = "team_tunag_unofficial"
 )
 
 // customRoleGroupFactories is the master list of all custom role group definitions.
@@ -53,17 +53,17 @@ func MakeTunagCustomRoles(customRoleGroup string) map[string]Role {
 
 func makeTunagCustomRolesUnofficial() map[string]Role {
 	return map[string]Role{
-		SystemTunagAdmin: {
-			Name:        SystemTunagAdmin,
-			DisplayName: SystemTunagAdmin,
+		SystemTunagUnofficial: {
+			Name:        SystemTunagUnofficial,
+			DisplayName: SystemTunagUnofficial,
 			Description: "",
 			Permissions: []string{
 				PermissionCreatePrivateChannel.Id,
 			},
 		},
-		TeamTunagAdmin: {
-			Name:        TeamTunagAdmin,
-			DisplayName: TeamTunagAdmin,
+		TeamTunagUnofficial: {
+			Name:        TeamTunagUnofficial,
+			DisplayName: TeamTunagUnofficial,
 			Description: "",
 			Permissions: []string{
 				PermissionCreateDirectChannel.Id,
