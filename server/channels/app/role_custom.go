@@ -9,10 +9,10 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-/*
-グループが指定されていればグループに属するカスタムロールを、指定されていなければ全てのカスタムロールをDBから取得する関数
-（DBに存在しているものは、論理削除されているもの含め全て取得される）
-*/
+// GetCustomRolesForGroup retrieves custom roles from the database.
+// If customRoleGroup is empty, all custom roles are returned.
+// Otherwise, only roles from the specified group are returned.
+// This will return roles even if they are soft-deleted.
 func (a *App) GetCustomRolesForGroup(c request.CTX, customRoleGroup string) ([]*model.Role, *model.AppError) {
 	var targetRoleNames []string
 
@@ -27,18 +27,17 @@ func (a *App) GetCustomRolesForGroup(c request.CTX, customRoleGroup string) ([]*
 	return a.GetRolesByNames(targetRoleNames)
 }
 
-/*
-渡されたグループに属するカスタムロールが作成されているかを確認し、作成されていない場合は新規作成、論理削除されている場合はリストア処理を行う関数
-*/
+// EnableCustomRoles ensures that the custom roles for the given group are active.
+// It creates them if they don't exist, or restores them if they were soft-deleted.
 func (a *App) EnableCustomRoles(c request.CTX, customRoleGroup string) ([]*model.Role, *model.AppError) {
 	customRoleNames := model.CustomRoleNamesForGroup(customRoleGroup)
 	if len(customRoleNames) == 0 {
 		return []*model.Role{}, nil
 	}
-	// カスタムロールのテンプレート初期化
+	// Initialize custom role templates
 	customRoleTemplates := model.MakeTunagCustomRoles(customRoleGroup)
 
-	// DBから現在のロールを一括で取得
+	// Get existing roles from the DB in a single batch.
 	existingRoles, err := a.GetRolesByNames(customRoleNames)
 	if err != nil {
 		return nil, err
@@ -117,9 +116,7 @@ func (a *App) restoreCustomRole(c request.CTX, role *model.Role) (*model.Role, *
 	return role, nil
 }
 
-/*
-渡されたグループに属するカスタムロールをDBから論理削除する関数
-*/
+// DisableCustomRoles soft-deletes all custom roles belonging to the given group.
 func (a *App) DisableCustomRoles(c request.CTX, customRoleGroup string) *model.AppError {
 	customRoles, err := a.GetRolesByNames(model.CustomRoleNamesForGroup(customRoleGroup))
 	if err != nil {
@@ -128,7 +125,7 @@ func (a *App) DisableCustomRoles(c request.CTX, customRoleGroup string) *model.A
 
 	var deleted []string
 	for _, role := range customRoles {
-		_, err := a.DeleteRole(role.Id)
+		_, err = a.DeleteRole(role.Id)
 		if err != nil {
 			return err
 		}

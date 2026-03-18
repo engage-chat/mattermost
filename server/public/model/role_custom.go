@@ -3,13 +3,13 @@
 
 package model
 
-// カスタムロールのグループ
+// Custom role groups
 const (
-	CustomRolesUnofficial = "unofficial"
+	CustomRolesUnofficial = "unofficial_channel"
 	CustomRolesTest       = "test_group"
 )
 
-// カスタムロール
+// Custom roles
 const (
 	SystemTunagAdmin = "system_tunag_admin"
 	TeamTunagAdmin   = "team_tunag_admin"
@@ -17,13 +17,9 @@ const (
 	TestTunagAdmin = "test_tunag_admin"
 )
 
-/*
-グループ名をKeyとし、そのグループのカスタムロールマップを返す関数をValueとして保持する変数。
-全てのカスタムロールグループ定義のマスターリストとなる。
-
-	Key: グループ名
-	Value: グループのカスタムロールマップを返す関数
-*/
+// customRoleGroupFactories is the master list of all custom role group definitions.
+// It maps a group name to a factory function that returns the roles for that group.
+// This factory pattern is used to avoid initialization-order errors with permissions.
 var customRoleGroupFactories = map[string]func() map[string]Role{
 	CustomRolesUnofficial: makeTunagCustomRolesUnofficial,
 	CustomRolesTest:       makeTunagCustomRolesTest,
@@ -50,10 +46,8 @@ func CustomRoleNamesForGroup(customRoleGroup string) []string {
 	return names
 }
 
-/*
-指定されたグループに所属するカスタムロールのMapを返す関数。
-※varで宣言するとPermissionがinit()される前に初期化されてエラーになるため、関数で作成する
-*/
+// MakeTunagCustomRoles returns a map of custom roles for a given group.
+// It acts as a public accessor to the customRoleGroupFactories map.
 func MakeTunagCustomRoles(customRoleGroup string) map[string]Role {
 	if factory, ok := customRoleGroupFactories[customRoleGroup]; ok {
 		return factory()
