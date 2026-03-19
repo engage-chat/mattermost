@@ -71,7 +71,7 @@ func (a *App) createCustomRole(c request.CTX, role *model.Role) (*model.Role, *m
 		mlog.String("rolename", role.Name),
 		mlog.String("display_name", role.DisplayName),
 		mlog.String("description", role.Description),
-		mlog.Array("permission", role.Permissions),
+		mlog.Array("permissions", role.Permissions),
 		mlog.Bool("scheme_managed", role.SchemeManaged),
 		mlog.Bool("built_in", role.BuiltIn),
 	)
@@ -90,7 +90,7 @@ func (a *App) restoreCustomRole(c request.CTX, role *model.Role) (*model.Role, *
 		mlog.String("rolename", role.Name),
 		mlog.String("display_name", role.DisplayName),
 		mlog.String("description", role.Description),
-		mlog.Array("permission", role.Permissions),
+		mlog.Array("permissions", role.Permissions),
 		mlog.Bool("scheme_managed", role.SchemeManaged),
 		mlog.Bool("built_in", role.BuiltIn),
 	)

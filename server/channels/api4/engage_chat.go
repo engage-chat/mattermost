@@ -35,7 +35,7 @@ func enableCustomRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	js, err := json.Marshal(enabledRoles)
 	if err != nil {
-		c.Err = model.NewAppError("enableRoles", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		c.Err = model.NewAppError("enableCustomRoles", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
