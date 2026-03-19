@@ -22,9 +22,13 @@ func enableRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: This is a temporary implementation that will be replaced in the next stage.
-	// It reads a hardcoded group name instead of a request body payload.
-	enabledRoles, appErr := c.App.EnableCustomRoles(c.AppContext, model.CustomRolesUnofficial)
+	roleNames, err := model.ArrayFromJson[string](r.Body)
+	if err != nil {
+		c.SetInvalidParamWithErr("role_names", err)
+		return
+	}
+
+	enabledRoles, appErr := c.App.EnableCustomRoles(c.AppContext, roleNames)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -48,9 +52,13 @@ func disableRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: This is a temporary implementation that will be replaced in the next stage.
-	// It reads a hardcoded group name instead of a request body payload.
-	appErr := c.App.DisableCustomRoles(c.AppContext, model.CustomRolesUnofficial)
+	roleNames, err := model.ArrayFromJson[string](r.Body)
+	if err != nil {
+		c.SetInvalidParamWithErr("role_names", err)
+		return
+	}
+
+	appErr := c.App.DisableCustomRoles(c.AppContext, roleNames)
 	if appErr != nil {
 		c.Err = appErr
 		return
