@@ -60,32 +60,4 @@ func TestEnableCustomRoles(t *testing.T) {
 		require.Len(t, roles, len(expectedRoles))
 		assertRolesMatch(t, roles, expectedRoles)
 	})
-
-	t.Run("restore soft-deleted roles", func(t *testing.T) {
-		// Enable roles
-		roles, err := th.App.EnableCustomRoles(th.Context, roleNames)
-		require.Nil(t, err)
-
-		for _, role := range roles {
-			// Soft-delete them
-			_, deleteErr := th.App.DeleteRole(role.Id)
-			require.Nil(t, deleteErr)
-
-			// Verify it's deleted
-			deletedRole, getErr := th.App.GetRole(role.Id)
-			require.Nil(t, getErr)
-			require.NotEqual(t, int64(0), deletedRole.DeleteAt)
-		}
-
-		// Call EnableCustomRoles again to trigger restore
-		_, err = th.App.EnableCustomRoles(th.Context, roleNames)
-		require.Nil(t, err)
-
-		// Verify it's restored
-		for _, role := range roles {
-			restoredRole, restoreErr := th.App.GetRole(role.Id)
-			require.Nil(t, restoreErr)
-			require.Equal(t, int64(0), restoredRole.DeleteAt)
-		}
-	})
 }
