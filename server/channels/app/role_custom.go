@@ -9,36 +9,17 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-// GetCustomRolesForGroup retrieves custom roles from the database.
-// If customRoleGroup is empty, all custom roles are returned.
-// Otherwise, only roles from the specified group are returned.
-// This will return roles even if they are soft-deleted.
-func (a *App) GetCustomRolesForGroup(c request.CTX, customRoleGroup string) ([]*model.Role, *model.AppError) {
-	var targetRoleNames []string
-
-	if customRoleGroup == "" {
-		for _, group := range model.AllCustomRoleGroups() {
-			targetRoleNames = append(targetRoleNames, model.CustomRoleNamesForGroup(group)...)
-		}
-	} else {
-		targetRoleNames = model.CustomRoleNamesForGroup(customRoleGroup)
-	}
-
-	return a.GetRolesByNames(targetRoleNames)
-}
-
-// EnableCustomRoles ensures that the custom roles for the given group are active.
+// EnableCustomRoles ensures that the given custom roles are active.
 // It creates them if they don't exist, or restores them if they were soft-deleted.
-func (a *App) EnableCustomRoles(c request.CTX, customRoleGroup string) ([]*model.Role, *model.AppError) {
-	customRoleNames := model.CustomRoleNamesForGroup(customRoleGroup)
-	if len(customRoleNames) == 0 {
+func (a *App) EnableCustomRoles(c request.CTX, roleNames []string) ([]*model.Role, *model.AppError) {
+	if len(roleNames) == 0 {
 		return []*model.Role{}, nil
 	}
 	// Initialize custom role templates
-	customRoleTemplates := model.MakeTunagCustomRoles(customRoleGroup)
+	customRoleTemplates := model.GetAllCustomRoleTemplates()
 
 	// Get existing roles from the DB in a single batch.
-	existingRoles, err := a.GetRolesByNames(customRoleNames)
+	existingRoles, err := a.GetRolesByNames(roleNames)
 	if err != nil {
 		return nil, err
 	}
@@ -48,9 +29,9 @@ func (a *App) EnableCustomRoles(c request.CTX, customRoleGroup string) ([]*model
 		roleMap[role.Name] = role
 	}
 
-	enabledRoles := make([]*model.Role, 0, len(customRoleNames))
+	enabledRoles := make([]*model.Role, 0, len(roleNames))
 
-	for _, rolename := range customRoleNames {
+	for _, rolename := range roleNames {
 		role, exists := roleMap[rolename]
 
 		if exists && role.DeleteAt == 0 {
@@ -116,24 +97,33 @@ func (a *App) restoreCustomRole(c request.CTX, role *model.Role) (*model.Role, *
 	return role, nil
 }
 
-// DisableCustomRoles soft-deletes all custom roles belonging to the given group.
-func (a *App) DisableCustomRoles(c request.CTX, customRoleGroup string) *model.AppError {
-	customRoles, err := a.GetRolesByNames(model.CustomRoleNamesForGroup(customRoleGroup))
+// DisableCustomRoles soft-deletes all custom roles specified by name.
+func (a *App) DisableCustomRoles(c request.CTX, roleNames []string) *model.AppError {
+	if len(roleNames) == 0 {
+		return nil
+	}
+	c.Logger().Debug("Attempting to disable custom roles", mlog.Strings("roles", roleNames))
+
+	customRoles, err := a.GetRolesByNames(roleNames)
 	if err != nil {
+		c.Logger().Error("Failed to get roles by names", mlog.Err(err))
 		return err
 	}
+	c.Logger().Debug("Found roles to delete", mlog.Int("count", len(customRoles)))
 
 	var deleted []string
 	for _, role := range customRoles {
+		c.Logger().Debug("Attempting to delete role", mlog.String("role_id", role.Id), mlog.String("role_name", role.Name))
 		_, err = a.DeleteRole(role.Id)
 		if err != nil {
+			c.Logger().Error("Failed to delete role", mlog.String("role_id", role.Id), mlog.Err(err))
 			return err
 		}
+		c.Logger().Debug("Successfully deleted role (in app layer)", mlog.String("role_id", role.Id))
 		deleted = append(deleted, role.Name)
 	}
 
 	c.Logger().Info("Deleted custom roles for tunag",
-		mlog.String("custom_role_group", customRoleGroup),
 		mlog.Array("roles", deleted),
 	)
 	return nil
