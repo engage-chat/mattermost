@@ -5,24 +5,31 @@ package model
 
 // Custom roles
 const (
-	SystemTunagAdmin = "system_tunag_admin"
-	TeamTunagAdmin   = "team_tunag_admin"
+	SystemEngageAdmin = "system_engage_admin"
+	TeamEngageAdmin   = "team_engage_admin"
 )
 
-// GetAllCustomRoleTemplates returns a map of all defined custom role templates.
-func GetAllCustomRoleTemplates() map[string]Role {
+// allEngageCustomRoleNames is the single source of truth for all defined Engage custom role names.
+// It is unexported to prevent modification from other packages.
+var allCustomRoleNames = []string{
+	SystemEngageAdmin,
+	TeamEngageAdmin,
+}
+
+// MakeAllCustomRoleTemplates returns a map of all defined custom role templates.
+func MakeAllCustomRoleTemplates() map[string]Role {
 	return map[string]Role{
-		SystemTunagAdmin: {
-			Name:        SystemTunagAdmin,
-			DisplayName: SystemTunagAdmin,
+		SystemEngageAdmin: {
+			Name:        SystemEngageAdmin,
+			DisplayName: SystemEngageAdmin,
 			Description: "",
 			Permissions: []string{
 				PermissionCreatePrivateChannel.Id,
 			},
 		},
-		TeamTunagAdmin: {
-			Name:        TeamTunagAdmin,
-			DisplayName: TeamTunagAdmin,
+		TeamEngageAdmin: {
+			Name:        TeamEngageAdmin,
+			DisplayName: TeamEngageAdmin,
 			Description: "",
 			Permissions: []string{
 				PermissionCreateDirectChannel.Id,
@@ -34,10 +41,5 @@ func GetAllCustomRoleTemplates() map[string]Role {
 
 // AllCustomRoleNames returns a slice of all defined custom role names.
 func AllCustomRoleNames() []string {
-	templates := GetAllCustomRoleTemplates()
-	names := make([]string, 0, len(templates))
-	for name := range templates {
-		names = append(names, name)
-	}
-	return names
+	return allCustomRoleNames
 }

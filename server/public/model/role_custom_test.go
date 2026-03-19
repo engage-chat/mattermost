@@ -9,62 +9,22 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAllCustomRoleGroups(t *testing.T) {
-	definedGroups := []string{CustomRolesUnofficial}
-	groups := AllCustomRoleGroups()
-	require.NotNil(t, groups)
-	require.Len(t, groups, len(customRoleGroupFactories))
-	require.ElementsMatch(t, definedGroups, groups)
-}
+func TestMakeAllCustomRoleTemplates(t *testing.T) {
+	templates := MakeAllCustomRoleTemplates()
+	require.NotNil(t, templates)
+	require.Len(t, templates, len(allCustomRoleNames))
 
-func TestCustomRoleNamesForGroup(t *testing.T) {
-	testCase := []struct {
-		name          string
-		groupName     string
-		requiredNames []string
-		isNil         bool
-	}{
-		{"should return role names for unofficial group", CustomRolesUnofficial, []string{SystemTunagUnofficial, TeamTunagUnofficial}, false},
-		{"should return nil for invalid group", "invalid_group", nil, true},
-	}
+	// Check for SystemEngageAdmin
+	systemRole, ok := templates[SystemEngageAdmin]
+	require.True(t, ok)
+	require.Equal(t, SystemEngageAdmin, systemRole.Name)
+	require.Equal(t, SystemEngageAdmin, systemRole.DisplayName)
+	require.Equal(t, []string{PermissionCreatePrivateChannel.Id}, systemRole.Permissions)
 
-	for _, tc := range testCase {
-		t.Run(tc.name, func(t *testing.T) {
-			names := CustomRoleNamesForGroup(tc.groupName)
-
-			if tc.isNil {
-				require.Nil(t, names)
-			} else {
-				requiredRoles := MakeTunagCustomRoles(tc.groupName)
-				require.NotNil(t, names)
-				require.Len(t, names, len(requiredRoles))
-				require.ElementsMatch(t, tc.requiredNames, names)
-			}
-		})
-	}
-}
-
-func TestMakeTunagCustomRoles(t *testing.T) {
-	t.Run("should return roles for unofficial group", func(t *testing.T) {
-		roles := MakeTunagCustomRoles(CustomRolesUnofficial)
-		require.NotNil(t, roles)
-		require.Len(t, roles, len(makeTunagCustomRolesUnofficial()))
-
-		role, ok := roles[SystemTunagUnofficial]
-		require.True(t, ok)
-		require.Equal(t, SystemTunagUnofficial, role.Name)
-		require.Equal(t, SystemTunagUnofficial, role.DisplayName)
-		require.Equal(t, []string{PermissionCreatePrivateChannel.Id}, role.Permissions)
-
-		role, ok = roles[TeamTunagUnofficial]
-		require.True(t, ok)
-		require.Equal(t, TeamTunagUnofficial, role.Name)
-		require.Equal(t, TeamTunagUnofficial, role.DisplayName)
-		require.Equal(t, []string{PermissionCreateDirectChannel.Id, PermissionCreateGroupChannel.Id}, role.Permissions)
-	})
-
-	t.Run("should return nil for invalid group", func(t *testing.T) {
-		roles := MakeTunagCustomRoles("invalid_group")
-		require.Nil(t, roles)
-	})
+	// Check for TeamEngageAdmin
+	teamRole, ok := templates[TeamEngageAdmin]
+	require.True(t, ok)
+	require.Equal(t, TeamEngageAdmin, teamRole.Name)
+	require.Equal(t, TeamEngageAdmin, teamRole.DisplayName)
+	require.Equal(t, []string{PermissionCreateDirectChannel.Id, PermissionCreateGroupChannel.Id}, teamRole.Permissions)
 }

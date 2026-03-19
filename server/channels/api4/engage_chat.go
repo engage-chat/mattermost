@@ -22,7 +22,7 @@ func enableRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	roleNames, err := model.ArrayFromJson[string](r.Body)
+	roleNames, err := model.SortedArrayFromJSON(r.Body)
 	if err != nil {
 		c.SetInvalidParamWithErr("role_names", err)
 		return
@@ -52,7 +52,7 @@ func disableRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	roleNames, err := model.ArrayFromJson[string](r.Body)
+	roleNames, err := model.SortedArrayFromJSON(r.Body)
 	if err != nil {
 		c.SetInvalidParamWithErr("role_names", err)
 		return

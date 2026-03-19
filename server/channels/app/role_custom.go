@@ -16,7 +16,7 @@ func (a *App) EnableCustomRoles(c request.CTX, roleNames []string) ([]*model.Rol
 		return []*model.Role{}, nil
 	}
 	// Initialize custom role templates
-	customRoleTemplates := model.GetAllCustomRoleTemplates()
+	customRoleTemplates := model.MakeAllCustomRoleTemplates()
 
 	// Get existing roles from the DB in a single batch.
 	existingRoles, err := a.GetRolesByNames(roleNames)
@@ -66,7 +66,7 @@ func (a *App) createCustomRole(c request.CTX, role *model.Role) (*model.Role, *m
 		return nil, err
 	}
 
-	c.Logger().Info("Created custom role for tunag",
+	c.Logger().Info("Created custom role for engage-chat",
 		mlog.String("role_id", role.Id),
 		mlog.String("rolename", role.Name),
 		mlog.String("display_name", role.DisplayName),
@@ -85,7 +85,7 @@ func (a *App) restoreCustomRole(c request.CTX, role *model.Role) (*model.Role, *
 		return nil, err
 	}
 
-	c.Logger().Info("Restored custom role for tunag",
+	c.Logger().Info("Restored custom role for engage-chat",
 		mlog.String("role_id", role.Id),
 		mlog.String("rolename", role.Name),
 		mlog.String("display_name", role.DisplayName),
@@ -102,28 +102,24 @@ func (a *App) DisableCustomRoles(c request.CTX, roleNames []string) *model.AppEr
 	if len(roleNames) == 0 {
 		return nil
 	}
-	c.Logger().Debug("Attempting to disable custom roles", mlog.Strings("roles", roleNames))
 
 	customRoles, err := a.GetRolesByNames(roleNames)
 	if err != nil {
-		c.Logger().Error("Failed to get roles by names", mlog.Err(err))
 		return err
 	}
-	c.Logger().Debug("Found roles to delete", mlog.Int("count", len(customRoles)))
 
 	var deleted []string
 	for _, role := range customRoles {
-		c.Logger().Debug("Attempting to delete role", mlog.String("role_id", role.Id), mlog.String("role_name", role.Name))
 		_, err = a.DeleteRole(role.Id)
 		if err != nil {
 			c.Logger().Error("Failed to delete role", mlog.String("role_id", role.Id), mlog.Err(err))
 			return err
 		}
-		c.Logger().Debug("Successfully deleted role (in app layer)", mlog.String("role_id", role.Id))
+		c.Logger().Debug("Successfully deleted role", mlog.String("role_id", role.Id))
 		deleted = append(deleted, role.Name)
 	}
 
-	c.Logger().Info("Deleted custom roles for tunag",
+	c.Logger().Info("Deleted custom roles for engage-chat",
 		mlog.Array("roles", deleted),
 	)
 	return nil
