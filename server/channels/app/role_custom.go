@@ -10,7 +10,7 @@ import (
 )
 
 // EnableCustomRoles ensures that the given custom roles are active.
-// It creates them if they don't exist.
+// It creates them if they don't exist, or restores them if they were soft-deleted.
 func (a *App) EnableCustomRoles(c request.CTX, roleNames []string) ([]*model.Role, *model.AppError) {
 	if len(roleNames) == 0 {
 		return []*model.Role{}, nil
@@ -34,21 +34,27 @@ func (a *App) EnableCustomRoles(c request.CTX, roleNames []string) ([]*model.Rol
 	for _, rolename := range roleNames {
 		role, exists := roleMap[rolename]
 
-		if exists {
+		if exists && role.DeleteAt == 0 {
 			enabledRoles = append(enabledRoles, role)
 			continue
+		} else if exists && role.DeleteAt > 0 {
+			restoredRole, err := a.restoreCustomRole(c, role)
+			if err != nil {
+				return nil, err
+			}
+			enabledRoles = append(enabledRoles, restoredRole)
+		} else if !exists {
+			customRole, ok := customRoleTemplates[rolename]
+			if !ok {
+				c.Logger().Warn("Custom role definition not found, skipping creation.", mlog.String("rolename", rolename))
+				continue
+			}
+			createdRole, err := a.createCustomRole(c, &customRole)
+			if err != nil {
+				return nil, err
+			}
+			enabledRoles = append(enabledRoles, createdRole)
 		}
-
-		customRole, ok := customRoleTemplates[rolename]
-		if !ok {
-			c.Logger().Warn("Custom role definition not found, skipping creation.", mlog.String("rolename", rolename))
-			continue
-		}
-		createdRole, err := a.createCustomRole(c, &customRole)
-		if err != nil {
-			return nil, err
-		}
-		enabledRoles = append(enabledRoles, createdRole)
 	}
 
 	return enabledRoles, nil
@@ -65,7 +71,26 @@ func (a *App) createCustomRole(c request.CTX, role *model.Role) (*model.Role, *m
 		mlog.String("rolename", role.Name),
 		mlog.String("display_name", role.DisplayName),
 		mlog.String("description", role.Description),
-		mlog.Array("permission", role.Permissions),
+		mlog.Array("permissions", role.Permissions),
+		mlog.Bool("scheme_managed", role.SchemeManaged),
+		mlog.Bool("built_in", role.BuiltIn),
+	)
+	return role, nil
+}
+
+func (a *App) restoreCustomRole(c request.CTX, role *model.Role) (*model.Role, *model.AppError) {
+	role.DeleteAt = 0
+	role, err := a.UpdateRole(role)
+	if err != nil {
+		return nil, err
+	}
+
+	c.Logger().Info("Restored custom role for engage-chat",
+		mlog.String("role_id", role.Id),
+		mlog.String("rolename", role.Name),
+		mlog.String("display_name", role.DisplayName),
+		mlog.String("description", role.Description),
+		mlog.Array("permissions", role.Permissions),
 		mlog.Bool("scheme_managed", role.SchemeManaged),
 		mlog.Bool("built_in", role.BuiltIn),
 	)
