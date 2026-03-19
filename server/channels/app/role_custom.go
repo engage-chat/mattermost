@@ -96,31 +96,3 @@ func (a *App) restoreCustomRole(c request.CTX, role *model.Role) (*model.Role, *
 	)
 	return role, nil
 }
-
-// DisableCustomRoles soft-deletes all custom roles specified by name.
-func (a *App) DisableCustomRoles(c request.CTX, roleNames []string) *model.AppError {
-	if len(roleNames) == 0 {
-		return nil
-	}
-
-	customRoles, err := a.GetRolesByNames(roleNames)
-	if err != nil {
-		return err
-	}
-
-	var deleted []string
-	for _, role := range customRoles {
-		_, err = a.DeleteRole(role.Id)
-		if err != nil {
-			c.Logger().Error("Failed to delete role", mlog.String("role_id", role.Id), mlog.Err(err))
-			return err
-		}
-		c.Logger().Debug("Successfully deleted role", mlog.String("role_id", role.Id))
-		deleted = append(deleted, role.Name)
-	}
-
-	c.Logger().Info("Deleted custom roles for engage-chat",
-		mlog.Array("roles", deleted),
-	)
-	return nil
-}

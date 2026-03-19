@@ -12,11 +12,10 @@ import (
 )
 
 func (api *API) InitEngageChat() {
-	api.BaseRoutes.EngageChat.Handle("/roles", api.APISessionRequired(enableRoles)).Methods(http.MethodPost)
-	api.BaseRoutes.EngageChat.Handle("/roles", api.APISessionRequired(disableRoles)).Methods(http.MethodDelete)
+	api.BaseRoutes.EngageChat.Handle("/roles", api.APISessionRequired(enableCustomRoles)).Methods(http.MethodPost)
 }
 
-func enableRoles(c *Context, w http.ResponseWriter, r *http.Request) {
+func enableCustomRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageRoles) {
 		c.SetPermissionError(model.PermissionManageRoles)
 		return
@@ -44,25 +43,4 @@ func enableRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 		return
 	}
-}
-
-func disableRoles(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageRoles) {
-		c.SetPermissionError(model.PermissionManageRoles)
-		return
-	}
-
-	roleNames, err := model.SortedArrayFromJSON(r.Body)
-	if err != nil {
-		c.SetInvalidParamWithErr("role_names", err)
-		return
-	}
-
-	appErr := c.App.DisableCustomRoles(c.AppContext, roleNames)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	ReturnStatusOK(w)
 }

@@ -89,32 +89,3 @@ func TestEnableCustomRoles(t *testing.T) {
 		}
 	})
 }
-
-func TestDisableCustomRoles(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	roleNames := model.AllCustomRoleNames()
-
-	// Enable the roles to ensure they exist
-	_, err := th.App.EnableCustomRoles(th.Context, roleNames)
-	require.Nil(t, err)
-
-	// Confirm they exist and are active
-	rolesBefore, err := th.App.GetRolesByNames(roleNames)
-	require.Nil(t, err)
-	for _, role := range rolesBefore {
-		require.Equal(t, int64(0), role.DeleteAt)
-	}
-
-	err = th.App.DisableCustomRoles(th.Context, roleNames)
-	require.Nil(t, err)
-
-	// Verify they are soft-deleted
-	rolesAfter, err := th.App.GetRolesByNames(roleNames)
-	require.Nil(t, err)
-	require.Len(t, rolesAfter, len(rolesBefore))
-	for _, role := range rolesAfter {
-		require.NotEqual(t, int64(0), role.DeleteAt)
-	}
-}
