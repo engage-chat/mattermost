@@ -1,0 +1,71 @@
+  "/api/v4/engage_chat/roles":
+    post:
+      tags:
+        - engage_chat
+      summary: Enable custom roles
+      description: |
+        Enables a list of custom roles by name. If the roles do not exist, they will be created. If they are soft-deleted, they will be restored.
+
+        The request body should be a JSON array of role names.
+        `["system_tunag_admin", "team_tunag_admin"]`
+
+        ##### Permissions
+        Must have `manage_roles` permission.
+      operationId: EnableCustomRoles
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+        required: true
+      responses:
+        "200":
+          description: Custom roles enabled successfully.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Role"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    delete:
+      tags:
+        - engage_chat
+      summary: Disable custom roles
+      description: |
+        Disables a list of custom roles by name by soft-deleting them.
+
+        The request body should be a JSON array of role names.
+        `["system_tunag_admin", "team_tunag_admin"]`
+
+        ##### Permissions
+        Must have `manage_roles` permission.
+      operationId: DisableCustomRoles
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+        required: true
+      responses:
+        "200":
+          description: Custom roles disabled successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
