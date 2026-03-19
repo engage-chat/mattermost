@@ -310,7 +310,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.AuditLogs = api.BaseRoutes.APIRoot.PathPrefix("/audit_logs").Subrouter()
 
 	api.BaseRoutes.AccessControlPolicies = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies").Subrouter()
-	api.BaseRoutes.AccessControlPolicy = api.BaseRoutes.AccessControlPolicies.PathPrefix("/{policy_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.AccessControlPolicy = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies/{policy_id:[A-Za-z0-9]+}").Subrouter()
 
 	api.BaseRoutes.EngageChat = api.BaseRoutes.APIRoot.PathPrefix("/engage_chat").Subrouter()
 
