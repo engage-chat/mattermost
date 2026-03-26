@@ -114,6 +114,7 @@ type SqlStoreStores struct {
 	desktopTokens              store.DesktopTokensStore
 	channelBookmarks           store.ChannelBookmarkStore
 	scheduledPost              store.ScheduledPostStore
+	engageChat                 store.EngageChatStore
 	propertyGroup              store.PropertyGroupStore
 	propertyField              store.PropertyFieldStore
 	propertyValue              store.PropertyValueStore
@@ -269,6 +270,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.desktopTokens = newSqlDesktopTokensStore(store, metrics)
 	store.stores.channelBookmarks = newSqlChannelBookmarkStore(store)
 	store.stores.scheduledPost = newScheduledPostStore(store)
+	store.stores.engageChat = newSqlEngageChatStore(store)
 	store.stores.propertyGroup = newPropertyGroupStore(store)
 	store.stores.propertyField = newPropertyFieldStore(store)
 	store.stores.propertyValue = newPropertyValueStore(store)
@@ -1054,6 +1056,10 @@ func (ss *SqlStore) PostPriority() store.PostPriorityStore {
 
 func (ss *SqlStore) Draft() store.DraftStore {
 	return ss.stores.draft
+}
+
+func (ss *SqlStore) EngageChat() store.EngageChatStore {
+	return ss.stores.engageChat
 }
 
 func (ss *SqlStore) PostAcknowledgement() store.PostAcknowledgementStore {
