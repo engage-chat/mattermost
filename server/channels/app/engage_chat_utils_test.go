@@ -30,7 +30,8 @@ func TestIsChannelAccessible(t *testing.T) {
 	// User with SystemEngageAdmin role
 	systemExceptionUser := th.CreateUser()
 	th.LinkUserToTeam(systemExceptionUser, th.BasicTeam)
-	th.App.UpdateUserRoles(th.Context, systemExceptionUser.Id, model.SystemUserRoleId+" "+model.SystemEngageAdmin, false)
+	_, err = th.App.UpdateUserRoles(th.Context, systemExceptionUser.Id, model.SystemUserRoleId+" "+model.SystemEngageAdmin, false)
+	require.Nil(t, err)
 
 	// User with TeamEngageAdmin role
 	teamExceptionUser := th.CreateUser()
@@ -136,7 +137,7 @@ func TestIsChannelAccessible(t *testing.T) {
 	})
 
 	t.Run("Situation under restriction", func(t *testing.T) {
-		// Remove permissions for the restricted user
+		// Remove permissions for the restricted user (setup once for all sub-scenarios)
 		th.RemovePermissionFromRole(model.PermissionCreateDirectChannel.Id, model.SystemUserRoleId)
 		th.RemovePermissionFromRole(model.PermissionCreateGroupChannel.Id, model.SystemUserRoleId)
 		th.RemovePermissionFromRole(model.PermissionCreatePrivateChannel.Id, model.TeamUserRoleId)
@@ -146,57 +147,49 @@ func TestIsChannelAccessible(t *testing.T) {
 			th.AddPermissionToRole(model.PermissionCreatePrivateChannel.Id, model.TeamUserRoleId)
 		}()
 
-		testCases := []struct {
-			name     string
-			channel  *model.Channel
-			userID   string
-			expected bool
-		}{
-			{"DM without exception should NOT be accessible", dmChannel, restrictedUser.Id, false},
-			{"Group without exception should NOT be accessible", gmChannel, restrictedUser.Id, false},
-			{"Private without exception should NOT be accessible", privateChannel, restrictedUser.Id, false},
-			{"Official channel should always be accessible", officialChannel, restrictedUser.Id, true},
-			{"Public channel should always be accessible", publicChannel, restrictedUser.Id, true},
-			{"Bot user should always be accessible", publicChannel, botUser.Id, true},
-		}
+		t.Run("without exception", func(t *testing.T) {
+			testCases := []struct {
+				name     string
+				channel  *model.Channel
+				userID   string
+				expected bool
+			}{
+				{"DM without exception should NOT be accessible", dmChannel, restrictedUser.Id, false},
+				{"Group without exception should NOT be accessible", gmChannel, restrictedUser.Id, false},
+				{"Private without exception should NOT be accessible", privateChannel, restrictedUser.Id, false},
+				{"Official channel should always be accessible", officialChannel, restrictedUser.Id, true},
+				{"Public channel should always be accessible", publicChannel, restrictedUser.Id, true},
+				{"Bot user should always be accessible", publicChannel, botUser.Id, true},
+			}
 
-		for _, tc := range testCases {
-			t.Run(tc.name, func(t *testing.T) {
-				accessible, err := th.App.IsChannelAccessible(ctxWithSession, tc.channel.Id, tc.userID)
-				require.Nil(t, err)
-				require.Equal(t, tc.expected, accessible)
-			})
-		}
-	})
+			for _, tc := range testCases {
+				t.Run(tc.name, func(t *testing.T) {
+					accessible, err := th.App.IsChannelAccessible(ctxWithSession, tc.channel.Id, tc.userID)
+					require.Nil(t, err)
+					require.Equal(t, tc.expected, accessible)
+				})
+			}
+		})
 
-	t.Run("Situation under restriction with exception", func(t *testing.T) {
-		// Remove permissions for the restricted user
-		th.RemovePermissionFromRole(model.PermissionCreateDirectChannel.Id, model.SystemUserRoleId)
-		th.RemovePermissionFromRole(model.PermissionCreateGroupChannel.Id, model.SystemUserRoleId)
-		th.RemovePermissionFromRole(model.PermissionCreatePrivateChannel.Id, model.TeamUserRoleId)
-		defer func() {
-			th.AddPermissionToRole(model.PermissionCreateDirectChannel.Id, model.SystemUserRoleId)
-			th.AddPermissionToRole(model.PermissionCreateGroupChannel.Id, model.SystemUserRoleId)
-			th.AddPermissionToRole(model.PermissionCreatePrivateChannel.Id, model.TeamUserRoleId)
-		}()
+		t.Run("with exception", func(t *testing.T) {
+			testCases := []struct {
+				name     string
+				channel  *model.Channel
+				userID   string
+				expected bool
+			}{
+				{"DM with exception member should be accessible", dmWithException, restrictedUser.Id, true},
+				{"Group with exception member should be accessible", gmWithException, restrictedUser.Id, true},
+				{"Private with exception member should be accessible", privateWithException, restrictedUser.Id, true},
+			}
 
-		testCases := []struct {
-			name     string
-			channel  *model.Channel
-			userID   string
-			expected bool
-		}{
-			{"DM with exception member should be accessible", dmWithException, restrictedUser.Id, true},
-			{"Group with exception member should be accessible", gmWithException, restrictedUser.Id, true},
-			{"Private with exception member should be accessible", privateWithException, restrictedUser.Id, true},
-		}
-
-		for _, tc := range testCases {
-			t.Run(tc.name, func(t *testing.T) {
-				accessible, err := th.App.IsChannelAccessible(ctxWithSession, tc.channel.Id, tc.userID)
-				require.Nil(t, err)
-				require.Equal(t, tc.expected, accessible)
-			})
-		}
+			for _, tc := range testCases {
+				t.Run(tc.name, func(t *testing.T) {
+					accessible, err := th.App.IsChannelAccessible(ctxWithSession, tc.channel.Id, tc.userID)
+					require.Nil(t, err)
+					require.Equal(t, tc.expected, accessible)
+				})
+			}
+		})
 	})
 }

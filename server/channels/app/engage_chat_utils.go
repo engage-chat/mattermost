@@ -27,7 +27,7 @@ func (a *App) IsChannelAccessible(c request.CTX, channelID string, userID string
 		return true, nil
 	}
 
-	// 1. Check if the channel is offically created
+	// 1. Check if the channel is officially created
 	isOfficial, err := a.IsOfficialChannel(c, channel)
 	if err != nil {
 		return false, err
@@ -37,18 +37,14 @@ func (a *App) IsChannelAccessible(c request.CTX, channelID string, userID string
 	}
 
 	// 2. Check if the situation is under restriction on unofficial channel (by checking the user themselves has the required permission)
-	var requiredPermission *model.Permission
 	var hasPermission bool
 	switch channel.Type {
 	case model.ChannelTypeDirect:
-		requiredPermission = model.PermissionCreateDirectChannel
-		hasPermission = a.SessionHasPermissionTo(*c.Session(), requiredPermission)
+		hasPermission = a.SessionHasPermissionTo(*c.Session(), model.PermissionCreateDirectChannel)
 	case model.ChannelTypeGroup:
-		requiredPermission = model.PermissionCreateGroupChannel
-		hasPermission = a.SessionHasPermissionTo(*c.Session(), requiredPermission)
+		hasPermission = a.SessionHasPermissionTo(*c.Session(), model.PermissionCreateGroupChannel)
 	case model.ChannelTypePrivate:
-		requiredPermission = model.PermissionCreatePrivateChannel
-		hasPermission = a.SessionHasPermissionToTeam(*c.Session(), channel.TeamId, requiredPermission)
+		hasPermission = a.SessionHasPermissionToTeam(*c.Session(), channel.TeamId, model.PermissionCreatePrivateChannel)
 	default:
 		// For other channel types (e.g., public), access is not restricted by this logic.
 		return true, nil
@@ -65,8 +61,6 @@ func (a *App) IsChannelAccessible(c request.CTX, channelID string, userID string
 		searchOpts.SystemRoles = []string{model.SystemEngageAdmin}
 	case model.ChannelTypePrivate:
 		searchOpts.TeamRoles = []string{model.TeamEngageAdmin}
-	default:
-		return false, nil
 	}
 
 	hasMemberWithRole, hasRoleErr := a.Srv().Store().EngageChat().HasChannelMemberWithRoles(channelID, searchOpts)
