@@ -51,7 +51,9 @@ func TestIsChannelAccessible(t *testing.T) {
 
 	// 2. --- Channels Setup ---
 	// Setup for official channel test
+	th.App.ResetIntegrationAdminUsernameCache()
 	t.Setenv("INTEGRATION_ADMIN_USERNAME", th.SystemAdminUser.Username)
+	defer th.App.ResetIntegrationAdminUsernameCache()
 
 	officialChannel := th.CreateChannel(th.Context, th.BasicTeam)
 	officialChannel.CreatorId = th.SystemAdminUser.Id // Make it official
