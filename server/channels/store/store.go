@@ -100,6 +100,7 @@ type Store interface {
 	Attributes() AttributesStore
 	GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error)
 }
+
 type RetentionPolicyStore interface {
 	Save(policy *model.RetentionPolicyWithTeamAndChannelIDs) (*model.RetentionPolicyWithTeamAndChannelCounts, error)
 	Patch(patch *model.RetentionPolicyWithTeamAndChannelIDs) (*model.RetentionPolicyWithTeamAndChannelCounts, error)
