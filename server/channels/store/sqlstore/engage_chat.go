@@ -29,25 +29,25 @@ func (s *SqlEngageChatStore) HasChannelMemberWithRoles(channelID string, options
 		return false, nil
 	}
 
+	isPostgreSQL := s.DriverName() == model.DatabaseDriverPostgres
+
 	orConditions := sq.Or{}
 	if len(options.SystemRoles) > 0 {
 		for _, role := range options.SystemRoles {
-			orConditions = append(orConditions, sq.Or{
-				sq.Eq{"u.Roles": role},
-				sq.Like{"u.Roles": role + " %"},
-				sq.Like{"u.Roles": "% " + role},
-				sq.Like{"u.Roles": "% " + role + " %"},
-			})
+			if isPostgreSQL {
+				orConditions = append(orConditions, sq.Expr("? = ANY(string_to_array(u.Roles, ' '))", role))
+			} else {
+				orConditions = append(orConditions, sq.Expr("FIND_IN_SET(?, REPLACE(u.Roles, ' ', ','))", role))
+			}
 		}
 	}
 	if len(options.TeamRoles) > 0 {
 		for _, role := range options.TeamRoles {
-			orConditions = append(orConditions, sq.Or{
-				sq.Eq{"tm.Roles": role},
-				sq.Like{"tm.Roles": role + " %"},
-				sq.Like{"tm.Roles": "% " + role},
-				sq.Like{"tm.Roles": "% " + role + " %"},
-			})
+			if isPostgreSQL {
+				orConditions = append(orConditions, sq.Expr("? = ANY(string_to_array(tm.Roles, ' '))", role))
+			} else {
+				orConditions = append(orConditions, sq.Expr("FIND_IN_SET(?, REPLACE(tm.Roles, ' ', ','))", role))
+			}
 		}
 	}
 

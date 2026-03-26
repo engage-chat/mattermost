@@ -4,7 +4,6 @@
 package app
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -52,15 +51,7 @@ func TestIsChannelAccessible(t *testing.T) {
 
 	// 2. --- Channels Setup ---
 	// Setup for official channel test
-	originalValue := os.Getenv("INTEGRATION_ADMIN_USERNAME")
-	os.Setenv("INTEGRATION_ADMIN_USERNAME", th.SystemAdminUser.Username)
-	defer func() {
-		if originalValue == "" {
-			os.Unsetenv("INTEGRATION_ADMIN_USERNAME")
-		} else {
-			os.Setenv("INTEGRATION_ADMIN_USERNAME", originalValue)
-		}
-	}()
+	t.Setenv("INTEGRATION_ADMIN_USERNAME", th.SystemAdminUser.Username)
 
 	officialChannel := th.CreateChannel(th.Context, th.BasicTeam)
 	officialChannel.CreatorId = th.SystemAdminUser.Id // Make it official

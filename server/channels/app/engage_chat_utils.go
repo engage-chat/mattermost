@@ -65,7 +65,7 @@ func (a *App) IsChannelAccessible(c request.CTX, channelID string, userID string
 
 	hasMemberWithRole, hasRoleErr := a.Srv().Store().EngageChat().HasChannelMemberWithRoles(channelID, searchOpts)
 	if hasRoleErr != nil {
-		return false, model.NewAppError("IsChannelAccessible", "app.channel.has_channel_member_with_role.app_error", nil, "", http.StatusInternalServerError).Wrap(hasRoleErr)
+		return false, model.NewAppError("IsChannelAccessible", "app.channel.has_engage_admin_role.app_error", nil, "", http.StatusInternalServerError).Wrap(hasRoleErr)
 	}
 	if hasMemberWithRole {
 		return true, nil // Exception found, channel is accessible.
