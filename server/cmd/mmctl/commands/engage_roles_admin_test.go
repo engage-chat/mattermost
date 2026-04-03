@@ -16,11 +16,8 @@ import (
 )
 
 func (s *MmctlUnitTestSuite) TestEngageAdminCmd() {
-	s.Run("Assign engage admin role to user", func() {
+	s.Run("Enable engage admin role successfully", func() {
 		printer.Clean()
-
-		mockUser := &model.User{Id: "1", Email: "u1@example.com", Roles: "system_user"}
-		newRoles := "system_user system_engage_admin"
 
 		s.client.
 			EXPECT().
@@ -28,54 +25,16 @@ func (s *MmctlUnitTestSuite) TestEngageAdminCmd() {
 			Return([]*model.Role{{Name: model.SystemEngageAdmin}}, &model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Email, "").
-			Return(mockUser, &model.Response{}, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			UpdateUserRoles(context.TODO(), mockUser.Id, newRoles).
-			Return(&model.Response{StatusCode: http.StatusOK}, nil).
-			Times(1)
-
-		err := rolesEngageAdminCmdF(s.client, &cobra.Command{}, []string{mockUser.Email})
+		err := rolesEngageAdminCmdF(s.client, &cobra.Command{}, []string{})
 		s.Require().Nil(err)
 
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
-		s.Require().Equal(fmt.Sprintf("Engage admin role assigned to user %q. Current roles are: %s", mockUser.Email, "system_user, system_engage_admin"), printer.GetLines()[0])
+		s.Require().Equal(fmt.Sprintf("Role %q enabled successfully.", model.SystemEngageAdmin), printer.GetLines()[0])
 	})
 
-	s.Run("Assign engage admin role to already engage admin user", func() {
+	s.Run("Fail to enable engage admin role", func() {
 		printer.Clean()
-
-		mockUser := &model.User{Id: "1", Email: "u1@example.com", Roles: "system_user system_engage_admin"}
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Email, "").
-			Return(mockUser, &model.Response{}, nil).
-			Times(1)
-
-		err := rolesEngageAdminCmdF(s.client, &cobra.Command{}, []string{mockUser.Email})
-		s.Require().Nil(err)
-
-		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 0)
-	})
-
-	s.Run("Fail to enable custom role", func() {
-		printer.Clean()
-
-		mockUser := &model.User{Id: "1", Email: "u1@example.com", Roles: "system_user"}
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Email, "").
-			Return(mockUser, &model.Response{}, nil).
-			Times(1)
 
 		s.client.
 			EXPECT().
@@ -83,73 +42,11 @@ func (s *MmctlUnitTestSuite) TestEngageAdminCmd() {
 			Return(nil, &model.Response{StatusCode: http.StatusInternalServerError}, errors.New("mock error")).
 			Times(1)
 
-		err := rolesEngageAdminCmdF(s.client, &cobra.Command{}, []string{mockUser.Email})
+		err := rolesEngageAdminCmdF(s.client, &cobra.Command{}, []string{})
 		s.Require().ErrorContains(err, fmt.Sprintf("unable to enable %q role", model.SystemEngageAdmin))
 
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
-
-	s.Run("Assign engage admin role to non existing user", func() {
-		printer.Clean()
-
-		emailArg := "doesnotexist@example.com"
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
-			Return(nil, &model.Response{}, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUserByUsername(context.TODO(), emailArg, "").
-			Return(nil, &model.Response{}, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUser(context.TODO(), emailArg, "").
-			Return(nil, &model.Response{}, nil).
-			Times(1)
-
-		err := rolesEngageAdminCmdF(s.client, &cobra.Command{}, []string{emailArg})
-		s.Require().ErrorContains(err, "unable to find user")
-
-		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Sprintf("unable to find user %q", emailArg), printer.GetErrorLines()[0])
-	})
-
-	s.Run("Error while updating engage admin role", func() {
-		printer.Clean()
-
-		mockUser := &model.User{Id: "1", Email: "u1@example.com", Roles: "system_user"}
-		newRoles := "system_user system_engage_admin"
-
-		s.client.
-			EXPECT().
-			EnableCustomRoles(context.TODO(), []string{model.SystemEngageAdmin}).
-			Return([]*model.Role{{Name: model.SystemEngageAdmin}}, &model.Response{StatusCode: http.StatusOK}, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Email, "").
-			Return(mockUser, &model.Response{}, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			UpdateUserRoles(context.TODO(), mockUser.Id, newRoles).
-			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
-			Times(1)
-
-		err := rolesEngageAdminCmdF(s.client, &cobra.Command{}, []string{mockUser.Email})
-		s.Require().ErrorContains(err, "can't update roles for user")
-
-		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("can't update roles for user %q", mockUser.Email))
-	})
 }
+

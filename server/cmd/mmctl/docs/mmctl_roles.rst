@@ -37,7 +37,7 @@ SEE ALSO
 ~~~~~~~~
 
 * `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
-* `mmctl roles engage-admin <mmctl_roles_engage-admin.rst>`_ 	 - Set a user as engage admin
+* `mmctl roles engage-admin <mmctl_roles_engage-admin.rst>`_ 	 - Enable the engage admin role
 * `mmctl roles member <mmctl_roles_member.rst>`_ 	 - Remove system admin privileges
 * `mmctl roles system-admin <mmctl_roles_system-admin.rst>`_ 	 - Set a user as system admin
 

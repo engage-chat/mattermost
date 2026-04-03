@@ -3,28 +3,24 @@
 mmctl roles engage-admin
 ------------------------
 
-Set a user as engage admin
+Enable the engage admin role
 
 Synopsis
 ~~~~~~~~
 
 
-Assign the system_engage_admin role to one or more users. The role is created if it does not yet exist.
+Create or restore the system_engage_admin custom role.
 
 ::
 
-  mmctl roles engage-admin [users] [flags]
+  mmctl roles engage-admin [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    # Assign engage admin role to a single user
-    $ mmctl roles engage-admin john_doe
-
-    # Or assign to multiple users at the same time
-    $ mmctl roles engage-admin john_doe jane_doe
+    $ mmctl roles engage-admin
 
 Options
 ~~~~~~~
