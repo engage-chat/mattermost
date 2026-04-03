@@ -35,12 +35,33 @@ func init() {
 }
 
 func rolesEngageAdminCmdF(c client.Client, _ *cobra.Command, args []string) error {
-	if _, _, err := c.EnableCustomRoles(context.TODO(), []string{model.SystemEngageAdmin}); err != nil {
-		return fmt.Errorf("unable to enable %q role: %w", model.SystemEngageAdmin, err)
-	}
-
 	var errs *multierror.Error
 	users := getUsersFromUserArgs(c, args)
+
+	needsEnableCustomRole := false
+	for _, user := range users {
+		if user == nil {
+			continue
+		}
+		hasRole := false
+		for _, role := range strings.Fields(user.Roles) {
+			if role == model.SystemEngageAdmin {
+				hasRole = true
+				break
+			}
+		}
+		if !hasRole {
+			needsEnableCustomRole = true
+			break
+		}
+	}
+
+	if needsEnableCustomRole {
+		if _, _, err := c.EnableCustomRoles(context.TODO(), []string{model.SystemEngageAdmin}); err != nil {
+			return fmt.Errorf("unable to enable %q role: %w", model.SystemEngageAdmin, err)
+		}
+	}
+
 	for i, user := range users {
 		if user == nil {
 			userErr := fmt.Errorf("unable to find user %q", args[i])

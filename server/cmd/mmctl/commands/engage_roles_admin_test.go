@@ -16,8 +16,6 @@ import (
 )
 
 func (s *MmctlUnitTestSuite) TestEngageAdminCmd() {
-	engageRole := &model.Role{Name: model.SystemEngageAdmin}
-
 	s.Run("Assign engage admin role to user", func() {
 		printer.Clean()
 
@@ -27,7 +25,7 @@ func (s *MmctlUnitTestSuite) TestEngageAdminCmd() {
 		s.client.
 			EXPECT().
 			EnableCustomRoles(context.TODO(), []string{model.SystemEngageAdmin}).
-			Return([]*model.Role{engageRole}, &model.Response{StatusCode: http.StatusOK}, nil).
+			Return([]*model.Role{{Name: model.SystemEngageAdmin}}, &model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		s.client.
@@ -57,12 +55,6 @@ func (s *MmctlUnitTestSuite) TestEngageAdminCmd() {
 
 		s.client.
 			EXPECT().
-			EnableCustomRoles(context.TODO(), []string{model.SystemEngageAdmin}).
-			Return([]*model.Role{engageRole}, &model.Response{StatusCode: http.StatusOK}, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
 			GetUserByEmail(context.TODO(), mockUser.Email, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
@@ -77,7 +69,13 @@ func (s *MmctlUnitTestSuite) TestEngageAdminCmd() {
 	s.Run("Fail to enable custom role", func() {
 		printer.Clean()
 
-		emailArg := "u1@example.com"
+		mockUser := &model.User{Id: "1", Email: "u1@example.com", Roles: "system_user"}
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(context.TODO(), mockUser.Email, "").
+			Return(mockUser, &model.Response{}, nil).
+			Times(1)
 
 		s.client.
 			EXPECT().
@@ -85,7 +83,7 @@ func (s *MmctlUnitTestSuite) TestEngageAdminCmd() {
 			Return(nil, &model.Response{StatusCode: http.StatusInternalServerError}, errors.New("mock error")).
 			Times(1)
 
-		err := rolesEngageAdminCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		err := rolesEngageAdminCmdF(s.client, &cobra.Command{}, []string{mockUser.Email})
 		s.Require().ErrorContains(err, fmt.Sprintf("unable to enable %q role", model.SystemEngageAdmin))
 
 		s.Require().Len(printer.GetLines(), 0)
@@ -96,12 +94,6 @@ func (s *MmctlUnitTestSuite) TestEngageAdminCmd() {
 		printer.Clean()
 
 		emailArg := "doesnotexist@example.com"
-
-		s.client.
-			EXPECT().
-			EnableCustomRoles(context.TODO(), []string{model.SystemEngageAdmin}).
-			Return([]*model.Role{engageRole}, &model.Response{StatusCode: http.StatusOK}, nil).
-			Times(1)
 
 		s.client.
 			EXPECT().
@@ -138,7 +130,7 @@ func (s *MmctlUnitTestSuite) TestEngageAdminCmd() {
 		s.client.
 			EXPECT().
 			EnableCustomRoles(context.TODO(), []string{model.SystemEngageAdmin}).
-			Return([]*model.Role{engageRole}, &model.Response{StatusCode: http.StatusOK}, nil).
+			Return([]*model.Role{{Name: model.SystemEngageAdmin}}, &model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		s.client.
