@@ -585,6 +585,22 @@ func (mr *MockClientMockRecorder) EnablePlugin(arg0, arg1 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnablePlugin", reflect.TypeOf((*MockClient)(nil).EnablePlugin), arg0, arg1)
 }
 
+// EnableCustomRoles mocks base method.
+func (m *MockClient) EnableCustomRoles(arg0 context.Context, arg1 []string) ([]*model.Role, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "EnableCustomRoles", arg0, arg1)
+	ret0, _ := ret[0].([]*model.Role)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// EnableCustomRoles indicates an expected call of EnableCustomRoles.
+func (mr *MockClientMockRecorder) EnableCustomRoles(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnableCustomRoles", reflect.TypeOf((*MockClient)(nil).EnableCustomRoles), arg0, arg1)
+}
+
 // GeneratePresignedURL mocks base method.
 func (m *MockClient) GeneratePresignedURL(arg0 context.Context, arg1 string) (*model.PresignURLResponse, *model.Response, error) {
 	m.ctrl.T.Helper()
