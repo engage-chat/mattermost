@@ -10,10 +10,11 @@ import (
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
+
+	"github.com/spf13/cobra"
 )
 
 var RolesCmd = &cobra.Command{
@@ -130,4 +131,3 @@ func rolesMemberCmdF(c client.Client, _ *cobra.Command, args []string) error {
 
 	return errs.ErrorOrNil()
 }
-
