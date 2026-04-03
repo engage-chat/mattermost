@@ -1,22 +1,37 @@
-.. _mmctl_roles:
+.. _mmctl_roles_engage-admin:
 
-mmctl roles
------------
+mmctl roles engage-admin
+------------------------
 
-Manage user roles
+Set a user as engage admin
 
 Synopsis
 ~~~~~~~~
 
 
-Manage user roles
+Assign the system_engage_admin role to one or more users. The role is created if it does not yet exist.
+
+::
+
+  mmctl roles engage-admin [users] [flags]
+
+Examples
+~~~~~~~~
+
+::
+
+    # Assign engage admin role to a single user
+    $ mmctl roles engage-admin john_doe
+
+    # Or assign to multiple users at the same time
+    $ mmctl roles engage-admin john_doe jane_doe
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for roles
+  -h, --help   help for engage-admin
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -36,8 +51,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
-* `mmctl roles engage-admin <mmctl_roles_engage-admin.rst>`_ 	 - Set a user as engage admin
-* `mmctl roles member <mmctl_roles_member.rst>`_ 	 - Remove system admin privileges
-* `mmctl roles system-admin <mmctl_roles_system-admin.rst>`_ 	 - Set a user as system admin
+* `mmctl roles <mmctl_roles.rst>`_ 	 - Manage user roles
 
