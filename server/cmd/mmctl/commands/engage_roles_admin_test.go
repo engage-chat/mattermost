@@ -77,7 +77,7 @@ func (s *MmctlUnitTestSuite) TestEngageAdminCmd() {
 	s.Run("Fail to enable custom role", func() {
 		printer.Clean()
 
-		mockUser := &model.User{Id: "1", Email: "u1@example.com", Roles: "system_user"}
+		emailArg := "u1@example.com"
 
 		s.client.
 			EXPECT().
@@ -85,7 +85,7 @@ func (s *MmctlUnitTestSuite) TestEngageAdminCmd() {
 			Return(nil, &model.Response{StatusCode: http.StatusInternalServerError}, errors.New("mock error")).
 			Times(1)
 
-		err := rolesEngageAdminCmdF(s.client, &cobra.Command{}, []string{mockUser.Email})
+		err := rolesEngageAdminCmdF(s.client, &cobra.Command{}, []string{emailArg})
 		s.Require().ErrorContains(err, fmt.Sprintf("unable to enable %q role", model.SystemEngageAdmin))
 
 		s.Require().Len(printer.GetLines(), 0)
