@@ -23,6 +23,10 @@ func newSqlEngageChatStore(sqlStore *SqlStore) store.EngageChatStore {
 }
 
 func (s *SqlEngageChatStore) HasChannelMemberWithRoles(channelID string, options *model.EngageChatRoleSearchOptions) (bool, error) {
+	if options == nil {
+		return false, nil
+	}
+
 	hasSystemRoles := len(options.SystemRoles) > 0
 	hasTeamRoles := len(options.TeamRoles) > 0
 
@@ -41,12 +45,12 @@ func (s *SqlEngageChatStore) HasChannelMemberWithRoles(channelID string, options
 	orConditions := sq.Or{}
 	if hasSystemRoles {
 		for _, role := range options.SystemRoles {
-			orConditions = append(orConditions, sq.Expr("(' ' || u.Roles || ' ') LIKE ?", "% "+role+" %"))
+			orConditions = append(orConditions, sq.Expr("CONCAT(' ', u.Roles, ' ') LIKE ?", "% "+role+" %"))
 		}
 	}
 	if hasTeamRoles {
 		for _, role := range options.TeamRoles {
-			orConditions = append(orConditions, sq.Expr("(' ' || tm.Roles || ' ') LIKE ?", "% "+role+" %"))
+			orConditions = append(orConditions, sq.Expr("CONCAT(' ', tm.Roles, ' ') LIKE ?", "% "+role+" %"))
 		}
 	}
 
@@ -55,12 +59,12 @@ func (s *SqlEngageChatStore) HasChannelMemberWithRoles(channelID string, options
 
 	// Only JOIN the tables that are actually needed for the search criteria.
 	if hasSystemRoles {
-		subQuery = subQuery.Join("Users u ON cm.UserId = u.Id")
+		subQuery = subQuery.Join("Users u ON cm.UserId = u.Id AND u.DeleteAt = 0")
 	}
 	if hasTeamRoles {
 		subQuery = subQuery.
 			Join("Channels c ON cm.ChannelId = c.Id").
-			Join("TeamMembers tm ON tm.TeamId = c.TeamId AND tm.UserId = cm.UserId")
+			Join("TeamMembers tm ON tm.TeamId = c.TeamId AND tm.UserId = cm.UserId AND tm.DeleteAt = 0")
 	}
 
 	subQuery = subQuery.

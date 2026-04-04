@@ -37,14 +37,19 @@ func (a *App) IsChannelAccessible(c request.CTX, channelID string, userID string
 	}
 
 	// 2. Check if the situation is under restriction on unofficial channel (by checking the user themselves has the required permission)
+	session := c.Session()
+	if session == nil {
+		return false, model.NewAppError("IsChannelAccessible", "api.context.session_expired.app_error", nil, "", http.StatusUnauthorized)
+	}
+
 	var hasPermission bool
 	switch channel.Type {
 	case model.ChannelTypeDirect:
-		hasPermission = a.SessionHasPermissionTo(*c.Session(), model.PermissionCreateDirectChannel)
+		hasPermission = a.SessionHasPermissionTo(*session, model.PermissionCreateDirectChannel)
 	case model.ChannelTypeGroup:
-		hasPermission = a.SessionHasPermissionTo(*c.Session(), model.PermissionCreateGroupChannel)
+		hasPermission = a.SessionHasPermissionTo(*session, model.PermissionCreateGroupChannel)
 	case model.ChannelTypePrivate:
-		hasPermission = a.SessionHasPermissionToTeam(*c.Session(), channel.TeamId, model.PermissionCreatePrivateChannel)
+		hasPermission = a.SessionHasPermissionToTeam(*session, channel.TeamId, model.PermissionCreatePrivateChannel)
 	default:
 		// For other channel types (e.g., public), access is not restricted by this logic.
 		return true, nil
