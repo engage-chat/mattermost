@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 func TestIsChannelAccessible(t *testing.T) {
@@ -49,6 +50,13 @@ func TestIsChannelAccessible(t *testing.T) {
 	require.Nil(t, err)
 	ctxWithSession := th.Context.WithSession(session)
 
+	botSession, err := th.App.CreateSession(th.Context, &model.Session{
+		UserId: botUser.Id,
+		Roles:  model.SystemUserRoleId,
+	})
+	require.Nil(t, err)
+	ctxWithBotSession := th.Context.WithSession(botSession)
+
 	// 2. --- Channels Setup ---
 	// Setup for official channel test
 	th.App.ResetIntegrationAdminUsernameCache()
@@ -84,23 +92,20 @@ func TestIsChannelAccessible(t *testing.T) {
 		testCases := []struct {
 			name          string
 			channelID     string
-			userID        string
-			expected      bool
 			expectedError bool
 		}{
-			{"Invalid channel ID should return an error", "invalid-channel-id", restrictedUser.Id, false, true},
-			{"Invalid user ID should return an error", publicChannel.Id, "invalid-user-id", false, true},
+			{"Invalid channel ID should return an error", "invalid-channel-id", true},
 		}
 
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
-				accessible, err := th.App.IsChannelAccessible(ctxWithSession, tc.channelID, tc.userID)
+				accessible, err := th.App.IsChannelAccessible(ctxWithSession, tc.channelID)
 				if tc.expectedError {
 					require.NotNil(t, err)
 				} else {
 					require.Nil(t, err)
 				}
-				require.Equal(t, tc.expected, accessible)
+				require.False(t, accessible)
 			})
 		}
 	})
@@ -109,20 +114,20 @@ func TestIsChannelAccessible(t *testing.T) {
 		testCases := []struct {
 			name     string
 			channel  *model.Channel
-			userID   string
+			ctx      request.CTX
 			expected bool
 		}{
-			{"DM Channel", dmChannel, restrictedUser.Id, true},
-			{"Group Channel", gmChannel, restrictedUser.Id, true},
-			{"Private Channel", privateChannel, restrictedUser.Id, true},
-			{"Bot user should always be accessible", publicChannel, botUser.Id, true},
-			{"Official channel should always be accessible", officialChannel, restrictedUser.Id, true},
-			{"Public channel should always be accessible", publicChannel, restrictedUser.Id, true},
+			{"DM Channel", dmChannel, ctxWithSession, true},
+			{"Group Channel", gmChannel, ctxWithSession, true},
+			{"Private Channel", privateChannel, ctxWithSession, true},
+			{"Bot user should always be accessible", publicChannel, ctxWithBotSession, true},
+			{"Official channel should always be accessible", officialChannel, ctxWithSession, true},
+			{"Public channel should always be accessible", publicChannel, ctxWithSession, true},
 		}
 
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
-				accessible, err := th.App.IsChannelAccessible(ctxWithSession, tc.channel.Id, tc.userID)
+				accessible, err := th.App.IsChannelAccessible(tc.ctx, tc.channel.Id)
 				require.Nil(t, err)
 				require.Equal(t, tc.expected, accessible)
 			})
@@ -144,20 +149,20 @@ func TestIsChannelAccessible(t *testing.T) {
 			testCases := []struct {
 				name     string
 				channel  *model.Channel
-				userID   string
+				ctx      request.CTX
 				expected bool
 			}{
-				{"DM without exception should NOT be accessible", dmChannel, restrictedUser.Id, false},
-				{"Group without exception should NOT be accessible", gmChannel, restrictedUser.Id, false},
-				{"Private without exception should NOT be accessible", privateChannel, restrictedUser.Id, false},
-				{"Official channel should always be accessible", officialChannel, restrictedUser.Id, true},
-				{"Public channel should always be accessible", publicChannel, restrictedUser.Id, true},
-				{"Bot user should always be accessible", publicChannel, botUser.Id, true},
+				{"DM without exception should NOT be accessible", dmChannel, ctxWithSession, false},
+				{"Group without exception should NOT be accessible", gmChannel, ctxWithSession, false},
+				{"Private without exception should NOT be accessible", privateChannel, ctxWithSession, false},
+				{"Official channel should always be accessible", officialChannel, ctxWithSession, true},
+				{"Public channel should always be accessible", publicChannel, ctxWithSession, true},
+				{"Bot user should always be accessible", publicChannel, ctxWithBotSession, true},
 			}
 
 			for _, tc := range testCases {
 				t.Run(tc.name, func(t *testing.T) {
-					accessible, err := th.App.IsChannelAccessible(ctxWithSession, tc.channel.Id, tc.userID)
+					accessible, err := th.App.IsChannelAccessible(tc.ctx, tc.channel.Id)
 					require.Nil(t, err)
 					require.Equal(t, tc.expected, accessible)
 				})
@@ -168,17 +173,16 @@ func TestIsChannelAccessible(t *testing.T) {
 			testCases := []struct {
 				name     string
 				channel  *model.Channel
-				userID   string
 				expected bool
 			}{
-				{"DM with exception member should be accessible", dmWithException, restrictedUser.Id, true},
-				{"Group with exception member should be accessible", gmWithException, restrictedUser.Id, true},
-				{"Private with exception member should be accessible", privateWithException, restrictedUser.Id, true},
+				{"DM with exception member should be accessible", dmWithException, true},
+				{"Group with exception member should be accessible", gmWithException, true},
+				{"Private with exception member should be accessible", privateWithException, true},
 			}
 
 			for _, tc := range testCases {
 				t.Run(tc.name, func(t *testing.T) {
-					accessible, err := th.App.IsChannelAccessible(ctxWithSession, tc.channel.Id, tc.userID)
+					accessible, err := th.App.IsChannelAccessible(ctxWithSession, tc.channel.Id)
 					require.Nil(t, err)
 					require.Equal(t, tc.expected, accessible)
 				})

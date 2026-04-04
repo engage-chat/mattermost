@@ -12,14 +12,20 @@ import (
 
 // IsChannelAccessible checks if a user has permissions to post and react in a given channel
 // based on the full validation logic including DM/GM restrictions and exceptions.
+// The user is derived from the session in the provided context.
 // It returns true if accessible, false if not.
-func (a *App) IsChannelAccessible(c request.CTX, channelID string, userID string) (bool, *model.AppError) {
+func (a *App) IsChannelAccessible(c request.CTX, channelID string) (bool, *model.AppError) {
+	session := c.Session()
+	if session == nil {
+		return false, model.NewAppError("IsChannelAccessible", "api.context.session_expired.app_error", nil, "", http.StatusUnauthorized)
+	}
+
 	channel, err := a.GetChannel(c, channelID)
 	if err != nil {
 		return false, err
 	}
 
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(session.UserId)
 	if err != nil {
 		return false, err
 	}
@@ -37,11 +43,6 @@ func (a *App) IsChannelAccessible(c request.CTX, channelID string, userID string
 	}
 
 	// 2. Check if the situation is under restriction on unofficial channel (by checking the user themselves has the required permission)
-	session := c.Session()
-	if session == nil {
-		return false, model.NewAppError("IsChannelAccessible", "api.context.session_expired.app_error", nil, "", http.StatusUnauthorized)
-	}
-
 	var hasPermission bool
 	switch channel.Type {
 	case model.ChannelTypeDirect:
