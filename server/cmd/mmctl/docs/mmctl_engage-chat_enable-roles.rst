@@ -1,33 +1,33 @@
-.. _mmctl_roles_engage-admin:
+.. _mmctl_engage-chat_enable-roles:
 
-mmctl roles engage-admin
-------------------------
+mmctl engage-chat enable-roles
+------------------------------
 
-Enable the engage admin role
+Enable engage-chat custom roles
 
 Synopsis
 ~~~~~~~~
 
 
-Create or restore the system_engage_admin custom role.
+Create or restore the engage-chat custom roles (e.g. system_engage_admin).
 
 ::
 
-  mmctl roles engage-admin [flags]
+  mmctl engage-chat enable-roles [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    $ mmctl roles engage-admin
+    $ mmctl engage-chat enable-roles
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for engage-admin
+  -h, --help   help for enable-roles
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -47,5 +47,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl roles <mmctl_roles.rst>`_ 	 - Manage user roles
+* `mmctl engage-chat <mmctl_engage-chat.rst>`_ 	 - Management of engage-chat features
 

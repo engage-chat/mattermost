@@ -15,8 +15,8 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
 
-func (s *MmctlUnitTestSuite) TestEngageAdminCmd() {
-	s.Run("Enable engage admin role successfully", func() {
+func (s *MmctlUnitTestSuite) TestEngageChatEnableRolesCmd() {
+	s.Run("Enable engage-chat roles successfully", func() {
 		printer.Clean()
 
 		s.client.
@@ -25,7 +25,7 @@ func (s *MmctlUnitTestSuite) TestEngageAdminCmd() {
 			Return([]*model.Role{{Name: model.SystemEngageAdmin}}, &model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := rolesEngageAdminCmdF(s.client, &cobra.Command{}, []string{})
+		err := engageChatEnableRolesCmdF(s.client, &cobra.Command{}, []string{})
 		s.Require().Nil(err)
 
 		s.Require().Len(printer.GetLines(), 1)
@@ -33,7 +33,7 @@ func (s *MmctlUnitTestSuite) TestEngageAdminCmd() {
 		s.Require().Equal(fmt.Sprintf("Role %q enabled successfully.", model.SystemEngageAdmin), printer.GetLines()[0])
 	})
 
-	s.Run("Fail to enable engage admin role", func() {
+	s.Run("Fail to enable engage-chat roles", func() {
 		printer.Clean()
 
 		s.client.
@@ -42,11 +42,10 @@ func (s *MmctlUnitTestSuite) TestEngageAdminCmd() {
 			Return(nil, &model.Response{StatusCode: http.StatusInternalServerError}, errors.New("mock error")).
 			Times(1)
 
-		err := rolesEngageAdminCmdF(s.client, &cobra.Command{}, []string{})
-		s.Require().ErrorContains(err, fmt.Sprintf("unable to enable %q role", model.SystemEngageAdmin))
+		err := engageChatEnableRolesCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().ErrorContains(err, "unable to enable engage-chat roles")
 
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 }
-

@@ -1,22 +1,22 @@
-.. _mmctl_roles:
+.. _mmctl_engage-chat:
 
-mmctl roles
------------
+mmctl engage-chat
+-----------------
 
-Manage user roles
+Management of engage-chat features
 
 Synopsis
 ~~~~~~~~
 
 
-Manage user roles
+Management of engage-chat features
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for roles
+  -h, --help   help for engage-chat
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -37,6 +37,5 @@ SEE ALSO
 ~~~~~~~~
 
 * `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
-* `mmctl roles member <mmctl_roles_member.rst>`_ 	 - Remove system admin privileges
-* `mmctl roles system-admin <mmctl_roles_system-admin.rst>`_ 	 - Set a user as system admin
+* `mmctl engage-chat enable-roles <mmctl_engage-chat_enable-roles.rst>`_ 	 - Enable engage-chat custom roles
 
