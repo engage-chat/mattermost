@@ -22,8 +22,7 @@ func getChannelAccessible(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := c.AppContext.Session().UserId
-	isAccessible, appErr := c.App.IsChannelAccessible(c.AppContext, c.Params.ChannelId, userID)
+	isAccessible, appErr := c.App.IsChannelAccessible(c.AppContext, c.Params.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
 		return
