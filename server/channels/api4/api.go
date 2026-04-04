@@ -163,7 +163,8 @@ type Routes struct {
 	AccessControlPolicies *mux.Router // 'api/v4/access_control_policies'
 	AccessControlPolicy   *mux.Router // 'api/v4/access_control_policies/{policy_id:[A-Za-z0-9]+}'
 
-	EngageChat *mux.Router // 'api/v4/engage_chat'
+	EngageChat        *mux.Router // 'api/v4/engage_chat'
+	EngageChatChannel *mux.Router // 'api/v4/engage_chat/channels/{channel_id:[A-Za-z0-9]+}'
 }
 
 type API struct {
@@ -313,6 +314,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.AccessControlPolicy = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies/{policy_id:[A-Za-z0-9]+}").Subrouter()
 
 	api.BaseRoutes.EngageChat = api.BaseRoutes.APIRoot.PathPrefix("/engage_chat").Subrouter()
+	api.BaseRoutes.EngageChatChannel = api.BaseRoutes.EngageChat.PathPrefix("/channels/{channel_id:[A-Za-z0-9]+}").Subrouter()
 
 	api.InitUser()
 	api.InitBot()
