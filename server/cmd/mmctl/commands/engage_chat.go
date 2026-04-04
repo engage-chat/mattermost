@@ -19,16 +19,17 @@ var EngageChatCmd = &cobra.Command{
 	Short: "Management of engage-chat features",
 }
 
-var EngageChatEnableRolesCmd = &cobra.Command{
-	Use:   "enable-roles",
-	Short: "Enable engage-chat custom roles",
-	Long:  "Create or restore the engage-chat custom roles (e.g. system_engage_admin).",
-	Example: `  $ mmctl engage-chat enable-roles`,
-	RunE: withClient(engageChatEnableRolesCmdF),
+var EngageChatSystemEngageAdminCmd = &cobra.Command{
+	Use:     "system-engage-admin",
+	Aliases: []string{"system_engage_admin"},
+	Short:   "Enable the system_engage_admin role",
+	Long:    "Create or restore the system_engage_admin custom role.",
+	Example: `  $ mmctl engage-chat system-engage-admin`,
+	RunE:    withClient(engageChatEnableRolesCmdF),
 }
 
 func init() {
-	EngageChatCmd.AddCommand(EngageChatEnableRolesCmd)
+	EngageChatCmd.AddCommand(EngageChatSystemEngageAdminCmd)
 	RootCmd.AddCommand(EngageChatCmd)
 }
 

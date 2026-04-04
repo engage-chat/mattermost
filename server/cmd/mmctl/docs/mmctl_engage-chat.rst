@@ -37,5 +37,5 @@ SEE ALSO
 ~~~~~~~~
 
 * `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
-* `mmctl engage-chat enable-roles <mmctl_engage-chat_enable-roles.rst>`_ 	 - Enable engage-chat custom roles
+* `mmctl engage-chat system-engage-admin <mmctl_engage-chat_system-engage-admin.rst>`_ 	 - Enable the system_engage_admin role
 
