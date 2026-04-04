@@ -1796,6 +1796,9 @@ func TestSearchPostsForUser(t *testing.T) {
 
 		posts := make([]*model.Post, 7)
 		for i := 0; i < cap(posts); i++ {
+			if i > 0 {
+				time.Sleep(time.Millisecond)
+			}
 			post, err := th.App.CreatePost(th.Context, &model.Post{
 				UserId:    th.BasicUser.Id,
 				ChannelId: th.BasicChannel.Id,

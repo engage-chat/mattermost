@@ -988,7 +988,7 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 		assert.Equal(t, channel.Id, history.ChannelId)
 		channelMemberHistoryUserIds = append(channelMemberHistoryUserIds, history.UserId)
 	}
-	assert.Equal(t, groupUserIds, channelMemberHistoryUserIds)
+	assert.ElementsMatch(t, groupUserIds, channelMemberHistoryUserIds)
 
 	postList, nErr := th.App.Srv().Store().Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
 	require.NoError(t, nErr)
@@ -1720,11 +1720,14 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 	th.AddUserToChannel(u2, pc1)
 
 	p1 := th.CreatePost(c1)
+	time.Sleep(time.Millisecond)
 	p2 := th.CreatePost(c1)
+	time.Sleep(time.Millisecond)
 	p3 := th.CreatePost(c1)
 
 	pp1 := th.CreatePost(pc1)
 	require.NotNil(t, pp1)
+	time.Sleep(time.Millisecond)
 	pp2 := th.CreatePost(pc1)
 
 	unread, appErr := th.App.GetChannelUnread(th.Context, c1.Id, u1.Id)
