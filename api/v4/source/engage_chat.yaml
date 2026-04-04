@@ -36,7 +36,7 @@
         "403":
           $ref: "#/components/responses/Forbidden"
 
-"/api/v4/engage_chat/channels/{channel_id}/accessible":
+  "/api/v4/engage_chat/channels/{channel_id}/accessible":
     get:
       tags:
         - engage_chat
