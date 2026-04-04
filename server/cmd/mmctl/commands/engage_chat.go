@@ -35,7 +35,7 @@ func init() {
 
 func engageChatEnableRolesCmdF(c client.Client, _ *cobra.Command, _ []string) error {
 	if _, _, err := c.EnableCustomRoles(context.TODO(), []string{model.SystemEngageAdmin}); err != nil {
-		return fmt.Errorf("unable to enable engage-chat roles: %w", err)
+		return fmt.Errorf("unable to enable engage-chat role %q: %w", model.SystemEngageAdmin, err)
 	}
 
 	printer.Print(fmt.Sprintf("Role %q enabled successfully.", model.SystemEngageAdmin))
