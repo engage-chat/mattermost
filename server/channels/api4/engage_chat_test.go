@@ -90,7 +90,7 @@ func TestGetChannelAccessible(t *testing.T) {
 	})
 
 	t.Run("invalid channel ID returns 400", func(t *testing.T) {
-		_, resp, err := th.Client.GetChannelAccessible(context.Background(), "invalid-id")
+		_, resp, err := th.Client.GetChannelAccessible(context.Background(), "invalidid")
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
