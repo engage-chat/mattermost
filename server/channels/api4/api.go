@@ -459,6 +459,8 @@ func InitLocal(srv *app.Server) *API {
 	api.BaseRoutes.AccessControlPolicies = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies").Subrouter()
 	api.BaseRoutes.AccessControlPolicy = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies/{policy_id:[A-Za-z0-9]+}").Subrouter()
 
+	api.BaseRoutes.EngageChat = api.BaseRoutes.APIRoot.PathPrefix("/engage_chat").Subrouter()
+
 	api.InitUserLocal()
 	api.InitTeamLocal()
 	api.InitChannelLocal()
@@ -481,6 +483,7 @@ func InitLocal(srv *app.Server) *API {
 	api.InitSamlLocal()
 	api.InitCustomProfileAttributesLocal()
 	api.InitAccessControlPolicyLocal()
+	api.InitEngageChatLocal()
 
 	srv.LocalRouter.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 
