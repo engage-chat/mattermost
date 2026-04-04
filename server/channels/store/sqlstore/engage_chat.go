@@ -4,8 +4,6 @@
 package sqlstore
 
 import (
-	"database/sql"
-
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
@@ -32,59 +30,57 @@ func (s *SqlEngageChatStore) HasChannelMemberWithRoles(channelID string, options
 		return false, nil
 	}
 
-	isPostgreSQL := s.DriverName() == model.DatabaseDriverPostgres
-
+	// Build role matching conditions using LIKE patterns.
+	// Roles are stored as space-separated strings (e.g., "system_user system_engage_admin").
+	// The pattern "% role %" with padding handles all positions:
+	//   - beginning: " system_engage_admin " matches "system_engage_admin other"
+	//   - middle:    " system_engage_admin " matches "other system_engage_admin another"
+	//   - end:       " system_engage_admin " matches "other system_engage_admin"
+	//   - sole:      " system_engage_admin " matches "system_engage_admin"
+	// By prepending/appending a space to the column, we normalize all cases.
 	orConditions := sq.Or{}
 	if hasSystemRoles {
 		for _, role := range options.SystemRoles {
-			if isPostgreSQL {
-				orConditions = append(orConditions, sq.Expr("? = ANY(string_to_array(u.Roles, ' '))", role))
-			} else {
-				orConditions = append(orConditions, sq.Expr("FIND_IN_SET(?, REPLACE(u.Roles, ' ', ','))", role))
-			}
+			orConditions = append(orConditions, sq.Expr("(' ' || u.Roles || ' ') LIKE ?", "% "+role+" %"))
 		}
 	}
 	if hasTeamRoles {
 		for _, role := range options.TeamRoles {
-			if isPostgreSQL {
-				orConditions = append(orConditions, sq.Expr("? = ANY(string_to_array(tm.Roles, ' '))", role))
-			} else {
-				orConditions = append(orConditions, sq.Expr("FIND_IN_SET(?, REPLACE(tm.Roles, ' ', ','))", role))
-			}
+			orConditions = append(orConditions, sq.Expr("(' ' || tm.Roles || ' ') LIKE ?", "% "+role+" %"))
 		}
 	}
 
-	query := s.getQueryBuilder().Select("1").
+	subQuery := s.getQueryBuilder().Select("1").
 		From("ChannelMembers cm")
 
 	// Only JOIN the tables that are actually needed for the search criteria.
 	if hasSystemRoles {
-		query = query.Join("Users u ON cm.UserId = u.Id")
+		subQuery = subQuery.Join("Users u ON cm.UserId = u.Id")
 	}
 	if hasTeamRoles {
-		query = query.
+		subQuery = subQuery.
 			Join("Channels c ON cm.ChannelId = c.Id").
 			Join("TeamMembers tm ON tm.TeamId = c.TeamId AND tm.UserId = cm.UserId")
 	}
 
-	query = query.
+	subQuery = subQuery.
 		Where(sq.Eq{"cm.ChannelId": channelID}).
 		Where(orConditions).
 		Limit(1)
 
-	queryString, args, err := query.ToSql()
+	subQueryString, args, err := subQuery.ToSql()
 	if err != nil {
 		return false, errors.Wrap(err, "failed to build query")
 	}
 
-	var result int
-	err = s.GetReplica().Get(&result, queryString, args...)
+	// Wrap in EXISTS so we always get a single boolean result (no ErrNoRows handling needed).
+	existsQuery := "SELECT EXISTS(" + subQueryString + ")"
+
+	var exists bool
+	err = s.GetReplica().Get(&exists, existsQuery, args...)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return false, nil
-		}
 		return false, errors.Wrap(err, "failed to query for channel member with role")
 	}
 
-	return result == 1, nil
+	return exists, nil
 }
