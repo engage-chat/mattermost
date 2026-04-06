@@ -7,10 +7,24 @@ import {haveIChannelPermission, haveICurrentTeamPermission} from 'mattermost-red
 
 import store from 'stores/redux_store';
 
+import {fetchChannelAccessible} from 'actions/engage_chat';
+
 import {isOfficialTunagChannel} from './official_channel_utils';
 
 export const isAvailableUnofficialChannel = (channelId: string): boolean => {
-    const state = store.getState();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const state: any = store.getState();
+
+    // ReduxキャッシュにAPIの判定結果があればそれを優先する
+    if (state.engageChat && channelId in state.engageChat.channelAccessible) {
+        return state.engageChat.channelAccessible[channelId];
+    }
+
+    // キャッシュ未登録の場合はAPIを非同期で取得開始（fire-and-forget）し、
+    // 結果が返り次第Reduxに保存される。それまでは既存の権限ベースロジックで判定する。
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    store.dispatch(fetchChannelAccessible(channelId) as any);
+
     const channel = getChannel(state, channelId);
     if (!channel) {
         return false;
