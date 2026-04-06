@@ -33,6 +33,11 @@ func (a *App) IsChannelAccessible(c request.CTX, channelID string) (bool, *model
 		return true, nil
 	}
 
+	// System admins always have permission
+	if a.SessionHasPermissionTo(*session, model.PermissionManageSystem) {
+		return true, nil
+	}
+
 	// 1. Check if the channel is officially created
 	isOfficial, err := a.IsOfficialChannel(c, channel)
 	if err != nil {
