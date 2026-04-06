@@ -12,8 +12,11 @@ import {fetchChannelAccessible} from 'actions/engage_chat';
 import {isOfficialTunagChannel} from './official_channel_utils';
 
 export const isAvailableUnofficialChannel = (channelId: string): boolean => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const state: any = store.getState();
+    if (!channelId) {
+        return false;
+    }
+
+    const state = store.getState();
 
     // If the API result is cached in Redux, use it in preference to the permission-based check.
     if (state.engageChat && channelId in state.engageChat.channelAccessible) {

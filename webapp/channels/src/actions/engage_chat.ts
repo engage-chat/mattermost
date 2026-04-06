@@ -12,22 +12,24 @@ const pendingRequests = new Set<string>();
 
 export function fetchChannelAccessible(channelId: string): ActionFuncAsync<void> {
     return async (dispatch) => {
+        if (!channelId) {
+            return;
+        }
         if (pendingRequests.has(channelId)) {
             return;
         }
         pendingRequests.add(channelId);
         try {
             const response = await fetch(
-                `${Client4.getUrl()}/api/v4/engage_chat/channels/${channelId}/accessible`,
-                {
-                    method: 'GET',
-                    headers: {
-                        Authorization: `Bearer ${Client4.getToken()}`,
-                        'X-Requested-With': 'XMLHttpRequest',
-                    },
-                },
+                `${Client4.getBaseRoute()}/engage_chat/channels/${channelId}/accessible`,
+                Client4.getOptions({method: 'GET'}),
             );
             if (!response.ok) {
+                dispatch({
+                    type: RECEIVED_CHANNEL_ACCESSIBLE,
+                    channelId,
+                    accessible: false,
+                });
                 return;
             }
             const data: {is_accessible: boolean} = await response.json();

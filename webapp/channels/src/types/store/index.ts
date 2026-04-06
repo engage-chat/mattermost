@@ -23,7 +23,7 @@ export type GlobalState = BaseGlobalState & {
     plugins: PluginsState;
     storage: StorageState;
     views: ViewsState;
-    engageChat: EngageChatState;
+    engageChat?: EngageChatState;
 };
 
 /**

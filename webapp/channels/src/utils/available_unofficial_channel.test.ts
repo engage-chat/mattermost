@@ -73,6 +73,11 @@ describe('available_unofficial_channel utils', () => {
     });
 
     describe('isAvailableUnofficialChannel', () => {
+        test('returns false immediately for empty channelId without dispatching', () => {
+            expect(isAvailableUnofficialChannel('')).toBe(false);
+            expect(mockDispatch).not.toHaveBeenCalled();
+        });
+
         describe('when API cache (engageChat) is populated', () => {
             test('returns true from cache without performing a permission check', () => {
                 mockGetState.mockReturnValue({
