@@ -10,7 +10,6 @@ import store from 'stores/redux_store';
 import {fetchChannelAccessible} from 'actions/engage_chat';
 
 import {isAvailableUnofficialChannel, isAvailableDMGMChannel} from './available_unofficial_channel';
-import {isOfficialTunagChannel} from './official_channel_utils';
 
 jest.mock('stores/redux_store', () => ({
     getState: jest.fn(),
@@ -28,11 +27,6 @@ jest.mock('mattermost-redux/selectors/entities/roles', () => ({
     haveICurrentTeamPermission: jest.fn(),
 }));
 
-jest.mock('./official_channel_utils', () => ({
-    ...jest.requireActual('./official_channel_utils'),
-    isOfficialTunagChannel: jest.fn(),
-}));
-
 jest.mock('actions/engage_chat', () => ({
     fetchChannelAccessible: jest.fn().mockReturnValue(() => Promise.resolve()),
 }));
@@ -43,31 +37,25 @@ jest.mock('mattermost-redux/store/reducer_registry', () => ({
 }));
 
 let mockChannel: any;
-let mockIsOfficial: boolean;
 let mockPermissionResult: boolean;
 
 describe('available_unofficial_channel utils', () => {
-    // Cast mock functions for easier usage
     const mockGetState = store.getState as jest.Mock;
     const mockDispatch = store.dispatch as jest.Mock;
     const mockGetChannel = getChannel as jest.Mock;
     const mockHaveIChannelPermission = haveIChannelPermission as jest.Mock;
     const mockHaveICurrentTeamPermission = haveICurrentTeamPermission as jest.Mock;
-    const mockIsOfficialTunagChannelFn = isOfficialTunagChannel as jest.Mock;
     const mockFetchChannelAccessible = fetchChannelAccessible as jest.Mock;
 
     beforeEach(() => {
         jest.resetAllMocks();
 
-        // Initialize variables
         mockChannel = {id: 'channel_id', team_id: 'team_id', type: 'O'};
-        mockIsOfficial = false;
         mockPermissionResult = true; // Default to having permission
 
         // Setup mock behavior (no engageChat cache by default)
         mockGetState.mockReturnValue({});
         mockGetChannel.mockImplementation(() => mockChannel);
-        mockIsOfficialTunagChannelFn.mockImplementation(() => mockIsOfficial);
         mockFetchChannelAccessible.mockReturnValue(() => Promise.resolve());
 
         // Simplify permission check to return mockPermissionResult
@@ -99,79 +87,78 @@ describe('available_unofficial_channel utils', () => {
             });
         });
 
-        describe('when API cache is not populated (fallback)', () => {
-            test('dispatches an API fetch and evaluates with the existing permission-based logic', () => {
-                expect(isAvailableUnofficialChannel('channel_id')).toBe(true);
-                expect(mockDispatch).toHaveBeenCalledTimes(1);
+        describe('when API cache is not populated', () => {
+            describe('when local permission check passes (fast path)', () => {
+                test('returns true for open channel (Type: O) without dispatching an API fetch', () => {
+                    mockChannel.type = 'O';
+                    expect(isAvailableUnofficialChannel('channel_id')).toBe(true);
+                    expect(mockDispatch).not.toHaveBeenCalled();
+                });
+
+                test('returns true for unknown channel type without dispatching an API fetch', () => {
+                    mockChannel.type = 'Unknown';
+                    expect(isAvailableUnofficialChannel('channel_id')).toBe(true);
+                    expect(mockDispatch).not.toHaveBeenCalled();
+                });
+
+                test('returns true for private channel (Type: P) when CREATE_PRIVATE_CHANNEL is granted', () => {
+                    mockChannel.type = 'P';
+                    mockPermissionResult = true;
+
+                    expect(isAvailableUnofficialChannel('channel_id')).toBe(true);
+                    expect(mockHaveIChannelPermission).toHaveBeenCalledWith(
+                        expect.anything(),
+                        'team_id',
+                        'channel_id',
+                        Permissions.CREATE_PRIVATE_CHANNEL,
+                    );
+                    expect(mockDispatch).not.toHaveBeenCalled();
+                });
+
+                test('returns true for direct message (Type: D) when CREATE_DIRECT_CHANNEL is granted', () => {
+                    mockChannel.type = 'D';
+                    mockPermissionResult = true;
+
+                    expect(isAvailableUnofficialChannel('channel_id')).toBe(true);
+                    expect(mockHaveIChannelPermission).toHaveBeenCalledWith(
+                        expect.anything(),
+                        'team_id',
+                        'channel_id',
+                        Permissions.CREATE_DIRECT_CHANNEL,
+                    );
+                    expect(mockDispatch).not.toHaveBeenCalled();
+                });
+
+                test('returns true for group message (Type: G) when CREATE_GROUP_CHANNEL is granted', () => {
+                    mockChannel.type = 'G';
+                    mockPermissionResult = true;
+
+                    expect(isAvailableUnofficialChannel('channel_id')).toBe(true);
+                    expect(mockHaveIChannelPermission).toHaveBeenCalledWith(
+                        expect.anything(),
+                        'team_id',
+                        'channel_id',
+                        Permissions.CREATE_GROUP_CHANNEL,
+                    );
+                    expect(mockDispatch).not.toHaveBeenCalled();
+                });
             });
 
-            test('should return false when channel does not exist', () => {
-                mockGetChannel.mockReturnValue(null);
-                expect(isAvailableUnofficialChannel('missing_channel')).toBe(false);
-            });
+            describe('when local permission check fails — falls back to API', () => {
+                test('dispatches an API fetch and returns false while waiting', () => {
+                    mockChannel.type = 'D';
+                    mockPermissionResult = false;
 
-            test('should return true for official Tunag channel without permission check', () => {
-                mockIsOfficial = true;
-                mockPermissionResult = false;
+                    expect(isAvailableUnofficialChannel('channel_id')).toBe(false);
+                    expect(mockDispatch).toHaveBeenCalledTimes(1);
+                });
 
-                expect(isAvailableUnofficialChannel('channel_id')).toBe(true);
-                expect(mockIsOfficialTunagChannelFn).toHaveBeenCalledWith(mockChannel);
-                expect(mockHaveIChannelPermission).not.toHaveBeenCalled();
-            });
+                test('dispatches an API fetch and returns false when channel is not found locally', () => {
+                    mockGetChannel.mockReturnValue(null);
 
-            test('should return true for open channel type (Type: O) or default cases', () => {
-                mockChannel.type = 'O'; // Open
-                expect(isAvailableUnofficialChannel('channel_id')).toBe(true);
-
-                mockChannel.type = 'StrangeType'; // Default case check
-                expect(isAvailableUnofficialChannel('channel_id')).toBe(true);
-
-                // Permission check function should not be called in default case
-                expect(mockHaveIChannelPermission).not.toHaveBeenCalled();
-            });
-
-            test('should check CREATE_PRIVATE_CHANNEL permission for private channel (Type: P)', () => {
-                mockChannel.type = 'P';
-                mockPermissionResult = true;
-
-                expect(isAvailableUnofficialChannel('channel_id')).toBe(true);
-                expect(mockHaveIChannelPermission).toHaveBeenCalledWith(
-                    expect.anything(),
-                    'team_id',
-                    'channel_id',
-                    Permissions.CREATE_PRIVATE_CHANNEL,
-                );
-            });
-
-            test('should check CREATE_DIRECT_CHANNEL permission for direct message (Type: D)', () => {
-                mockChannel.type = 'D';
-
-                expect(isAvailableUnofficialChannel('channel_id')).toBe(true);
-                expect(mockHaveIChannelPermission).toHaveBeenCalledWith(
-                    expect.anything(),
-                    'team_id',
-                    'channel_id',
-                    Permissions.CREATE_DIRECT_CHANNEL,
-                );
-            });
-
-            test('should check CREATE_GROUP_CHANNEL permission for group message (Type: G)', () => {
-                mockChannel.type = 'G';
-
-                expect(isAvailableUnofficialChannel('channel_id')).toBe(true);
-                expect(mockHaveIChannelPermission).toHaveBeenCalledWith(
-                    expect.anything(),
-                    'team_id',
-                    'channel_id',
-                    Permissions.CREATE_GROUP_CHANNEL,
-                );
-            });
-
-            test('should return false when permission is denied', () => {
-                mockChannel.type = 'P';
-                mockPermissionResult = false; // Permission denied
-
-                expect(isAvailableUnofficialChannel('channel_id')).toBe(false);
+                    expect(isAvailableUnofficialChannel('missing_channel')).toBe(false);
+                    expect(mockDispatch).toHaveBeenCalledTimes(1);
+                });
             });
         });
     });

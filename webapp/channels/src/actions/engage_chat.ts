@@ -37,7 +37,13 @@ export function fetchChannelAccessible(channelId: string): ActionFuncAsync<void>
                 accessible: data.is_accessible,
             });
         } catch {
-            // On API failure, fall back to the existing permission-based check
+            // On API failure, cache false so the channel remains inaccessible
+            // until the user reloads the page (no automatic retry).
+            dispatch({
+                type: RECEIVED_CHANNEL_ACCESSIBLE,
+                channelId,
+                accessible: false,
+            });
         } finally {
             pendingRequests.delete(channelId);
         }

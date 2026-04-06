@@ -9,8 +9,6 @@ import store from 'stores/redux_store';
 
 import {fetchChannelAccessible} from 'actions/engage_chat';
 
-import {isOfficialTunagChannel} from './official_channel_utils';
-
 export const isAvailableUnofficialChannel = (channelId: string): boolean => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const state: any = store.getState();
@@ -20,38 +18,37 @@ export const isAvailableUnofficialChannel = (channelId: string): boolean => {
         return state.engageChat.channelAccessible[channelId];
     }
 
-    // No cache yet — fire an API request in the background (fire-and-forget).
-    // The result will be stored in Redux and used on the next render.
-    // Until then, fall back to the existing permission-based logic below.
+    // Check the local permission first as a fast path.
+    // If permission is granted, return true immediately without calling the API.
+    const channel = getChannel(state, channelId);
+    if (channel) {
+        let permission: string | undefined;
+
+        switch (channel.type) {
+        case 'P':
+            permission = Permissions.CREATE_PRIVATE_CHANNEL;
+            break;
+        case 'D':
+            permission = Permissions.CREATE_DIRECT_CHANNEL;
+            break;
+        case 'G':
+            permission = Permissions.CREATE_GROUP_CHANNEL;
+            break;
+        default:
+            return true;
+        }
+
+        if (haveIChannelPermission(state, channel.team_id, channel.id, permission)) {
+            return true;
+        }
+    }
+
+    // Permission denied or channel not found locally — fire an API request to get the
+    // authoritative result. Return false (inaccessible) until the API responds.
+    // On API failure, the channel remains inaccessible until the user reloads the page.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     store.dispatch(fetchChannelAccessible(channelId) as any);
-
-    const channel = getChannel(state, channelId);
-    if (!channel) {
-        return false;
-    }
-
-    if (isOfficialTunagChannel(channel)) {
-        return true;
-    }
-
-    let permission: string | undefined;
-
-    switch (channel.type) {
-    case 'P':
-        permission = Permissions.CREATE_PRIVATE_CHANNEL;
-        break;
-    case 'D':
-        permission = Permissions.CREATE_DIRECT_CHANNEL;
-        break;
-    case 'G':
-        permission = Permissions.CREATE_GROUP_CHANNEL;
-        break;
-    default:
-        return true;
-    }
-
-    return haveIChannelPermission(state, channel.team_id, channel.id, permission);
+    return false;
 };
 
 export const isAvailableDMGMChannel = (): boolean => {
