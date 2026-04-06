@@ -7,7 +7,12 @@ import type {ActionFuncAsync} from 'types/store';
 
 import {RECEIVED_CHANNEL_ACCESSIBLE} from 'reducers/engage_chat';
 
-// Prevent duplicate in-flight requests for the same channelId
+// Unlike typical Mattermost Redux actions (which are dispatched from component lifecycle
+// methods and therefore run at most once per mount), fetchChannelAccessible is dispatched
+// from isAvailableUnofficialChannel — a plain function called synchronously during render.
+// This means it can be called multiple times before the API response arrives and populates
+// the Redux cache. The pendingRequests Set prevents redundant in-flight requests for the
+// same channelId during that window.
 const pendingRequests = new Set<string>();
 
 export function fetchChannelAccessible(channelId: string): ActionFuncAsync<void> {
