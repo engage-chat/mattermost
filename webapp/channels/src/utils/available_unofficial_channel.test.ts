@@ -10,6 +10,7 @@ import store from 'stores/redux_store';
 import {fetchChannelAccessible} from 'actions/engage_chat';
 
 import {isAvailableUnofficialChannel, isAvailableDMGMChannel} from './available_unofficial_channel';
+import {isOfficialTunagChannel} from './official_channel_utils';
 
 jest.mock('stores/redux_store', () => ({
     getState: jest.fn(),
@@ -31,6 +32,11 @@ jest.mock('actions/engage_chat', () => ({
     fetchChannelAccessible: jest.fn().mockReturnValue(() => Promise.resolve()),
 }));
 
+jest.mock('./official_channel_utils', () => ({
+    ...jest.requireActual('./official_channel_utils'),
+    isOfficialTunagChannel: jest.fn(),
+}));
+
 // Mock reducer_registry because it runs reducerRegistry.register() at module load time
 jest.mock('mattermost-redux/store/reducer_registry', () => ({
     default: {register: jest.fn()},
@@ -46,6 +52,7 @@ describe('available_unofficial_channel utils', () => {
     const mockHaveIChannelPermission = haveIChannelPermission as jest.Mock;
     const mockHaveICurrentTeamPermission = haveICurrentTeamPermission as jest.Mock;
     const mockFetchChannelAccessible = fetchChannelAccessible as jest.Mock;
+    const mockIsOfficialTunagChannel = isOfficialTunagChannel as jest.Mock;
 
     beforeEach(() => {
         jest.resetAllMocks();
@@ -57,6 +64,7 @@ describe('available_unofficial_channel utils', () => {
         mockGetState.mockReturnValue({});
         mockGetChannel.mockImplementation(() => mockChannel);
         mockFetchChannelAccessible.mockReturnValue(() => Promise.resolve());
+        mockIsOfficialTunagChannel.mockReturnValue(false);
 
         // Simplify permission check to return mockPermissionResult
         // (Set mockPermissionResult to false in individual test cases to simulate denial)
@@ -88,6 +96,16 @@ describe('available_unofficial_channel utils', () => {
         });
 
         describe('when API cache is not populated', () => {
+            test('returns true for official Tunag channel without permission check or API call', () => {
+                mockChannel.type = 'D';
+                mockPermissionResult = false;
+                mockIsOfficialTunagChannel.mockReturnValue(true);
+
+                expect(isAvailableUnofficialChannel('channel_id')).toBe(true);
+                expect(mockHaveIChannelPermission).not.toHaveBeenCalled();
+                expect(mockDispatch).not.toHaveBeenCalled();
+            });
+
             describe('when local permission check passes (fast path)', () => {
                 test('returns true for open channel (Type: O) without dispatching an API fetch', () => {
                     mockChannel.type = 'O';

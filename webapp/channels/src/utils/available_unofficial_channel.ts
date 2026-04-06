@@ -9,6 +9,8 @@ import store from 'stores/redux_store';
 
 import {fetchChannelAccessible} from 'actions/engage_chat';
 
+import {isOfficialTunagChannel} from './official_channel_utils';
+
 export const isAvailableUnofficialChannel = (channelId: string): boolean => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const state: any = store.getState();
@@ -18,9 +20,15 @@ export const isAvailableUnofficialChannel = (channelId: string): boolean => {
         return state.engageChat.channelAccessible[channelId];
     }
 
+    const channel = getChannel(state, channelId);
+
+    // Official Tunag channels are always accessible regardless of permissions.
+    if (channel && isOfficialTunagChannel(channel)) {
+        return true;
+    }
+
     // Check the local permission first as a fast path.
     // If permission is granted, return true immediately without calling the API.
-    const channel = getChannel(state, channelId);
     if (channel) {
         let permission: string | undefined;
 
