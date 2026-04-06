@@ -30,7 +30,7 @@ function engageChatReducer(state = initialState, action: AnyAction): EngageChatS
     }
 }
 
-// 既存ファイルを変更せずにstoreへ動的注入する
+// Dynamically inject the reducer into the store without modifying existing files
 reducerRegistry.register('engageChat', engageChatReducer);
 
 export default engageChatReducer;

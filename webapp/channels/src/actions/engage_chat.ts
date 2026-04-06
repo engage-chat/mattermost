@@ -7,7 +7,7 @@ import type {ActionFuncAsync} from 'types/store';
 
 import {RECEIVED_CHANNEL_ACCESSIBLE} from 'reducers/engage_chat';
 
-// 同じchannelIdへの重複リクエストを防ぐ
+// Prevent duplicate in-flight requests for the same channelId
 const pendingRequests = new Set<string>();
 
 export function fetchChannelAccessible(channelId: string): ActionFuncAsync<void> {
@@ -37,7 +37,7 @@ export function fetchChannelAccessible(channelId: string): ActionFuncAsync<void>
                 accessible: data.is_accessible,
             });
         } catch {
-            // API失敗時は既存の権限ベースのフォールバックに委ねる
+            // On API failure, fall back to the existing permission-based check
         } finally {
             pendingRequests.delete(channelId);
         }

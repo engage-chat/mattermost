@@ -15,13 +15,14 @@ export const isAvailableUnofficialChannel = (channelId: string): boolean => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const state: any = store.getState();
 
-    // ReduxキャッシュにAPIの判定結果があればそれを優先する
+    // If the API result is cached in Redux, use it in preference to the permission-based check.
     if (state.engageChat && channelId in state.engageChat.channelAccessible) {
         return state.engageChat.channelAccessible[channelId];
     }
 
-    // キャッシュ未登録の場合はAPIを非同期で取得開始（fire-and-forget）し、
-    // 結果が返り次第Reduxに保存される。それまでは既存の権限ベースロジックで判定する。
+    // No cache yet — fire an API request in the background (fire-and-forget).
+    // The result will be stored in Redux and used on the next render.
+    // Until then, fall back to the existing permission-based logic below.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     store.dispatch(fetchChannelAccessible(channelId) as any);
 

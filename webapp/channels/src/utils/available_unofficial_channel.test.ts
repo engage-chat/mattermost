@@ -37,7 +37,7 @@ jest.mock('actions/engage_chat', () => ({
     fetchChannelAccessible: jest.fn().mockReturnValue(() => Promise.resolve()),
 }));
 
-// reducer_registryはモジュールロード時に呼ばれるため空実装でモック
+// Mock reducer_registry because it runs reducerRegistry.register() at module load time
 jest.mock('mattermost-redux/store/reducer_registry', () => ({
     default: {register: jest.fn()},
 }));
@@ -64,7 +64,7 @@ describe('available_unofficial_channel utils', () => {
         mockIsOfficial = false;
         mockPermissionResult = true; // Default to having permission
 
-        // Setup mock behavior (engageChatキャッシュなしの状態)
+        // Setup mock behavior (no engageChat cache by default)
         mockGetState.mockReturnValue({});
         mockGetChannel.mockImplementation(() => mockChannel);
         mockIsOfficialTunagChannelFn.mockImplementation(() => mockIsOfficial);
@@ -77,8 +77,8 @@ describe('available_unofficial_channel utils', () => {
     });
 
     describe('isAvailableUnofficialChannel', () => {
-        describe('APIキャッシュ（engageChat）がある場合', () => {
-            test('キャッシュがtrue → trueを返し、権限チェックを行わない', () => {
+        describe('when API cache (engageChat) is populated', () => {
+            test('returns true from cache without performing a permission check', () => {
                 mockGetState.mockReturnValue({
                     engageChat: {channelAccessible: {channel_id: true}},
                 });
@@ -88,7 +88,7 @@ describe('available_unofficial_channel utils', () => {
                 expect(mockDispatch).not.toHaveBeenCalled();
             });
 
-            test('キャッシュがfalse → falseを返し、権限チェックを行わない', () => {
+            test('returns false from cache without performing a permission check', () => {
                 mockGetState.mockReturnValue({
                     engageChat: {channelAccessible: {channel_id: false}},
                 });
@@ -99,8 +99,8 @@ describe('available_unofficial_channel utils', () => {
             });
         });
 
-        describe('APIキャッシュがない場合（フォールバック）', () => {
-            test('APIフェッチをdispatchし、既存の権限ベースロジックで判定する', () => {
+        describe('when API cache is not populated (fallback)', () => {
+            test('dispatches an API fetch and evaluates with the existing permission-based logic', () => {
                 expect(isAvailableUnofficialChannel('channel_id')).toBe(true);
                 expect(mockDispatch).toHaveBeenCalledTimes(1);
             });
