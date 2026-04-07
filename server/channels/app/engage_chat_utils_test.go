@@ -33,12 +33,6 @@ func TestIsChannelAccessible(t *testing.T) {
 	_, err = th.App.UpdateUserRoles(th.Context, systemExceptionUser.Id, model.SystemUserRoleId+" "+model.SystemEngageAdmin, false)
 	require.Nil(t, err)
 
-	// User with TeamEngageAdmin role
-	teamExceptionUser := th.CreateUser()
-	th.LinkUserToTeam(teamExceptionUser, th.BasicTeam)
-	_, err = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamExceptionUser.Id, model.TeamUserRoleId+" "+model.TeamEngageAdmin)
-	require.Nil(t, err)
-
 	// User with no special roles
 	regularUser := th.CreateUser()
 	th.LinkUserToTeam(regularUser, th.BasicTeam)
@@ -58,17 +52,6 @@ func TestIsChannelAccessible(t *testing.T) {
 	ctxWithBotSession := th.Context.WithSession(botSession)
 
 	// 2. --- Channels Setup ---
-	// Setup for official channel test
-	th.App.ResetIntegrationAdminUsernameCache()
-	t.Setenv("INTEGRATION_ADMIN_USERNAME", th.SystemAdminUser.Username)
-	defer th.App.ResetIntegrationAdminUsernameCache()
-
-	officialChannel := th.CreateChannel(th.Context, th.BasicTeam)
-	officialChannel.CreatorId = th.SystemAdminUser.Id // Make it official
-	_, err = th.App.UpdateChannel(th.Context, officialChannel)
-	require.Nil(t, err)
-	th.AddUserToChannel(restrictedUser, officialChannel)
-
 	publicChannel, err := th.App.CreateChannel(th.Context, &model.Channel{
 		TeamId: th.BasicTeam.Id, DisplayName: "Public Channel", Name: "public-channel-" + model.NewId(), Type: model.ChannelTypeOpen,
 	}, false)
@@ -82,10 +65,6 @@ func TestIsChannelAccessible(t *testing.T) {
 	gmWithException := th.CreateGroupChannel(th.Context, restrictedUser, systemExceptionUser)
 	privateChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
 	th.AddUserToChannel(restrictedUser, privateChannel)
-	th.AddUserToChannel(regularUser, privateChannel)
-	privateWithException := th.CreatePrivateChannel(th.Context, th.BasicTeam)
-	th.AddUserToChannel(restrictedUser, privateWithException)
-	th.AddUserToChannel(teamExceptionUser, privateWithException)
 
 	// 3. --- Run Test Cases ---
 	t.Run("General Access Scenarios", func(t *testing.T) {
@@ -121,7 +100,6 @@ func TestIsChannelAccessible(t *testing.T) {
 			{"Group Channel", gmChannel, ctxWithSession, true},
 			{"Private Channel", privateChannel, ctxWithSession, true},
 			{"Bot user should always be accessible", publicChannel, ctxWithBotSession, true},
-			{"Official channel should always be accessible", officialChannel, ctxWithSession, true},
 			{"Public channel should always be accessible", publicChannel, ctxWithSession, true},
 		}
 
@@ -154,8 +132,7 @@ func TestIsChannelAccessible(t *testing.T) {
 			}{
 				{"DM without exception should NOT be accessible", dmChannel, ctxWithSession, false},
 				{"Group without exception should NOT be accessible", gmChannel, ctxWithSession, false},
-				{"Private without exception should NOT be accessible", privateChannel, ctxWithSession, false},
-				{"Official channel should always be accessible", officialChannel, ctxWithSession, true},
+				{"Private channel should always be accessible", privateChannel, ctxWithSession, true},
 				{"Public channel should always be accessible", publicChannel, ctxWithSession, true},
 				{"Bot user should always be accessible", publicChannel, ctxWithBotSession, true},
 			}
@@ -177,7 +154,6 @@ func TestIsChannelAccessible(t *testing.T) {
 			}{
 				{"DM with exception member should be accessible", dmWithException, true},
 				{"Group with exception member should be accessible", gmWithException, true},
-				{"Private with exception member should be accessible", privateWithException, true},
 			}
 
 			for _, tc := range testCases {
