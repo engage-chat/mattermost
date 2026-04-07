@@ -4638,11 +4638,11 @@ func (s *RetryLayerEmojiStore) Search(name string, prefixOnly bool, limit int) (
 
 }
 
-func (s *RetryLayerEngageChatStore) HasChannelMemberWithRoles(channelID string, options *model.EngageChatRoleSearchOptions) (bool, error) {
+func (s *RetryLayerEngageChatStore) HasDMGMChannelMemberWithEngageAdmin(channelID string) (bool, error) {
 
 	tries := 0
 	for {
-		result, err := s.EngageChatStore.HasChannelMemberWithRoles(channelID, options)
+		result, err := s.EngageChatStore.HasDMGMChannelMemberWithEngageAdmin(channelID)
 		if err == nil {
 			return result, nil
 		}

@@ -9,13 +9,6 @@ const (
 	TeamEngageAdmin   = "team_engage_admin"
 )
 
-// EngageChatRoleSearchOptions defines the criteria for searching channel members
-// who possess specific custom roles at either the system or team level.
-type EngageChatRoleSearchOptions struct {
-	SystemRoles []string
-	TeamRoles   []string
-}
-
 // allEngageCustomRoleNames is the single source of truth for all defined Engage custom role names.
 // It is unexported to prevent modification from other packages.
 var allCustomRoleNames = []string{
