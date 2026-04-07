@@ -25,8 +25,10 @@ func newSqlEngageChatStore(sqlStore *SqlStore) store.EngageChatStore {
 func (s *SqlEngageChatStore) HasDMGMChannelMemberWithEngageAdmin(channelID string) (bool, error) {
 	subQuery := s.getQueryBuilder().Select("1").
 		From("ChannelMembers cm").
+		Join("Channels c ON cm.ChannelId = c.Id").
 		Join("Users u ON cm.UserId = u.Id AND u.DeleteAt = 0").
 		Where(sq.Eq{"cm.ChannelId": channelID}).
+		Where(sq.Eq{"c.Type": []string{string(model.ChannelTypeDirect), string(model.ChannelTypeGroup)}}).
 		Where(sq.Expr("CONCAT(' ', u.Roles, ' ') LIKE ?", "% "+model.SystemEngageAdmin+" %")).
 		Limit(1)
 
