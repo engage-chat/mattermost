@@ -54,7 +54,6 @@ type Client interface {
 	GetLogs(ctx context.Context, page, perPage int) ([]string, *model.Response, error)
 	GetRoleByName(ctx context.Context, name string) (*model.Role, *model.Response, error)
 	PatchRole(ctx context.Context, roleID string, patch *model.RolePatch) (*model.Role, *model.Response, error)
-	EnableCustomRoles(ctx context.Context, roleNames []string) ([]*model.Role, *model.Response, error)
 	UploadPlugin(ctx context.Context, file io.Reader) (*model.Manifest, *model.Response, error)
 	UploadPluginForced(ctx context.Context, file io.Reader) (*model.Manifest, *model.Response, error)
 	RemovePlugin(ctx context.Context, id string) (*model.Response, error)
