@@ -520,7 +520,7 @@ type BotStore interface {
 }
 
 type EngageChatStore interface {
-	HasChannelMemberWithRoles(channelID string, options *model.EngageChatRoleSearchOptions) (bool, error)
+	HasDMGMChannelMemberWithEngageAdmin(channelID string) (bool, error)
 }
 
 type SessionStore interface {

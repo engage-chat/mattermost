@@ -15,15 +15,12 @@ import (
 )
 
 func TestEngageChatStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
-	t.Run("HasChannelMemberWithRoles", func(t *testing.T) {
-		t.Run("EmptyOptions", func(t *testing.T) { testHasChannelMemberWithRolesEmptyOptions(t, rctx, ss) })
-		t.Run("SystemRolesMatch", func(t *testing.T) { testHasChannelMemberWithRolesSystemRolesMatch(t, rctx, ss) })
-		t.Run("SystemRolesNoMatch", func(t *testing.T) { testHasChannelMemberWithRolesSystemRolesNoMatch(t, rctx, ss) })
-		t.Run("TeamRolesMatch", func(t *testing.T) { testHasChannelMemberWithRolesTeamRolesMatch(t, rctx, ss) })
-		t.Run("TeamRolesNoMatch", func(t *testing.T) { testHasChannelMemberWithRolesTeamRolesNoMatch(t, rctx, ss) })
-		t.Run("NonexistentChannel", func(t *testing.T) { testHasChannelMemberWithRolesNonexistentChannel(t, rctx, ss) })
-		t.Run("DirectChannel", func(t *testing.T) { testHasChannelMemberWithRolesDirectChannel(t, rctx, ss) })
-		t.Run("MultipleMembers", func(t *testing.T) { testHasChannelMemberWithRolesMultipleMembers(t, rctx, ss) })
+	t.Run("HasDMGMChannelMemberWithEngageAdmin", func(t *testing.T) {
+		t.Run("SystemRolesMatch", func(t *testing.T) { testHasDMGMChannelMemberWithEngageAdminMatch(t, rctx, ss) })
+		t.Run("SystemRolesNoMatch", func(t *testing.T) { testHasDMGMChannelMemberWithEngageAdminNoMatch(t, rctx, ss) })
+		t.Run("NonexistentChannel", func(t *testing.T) { testHasDMGMChannelMemberWithEngageAdminNonexistentChannel(t, rctx, ss) })
+		t.Run("DirectChannel", func(t *testing.T) { testHasDMGMChannelMemberWithEngageAdminDirectChannel(t, rctx, ss) })
+		t.Run("MultipleMembers", func(t *testing.T) { testHasDMGMChannelMemberWithEngageAdminMultipleMembers(t, rctx, ss) })
 	})
 }
 
@@ -92,102 +89,49 @@ func engageChatAddTeamMember(t *testing.T, rctx request.CTX, ss store.Store, tea
 
 // --- Test cases ---
 
-func testHasChannelMemberWithRolesEmptyOptions(t *testing.T, rctx request.CTX, ss store.Store) {
-	// Both SystemRoles and TeamRoles are empty → should return false immediately without DB query.
-	result, err := ss.EngageChat().HasChannelMemberWithRoles(model.NewId(), &model.EngageChatRoleSearchOptions{})
-	require.NoError(t, err)
-	assert.False(t, result)
-}
-
-func testHasChannelMemberWithRolesSystemRolesMatch(t *testing.T, rctx request.CTX, ss store.Store) {
+func testHasDMGMChannelMemberWithEngageAdminMatch(t *testing.T, rctx request.CTX, ss store.Store) {
 	team := engageChatCreateTeam(t, ss)
 
 	// Create a user with system_engage_admin role.
 	user := engageChatCreateUser(t, rctx, ss, model.SystemUserRoleId+" "+model.SystemEngageAdmin)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, user.Id)) }()
 
-	// Create a private channel and add the user as a member.
-	channel := engageChatCreateChannel(t, rctx, ss, team.Id, model.ChannelTypePrivate)
+	// Create a DM channel and add the user as a member.
+	channel := engageChatCreateChannel(t, rctx, ss, team.Id, model.ChannelTypeDirect)
 	engageChatAddTeamMember(t, rctx, ss, team.Id, user.Id, "")
 	engageChatAddChannelMember(t, rctx, ss, channel.Id, user.Id)
 
-	// Search for SystemEngageAdmin → should find the user.
-	result, err := ss.EngageChat().HasChannelMemberWithRoles(channel.Id, &model.EngageChatRoleSearchOptions{
-		SystemRoles: []string{model.SystemEngageAdmin},
-	})
+	// Should find the user with SystemEngageAdmin.
+	result, err := ss.EngageChat().HasDMGMChannelMemberWithEngageAdmin(channel.Id)
 	require.NoError(t, err)
 	assert.True(t, result)
 }
 
-func testHasChannelMemberWithRolesSystemRolesNoMatch(t *testing.T, rctx request.CTX, ss store.Store) {
+func testHasDMGMChannelMemberWithEngageAdminNoMatch(t *testing.T, rctx request.CTX, ss store.Store) {
 	team := engageChatCreateTeam(t, ss)
 
 	// Create a regular user WITHOUT system_engage_admin.
 	user := engageChatCreateUser(t, rctx, ss, model.SystemUserRoleId)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, user.Id)) }()
 
-	channel := engageChatCreateChannel(t, rctx, ss, team.Id, model.ChannelTypePrivate)
+	channel := engageChatCreateChannel(t, rctx, ss, team.Id, model.ChannelTypeDirect)
 	engageChatAddTeamMember(t, rctx, ss, team.Id, user.Id, "")
 	engageChatAddChannelMember(t, rctx, ss, channel.Id, user.Id)
 
-	// Search for SystemEngageAdmin → should NOT find any match.
-	result, err := ss.EngageChat().HasChannelMemberWithRoles(channel.Id, &model.EngageChatRoleSearchOptions{
-		SystemRoles: []string{model.SystemEngageAdmin},
-	})
+	// Should NOT find any match.
+	result, err := ss.EngageChat().HasDMGMChannelMemberWithEngageAdmin(channel.Id)
 	require.NoError(t, err)
 	assert.False(t, result)
 }
 
-func testHasChannelMemberWithRolesTeamRolesMatch(t *testing.T, rctx request.CTX, ss store.Store) {
-	team := engageChatCreateTeam(t, ss)
-
-	user := engageChatCreateUser(t, rctx, ss, model.SystemUserRoleId)
-	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, user.Id)) }()
-
-	// Add the user as a team member with team_engage_admin explicit role.
-	engageChatAddTeamMember(t, rctx, ss, team.Id, user.Id, model.TeamEngageAdmin)
-
-	channel := engageChatCreateChannel(t, rctx, ss, team.Id, model.ChannelTypePrivate)
-	engageChatAddChannelMember(t, rctx, ss, channel.Id, user.Id)
-
-	// Search for TeamEngageAdmin → should find the user.
-	result, err := ss.EngageChat().HasChannelMemberWithRoles(channel.Id, &model.EngageChatRoleSearchOptions{
-		TeamRoles: []string{model.TeamEngageAdmin},
-	})
-	require.NoError(t, err)
-	assert.True(t, result)
-}
-
-func testHasChannelMemberWithRolesTeamRolesNoMatch(t *testing.T, rctx request.CTX, ss store.Store) {
-	team := engageChatCreateTeam(t, ss)
-
-	user := engageChatCreateUser(t, rctx, ss, model.SystemUserRoleId)
-	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, user.Id)) }()
-
-	// Add as team member with NO custom roles.
-	engageChatAddTeamMember(t, rctx, ss, team.Id, user.Id, "")
-
-	channel := engageChatCreateChannel(t, rctx, ss, team.Id, model.ChannelTypePrivate)
-	engageChatAddChannelMember(t, rctx, ss, channel.Id, user.Id)
-
-	// Search for TeamEngageAdmin → should NOT find any match.
-	result, err := ss.EngageChat().HasChannelMemberWithRoles(channel.Id, &model.EngageChatRoleSearchOptions{
-		TeamRoles: []string{model.TeamEngageAdmin},
-	})
-	require.NoError(t, err)
-	assert.False(t, result)
-}
-
-func testHasChannelMemberWithRolesNonexistentChannel(t *testing.T, rctx request.CTX, ss store.Store) {
+func testHasDMGMChannelMemberWithEngageAdminNonexistentChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	// A non-existent channel ID → should return false with no error.
-	result, err := ss.EngageChat().HasChannelMemberWithRoles(model.NewId(), &model.EngageChatRoleSearchOptions{
-		SystemRoles: []string{model.SystemEngageAdmin},
-	})
+	result, err := ss.EngageChat().HasDMGMChannelMemberWithEngageAdmin(model.NewId())
 	require.NoError(t, err)
 	assert.False(t, result)
 }
 
-func testHasChannelMemberWithRolesDirectChannel(t *testing.T, rctx request.CTX, ss store.Store) {
+func testHasDMGMChannelMemberWithEngageAdminDirectChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	// Create two users — one with system_engage_admin, one without.
 	user1 := engageChatCreateUser(t, rctx, ss, model.SystemUserRoleId+" "+model.SystemEngageAdmin)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, user1.Id)) }()
@@ -207,15 +151,13 @@ func testHasChannelMemberWithRolesDirectChannel(t *testing.T, rctx request.CTX, 
 	savedChannel, err := ss.Channel().SaveDirectChannel(rctx, &dm, &m1, &m2)
 	require.NoError(t, err)
 
-	// Search for SystemEngageAdmin on the DM channel → should find user1.
-	result, hErr := ss.EngageChat().HasChannelMemberWithRoles(savedChannel.Id, &model.EngageChatRoleSearchOptions{
-		SystemRoles: []string{model.SystemEngageAdmin},
-	})
+	// Should find user1 who has SystemEngageAdmin.
+	result, hErr := ss.EngageChat().HasDMGMChannelMemberWithEngageAdmin(savedChannel.Id)
 	require.NoError(t, hErr)
 	assert.True(t, result)
 }
 
-func testHasChannelMemberWithRolesMultipleMembers(t *testing.T, rctx request.CTX, ss store.Store) {
+func testHasDMGMChannelMemberWithEngageAdminMultipleMembers(t *testing.T, rctx request.CTX, ss store.Store) {
 	// Verify that if only one of multiple members has the role, it still returns true.
 	team := engageChatCreateTeam(t, ss)
 
@@ -225,7 +167,7 @@ func testHasChannelMemberWithRolesMultipleMembers(t *testing.T, rctx request.CTX
 	userWithoutRole := engageChatCreateUser(t, rctx, ss, model.SystemUserRoleId)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, userWithoutRole.Id)) }()
 
-	channel := engageChatCreateChannel(t, rctx, ss, team.Id, model.ChannelTypePrivate)
+	channel := engageChatCreateChannel(t, rctx, ss, team.Id, model.ChannelTypeGroup)
 
 	engageChatAddTeamMember(t, rctx, ss, team.Id, userWithRole.Id, "")
 	engageChatAddTeamMember(t, rctx, ss, team.Id, userWithoutRole.Id, "")
@@ -233,9 +175,7 @@ func testHasChannelMemberWithRolesMultipleMembers(t *testing.T, rctx request.CTX
 	engageChatAddChannelMember(t, rctx, ss, channel.Id, userWithoutRole.Id)
 
 	// Should find the member with the role.
-	result, err := ss.EngageChat().HasChannelMemberWithRoles(channel.Id, &model.EngageChatRoleSearchOptions{
-		SystemRoles: []string{model.SystemEngageAdmin},
-	})
+	result, err := ss.EngageChat().HasDMGMChannelMemberWithEngageAdmin(channel.Id)
 	require.NoError(t, err)
 	assert.True(t, result)
 }

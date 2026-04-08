@@ -14,6 +14,8 @@ import (
 // based on the full validation logic including DM/GM restrictions and exceptions.
 // The user is derived from the session in the provided context.
 // It returns true if accessible, false if not.
+// Open and Private channels are always accessible.
+// DM and Group channels are subject to permission and exception checks.
 func (a *App) IsChannelAccessible(c request.CTX, channelID string) (bool, *model.AppError) {
 	session := c.Session()
 	if session == nil {
@@ -38,26 +40,15 @@ func (a *App) IsChannelAccessible(c request.CTX, channelID string) (bool, *model
 		return true, nil
 	}
 
-	// 1. Check if the channel is officially created
-	isOfficial, err := a.IsOfficialChannel(c, channel)
-	if err != nil {
-		return false, err
-	}
-	if isOfficial {
-		return true, nil
-	}
-
-	// 2. Check if the situation is under restriction on unofficial channel (by checking the user themselves has the required permission)
+	// 1. Check if the situation is under restriction on DM/GM channel (by checking the user themselves has the required permission)
 	var hasPermission bool
 	switch channel.Type {
 	case model.ChannelTypeDirect:
 		hasPermission = a.SessionHasPermissionTo(*session, model.PermissionCreateDirectChannel)
 	case model.ChannelTypeGroup:
 		hasPermission = a.SessionHasPermissionTo(*session, model.PermissionCreateGroupChannel)
-	case model.ChannelTypePrivate:
-		hasPermission = a.SessionHasPermissionToTeam(*session, channel.TeamId, model.PermissionCreatePrivateChannel)
 	default:
-		// For other channel types (e.g., public), access is not restricted by this logic.
+		// Open and Private channels are always accessible.
 		return true, nil
 	}
 
@@ -65,16 +56,8 @@ func (a *App) IsChannelAccessible(c request.CTX, channelID string) (bool, *model
 		return true, nil
 	}
 
-	// 3. Check for the exception in restriction (by checking any member in the channel has one of the exception roles)
-	searchOpts := &model.EngageChatRoleSearchOptions{}
-	switch channel.Type {
-	case model.ChannelTypeDirect, model.ChannelTypeGroup:
-		searchOpts.SystemRoles = []string{model.SystemEngageAdmin}
-	case model.ChannelTypePrivate:
-		searchOpts.TeamRoles = []string{model.TeamEngageAdmin}
-	}
-
-	hasMemberWithRole, hasRoleErr := a.Srv().Store().EngageChat().HasChannelMemberWithRoles(channelID, searchOpts)
+	// 2. Check for the exception in restriction (by checking any member in the channel has one of the exception roles)
+	hasMemberWithRole, hasRoleErr := a.Srv().Store().EngageChat().HasDMGMChannelMemberWithEngageAdmin(channelID)
 	if hasRoleErr != nil {
 		return false, model.NewAppError("IsChannelAccessible", "app.channel.has_engage_admin_role.app_error", nil, "", http.StatusInternalServerError).Wrap(hasRoleErr)
 	}
