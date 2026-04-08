@@ -24,7 +24,8 @@ func MakeAllCustomRoleTemplates() map[string]Role {
 			DisplayName: SystemEngageAdmin,
 			Description: "Grants permissions for Engage Chat features.",
 			Permissions: []string{
-				PermissionCreatePrivateChannel.Id,
+				PermissionCreateDirectChannel.Id,
+				PermissionCreateGroupChannel.Id,
 			},
 		},
 		TeamEngageAdmin: {
@@ -32,8 +33,7 @@ func MakeAllCustomRoleTemplates() map[string]Role {
 			DisplayName: TeamEngageAdmin,
 			Description: "Grants permissions for Engage Chat features.",
 			Permissions: []string{
-				PermissionCreateDirectChannel.Id,
-				PermissionCreateGroupChannel.Id,
+				PermissionCreatePrivateChannel.Id,
 			},
 		},
 	}
