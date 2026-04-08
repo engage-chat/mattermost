@@ -179,4 +179,3 @@ func testHasDMGMChannelMemberWithEngageAdminMultipleMembers(t *testing.T, rctx r
 	require.NoError(t, err)
 	assert.True(t, result)
 }
-
