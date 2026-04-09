@@ -36,9 +36,6 @@ export const isAvailableUnofficialChannel = (channelId: string): boolean => {
         let permission: string | undefined;
 
         switch (channel.type) {
-        case 'P':
-            permission = Permissions.CREATE_PRIVATE_CHANNEL;
-            break;
         case 'D':
             permission = Permissions.CREATE_DIRECT_CHANNEL;
             break;
