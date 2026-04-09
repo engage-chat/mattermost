@@ -38,7 +38,6 @@ SEE ALSO
 * `mmctl compliance-export <mmctl_compliance-export.rst>`_ 	 - Management of compliance exports
 * `mmctl config <mmctl_config.rst>`_ 	 - Configuration
 * `mmctl docs <mmctl_docs.rst>`_ 	 - Generates mmctl documentation
-* `mmctl engage-chat <mmctl_engage-chat.rst>`_ 	 - Management of engage-chat features
 * `mmctl export <mmctl_export.rst>`_ 	 - Management of exports
 * `mmctl extract <mmctl_extract.rst>`_ 	 - Management of content extraction job.
 * `mmctl group <mmctl_group.rst>`_ 	 - Management of groups

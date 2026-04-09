@@ -3763,10 +3763,10 @@ func (s *TimerLayerEmojiStore) Search(name string, prefixOnly bool, limit int) (
 	return result, err
 }
 
-func (s *TimerLayerEngageChatStore) HasChannelMemberWithRoles(channelID string, options *model.EngageChatRoleSearchOptions) (bool, error) {
+func (s *TimerLayerEngageChatStore) HasDMGMChannelMemberWithEngageAdmin(channelID string) (bool, error) {
 	start := time.Now()
 
-	result, err := s.EngageChatStore.HasChannelMemberWithRoles(channelID, options)
+	result, err := s.EngageChatStore.HasDMGMChannelMemberWithEngageAdmin(channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3774,7 +3774,7 @@ func (s *TimerLayerEngageChatStore) HasChannelMemberWithRoles(channelID string, 
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("EngageChatStore.HasChannelMemberWithRoles", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("EngageChatStore.HasDMGMChannelMemberWithEngageAdmin", success, elapsed)
 	}
 	return result, err
 }

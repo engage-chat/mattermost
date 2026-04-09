@@ -570,22 +570,6 @@ func (mr *MockClientMockRecorder) EnableBot(arg0, arg1 interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnableBot", reflect.TypeOf((*MockClient)(nil).EnableBot), arg0, arg1)
 }
 
-// EnableCustomRoles mocks base method.
-func (m *MockClient) EnableCustomRoles(arg0 context.Context, arg1 []string) ([]*model.Role, *model.Response, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "EnableCustomRoles", arg0, arg1)
-	ret0, _ := ret[0].([]*model.Role)
-	ret1, _ := ret[1].(*model.Response)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
-}
-
-// EnableCustomRoles indicates an expected call of EnableCustomRoles.
-func (mr *MockClientMockRecorder) EnableCustomRoles(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnableCustomRoles", reflect.TypeOf((*MockClient)(nil).EnableCustomRoles), arg0, arg1)
-}
-
 // EnablePlugin mocks base method.
 func (m *MockClient) EnablePlugin(arg0 context.Context, arg1 string) (*model.Response, error) {
 	m.ctrl.T.Helper()
