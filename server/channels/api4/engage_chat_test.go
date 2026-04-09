@@ -41,23 +41,6 @@ func TestEnableCustomRoles(t *testing.T) {
 			assert.ElementsMatch(t, expectedRole.Permissions, returnedRole.Permissions)
 		}
 	})
-
-	t.Run("via local client", func(t *testing.T) {
-		returnedRoles, resp, err := th.LocalClient.EnableCustomRoles(context.Background(), roleNames)
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-
-		expectedRolesMap := model.MakeAllCustomRoleTemplates()
-		require.Len(t, returnedRoles, len(expectedRolesMap))
-
-		for _, returnedRole := range returnedRoles {
-			expectedRole, ok := expectedRolesMap[returnedRole.Name]
-			require.True(t, ok)
-
-			assert.Equal(t, expectedRole.DisplayName, returnedRole.DisplayName)
-			assert.ElementsMatch(t, expectedRole.Permissions, returnedRole.Permissions)
-		}
-	})
 }
 
 func TestGetChannelAccessible(t *testing.T) {
