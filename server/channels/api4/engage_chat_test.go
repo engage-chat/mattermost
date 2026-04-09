@@ -25,6 +25,51 @@ func TestEnableCustomRoles(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
+	t.Run("websocket event on role creation", func(t *testing.T) {
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
+
+		// Create role
+		_, resp, err := th.SystemAdminClient.EnableCustomRoles(context.Background(), []string{model.SystemEngageAdmin})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		assertExpectedWebsocketEvent(t, webSocketClient, model.WebsocketEventRoleUpdated, func(event *model.WebSocketEvent) {
+			roleStr, ok := event.GetData()["role"].(string)
+			require.True(t, ok, "expected role string")
+			assert.Contains(t, roleStr, model.SystemEngageAdmin)
+		})
+	})
+
+	t.Run("websocket event on role restoration", func(t *testing.T) {
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
+
+		// Ensure the role exists first
+		_, resp, err := th.SystemAdminClient.EnableCustomRoles(context.Background(), []string{model.TeamEngageAdmin})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		// Flush the creation event so it doesn't interfere
+		assertExpectedWebsocketEvent(t, webSocketClient, model.WebsocketEventRoleUpdated, func(event *model.WebSocketEvent) {})
+
+		// Soft-delete the role
+		role, err2 := th.App.GetRoleByName(context.Background(), model.TeamEngageAdmin)
+		require.Nil(t, err2)
+		_, err2 = th.App.DeleteRole(role.Id)
+		require.Nil(t, err2)
+
+		// Restore the role
+		_, resp, err = th.SystemAdminClient.EnableCustomRoles(context.Background(), []string{model.TeamEngageAdmin})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		// Verify restoration event
+		assertExpectedWebsocketEvent(t, webSocketClient, model.WebsocketEventRoleUpdated, func(event *model.WebSocketEvent) {
+			roleStr, ok := event.GetData()["role"].(string)
+			require.True(t, ok, "expected role string")
+			assert.Contains(t, roleStr, model.TeamEngageAdmin)
+		})
+	})
+
 	t.Run("as admin user", func(t *testing.T) {
 		returnedRoles, resp, err := th.SystemAdminClient.EnableCustomRoles(context.Background(), roleNames)
 		require.NoError(t, err)
