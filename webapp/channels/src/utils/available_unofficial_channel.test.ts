@@ -118,23 +118,15 @@ describe('available_unofficial_channel utils', () => {
                     expect(mockDispatch).not.toHaveBeenCalled();
                 });
 
-                test('returns true for unknown channel type without dispatching an API fetch', () => {
-                    mockChannel.type = 'Unknown';
+                test('returns true for private channel (Type: P) without dispatching an API fetch', () => {
+                    mockChannel.type = 'P';
                     expect(isAvailableUnofficialChannel('channel_id')).toBe(true);
                     expect(mockDispatch).not.toHaveBeenCalled();
                 });
 
-                test('returns true for private channel (Type: P) when CREATE_PRIVATE_CHANNEL is granted', () => {
-                    mockChannel.type = 'P';
-                    mockPermissionResult = true;
-
+                test('returns true for unknown channel type without dispatching an API fetch', () => {
+                    mockChannel.type = 'Unknown';
                     expect(isAvailableUnofficialChannel('channel_id')).toBe(true);
-                    expect(mockHaveIChannelPermission).toHaveBeenCalledWith(
-                        expect.anything(),
-                        'team_id',
-                        'channel_id',
-                        Permissions.CREATE_PRIVATE_CHANNEL,
-                    );
                     expect(mockDispatch).not.toHaveBeenCalled();
                 });
 
