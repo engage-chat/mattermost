@@ -5,9 +5,8 @@ import {Permissions} from 'mattermost-redux/constants';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {haveIChannelPermission, haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
 
-import store from 'stores/redux_store';
-
 import {fetchChannelAccessible} from 'actions/engage_chat';
+import store from 'stores/redux_store';
 
 import {isAvailableUnofficialChannel, isAvailableDMGMChannel} from './available_unofficial_channel';
 import {isOfficialTunagChannel} from './official_channel_utils';

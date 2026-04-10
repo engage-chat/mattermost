@@ -3,9 +3,9 @@
 
 import {Client4} from 'mattermost-redux/client';
 
-import type {ActionFuncAsync} from 'types/store';
-
 import {RECEIVED_CHANNEL_ACCESSIBLE} from 'reducers/engage_chat';
+
+import type {ActionFuncAsync} from 'types/store';
 
 // Unlike typical Mattermost Redux actions (which are dispatched from component lifecycle
 // methods and therefore run at most once per mount), fetchChannelAccessible is dispatched
@@ -18,10 +18,10 @@ const pendingRequests = new Set<string>();
 export function fetchChannelAccessible(channelId: string): ActionFuncAsync<void> {
     return async (dispatch) => {
         if (!channelId) {
-            return;
+            return {data: undefined};
         }
         if (pendingRequests.has(channelId)) {
-            return;
+            return {data: undefined};
         }
         pendingRequests.add(channelId);
         try {
@@ -35,7 +35,7 @@ export function fetchChannelAccessible(channelId: string): ActionFuncAsync<void>
                     channelId,
                     accessible: false,
                 });
-                return;
+                return {data: undefined};
             }
             const data: {is_accessible: boolean} = await response.json();
             dispatch({
@@ -54,5 +54,6 @@ export function fetchChannelAccessible(channelId: string): ActionFuncAsync<void>
         } finally {
             pendingRequests.delete(channelId);
         }
+        return {data: undefined};
     };
 }
