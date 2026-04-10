@@ -66,6 +66,10 @@ func (a *App) createCustomRole(c request.CTX, role *model.Role) (*model.Role, *m
 		return nil, err
 	}
 
+	if appErr := a.sendUpdatedRoleEvent(role); appErr != nil {
+		return nil, appErr
+	}
+
 	c.Logger().Info("Created custom role for engage-chat",
 		mlog.String("role_id", role.Id),
 		mlog.String("rolename", role.Name),
@@ -83,6 +87,10 @@ func (a *App) restoreCustomRole(c request.CTX, role *model.Role) (*model.Role, *
 	role, err := a.UpdateRole(role)
 	if err != nil {
 		return nil, err
+	}
+
+	if appErr := a.sendUpdatedRoleEvent(role); appErr != nil {
+		return nil, appErr
 	}
 
 	c.Logger().Info("Restored custom role for engage-chat",
