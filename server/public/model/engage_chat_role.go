@@ -34,6 +34,7 @@ func MakeAllCustomRoleTemplates() map[string]Role {
 			Description: "Grants permissions for Engage Chat features.",
 			Permissions: []string{
 				PermissionCreatePrivateChannel.Id,
+				PermissionCreatePublicChannel.Id,
 			},
 		},
 	}

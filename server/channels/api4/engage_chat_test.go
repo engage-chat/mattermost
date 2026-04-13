@@ -88,6 +88,65 @@ func TestEnableCustomRoles(t *testing.T) {
 	})
 }
 
+func TestCreatePublicChannelWithTeamEngageAdmin(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// Enable custom roles and create the TeamEngageAdmin role.
+	_, appErr := th.App.EnableCustomRoles(th.Context, []string{model.TeamEngageAdmin})
+	require.Nil(t, appErr)
+
+	// Save and restore default role permissions around the test.
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer th.RestoreDefaultRolePermissions(defaultRolePermissions)
+
+	// Remove PermissionCreatePublicChannel from team_user so regular users cannot create public channels.
+	th.RemovePermissionFromRole(model.PermissionCreatePublicChannel.Id, model.TeamUserRoleId)
+
+	// Create a user without special roles — should be blocked.
+	regularUser := th.CreateUser()
+	th.LinkUserToTeam(regularUser, th.BasicTeam)
+
+	// Create a user with TeamEngageAdmin as a team member role — should be allowed.
+	engageUser := th.CreateUser()
+	th.LinkUserToTeam(engageUser, th.BasicTeam)
+	resp, err := th.SystemAdminClient.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, engageUser.Id, model.TeamUserRoleId+" "+model.TeamEngageAdmin)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	t.Run("regular user cannot create public channel when permission is removed", func(t *testing.T) {
+		client := th.CreateClient()
+		_, _, loginErr := client.Login(context.Background(), regularUser.Email, regularUser.Password)
+		require.NoError(t, loginErr)
+
+		channel := &model.Channel{
+			DisplayName: "No Permission Channel",
+			Name:        GenerateTestChannelName(),
+			Type:        model.ChannelTypeOpen,
+			TeamId:      th.BasicTeam.Id,
+		}
+		_, resp, createErr := client.CreateChannel(context.Background(), channel)
+		require.Error(t, createErr)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("user with TeamEngageAdmin team role can create public channel", func(t *testing.T) {
+		client := th.CreateClient()
+		_, _, loginErr := client.Login(context.Background(), engageUser.Email, engageUser.Password)
+		require.NoError(t, loginErr)
+
+		channel := &model.Channel{
+			DisplayName: "TeamEngageAdmin Channel",
+			Name:        GenerateTestChannelName(),
+			Type:        model.ChannelTypeOpen,
+			TeamId:      th.BasicTeam.Id,
+		}
+		created, _, createErr := client.CreateChannel(context.Background(), channel)
+		require.NoError(t, createErr)
+		assert.Equal(t, model.ChannelTypeOpen, created.Type)
+	})
+}
+
 func TestGetChannelAccessible(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
