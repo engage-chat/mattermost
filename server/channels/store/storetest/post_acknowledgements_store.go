@@ -390,6 +390,11 @@ func testPostAcknowledgementsStoreBatchDelete(t *testing.T, rctx request.CTX, ss
 		require.NoError(t, err)
 		oldUpdateAt := currentPost.UpdateAt
 
+		// Sleep 1ms to ensure a distinct UpdateAt timestamp after BatchDelete.
+		// Blacksmith runners execute operations faster than 1ms, causing
+		// GetMillis() to return the same value before and after the operation.
+		time.Sleep(time.Millisecond)
+
 		// Delete acknowledgements in batch
 		err = ss.PostAcknowledgement().BatchDelete([]*model.PostAcknowledgement{ack1, ack2})
 		require.NoError(t, err)
