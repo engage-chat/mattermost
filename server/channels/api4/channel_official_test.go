@@ -28,6 +28,9 @@ func TestOfficialChannelValidation(t *testing.T) {
 	// Reset sync.Once cache so getIntegrationAdminUsername() re-reads the env var
 	th.App.ResetIntegrationAdminUsernameCache()
 
+	// Reset sync.Once cache so getIntegrationAdminUsername() re-reads the env var
+	th.App.ResetIntegrationAdminUsernameCache()
+
 	// Create official admin user
 	officialAdmin := th.CreateUser(t)
 	officialAdminPassword := officialAdmin.Password
