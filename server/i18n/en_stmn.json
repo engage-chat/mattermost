@@ -1,6 +1,6 @@
 [
   {
     "id": "api.channel.official_channel.forbidden",
-    "translation": "公式チャンネルではこの操作は許可されていません。"
+    "translation": "This operation is not permitted in an official channel."
   }
 ]
