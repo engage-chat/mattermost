@@ -733,7 +733,7 @@ func testGroupStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Contains(t, err.Error(), "unique constraint: Name")
 
 	// Cannot update CreateAt
-	someVal := model.GetMillis() + 1000
+	someVal := model.GetMillis()
 	d1.CreateAt = someVal
 	d3, err := ss.Group().Update(d1)
 	require.NoError(t, err)
