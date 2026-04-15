@@ -445,7 +445,7 @@
   },
   {
     "id": "api.channel.official_channel.forbidden",
-    "translation": "This operation is not permitted in an official channel."
+    "translation": "公式チャンネルではこの操作は許可されていません。"
   },
   {
     "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
