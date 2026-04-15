@@ -68,7 +68,6 @@ var supportedLocales = []string{
 	"de",
 	"en",
 	"en-AU",
-	"en_stmn",
 	"es",
 	"fr",
 	"it",
@@ -88,7 +87,6 @@ var supportedLocales = []string{
 	"zh-CN",
 	"zh-TW",
 	"ja",
-	"ja_stmn",
 }
 
 var (
