@@ -58,7 +58,12 @@ export const isAvailableUnofficialChannel = (channelId: string): boolean => {
     return false;
 };
 
-export const isAvailableDMGMChannel = (): boolean => {
+export const isAvailableDMOrGMChannel = (): boolean => {
     const state = store.getState();
-    return haveICurrentTeamPermission(state, Permissions.CREATE_DIRECT_CHANNEL) && haveICurrentTeamPermission(state, Permissions.CREATE_GROUP_CHANNEL);
+    return haveICurrentTeamPermission(state, Permissions.CREATE_DIRECT_CHANNEL) || haveICurrentTeamPermission(state, Permissions.CREATE_GROUP_CHANNEL);
+};
+
+export const isAvailableDMChannel = (): boolean => {
+    const state = store.getState();
+    return haveICurrentTeamPermission(state, Permissions.CREATE_DIRECT_CHANNEL);
 };

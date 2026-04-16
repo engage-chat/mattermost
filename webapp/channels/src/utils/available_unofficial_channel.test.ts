@@ -8,7 +8,7 @@ import {haveIChannelPermission, haveICurrentTeamPermission} from 'mattermost-red
 import {fetchChannelAccessible} from 'actions/engage_chat';
 import store from 'stores/redux_store';
 
-import {isAvailableUnofficialChannel, isAvailableDMGMChannel} from './available_unofficial_channel';
+import {isAvailableUnofficialChannel, isAvailableDMOrGMChannel, isAvailableDMChannel} from './available_unofficial_channel';
 import {isOfficialTunagChannel} from './official_channel_utils';
 
 jest.mock('stores/redux_store', () => ({
@@ -177,31 +177,55 @@ describe('available_unofficial_channel utils', () => {
         });
     });
 
-    describe('isAvailableDMGMChannel', () => {
+    describe('isAvailableDMOrGMChannel', () => {
         test('should return true when both DM and GM creation permissions are granted', () => {
-            mockPermissionResult = true;
-            expect(isAvailableDMGMChannel()).toBe(true);
+            mockHaveICurrentTeamPermission.mockReturnValue(true);
+            expect(isAvailableDMOrGMChannel()).toBe(true);
 
+            expect(mockHaveICurrentTeamPermission).toHaveBeenCalledTimes(1);
             expect(mockHaveICurrentTeamPermission).toHaveBeenCalledWith(expect.anything(), Permissions.CREATE_DIRECT_CHANNEL);
-            expect(mockHaveICurrentTeamPermission).toHaveBeenCalledWith(expect.anything(), Permissions.CREATE_GROUP_CHANNEL);
+            expect(mockHaveICurrentTeamPermission).not.toHaveBeenCalledWith(expect.anything(), Permissions.CREATE_GROUP_CHANNEL);
         });
 
-        test('should return false when DM creation permission is denied', () => {
+        test('should return true when DM creation permission is denied but GM is granted', () => {
             // Change return value for each call: 1st(DM) is False, 2nd(GM) is True
             mockHaveICurrentTeamPermission.
                 mockReturnValueOnce(false).
                 mockReturnValueOnce(true);
 
-            expect(isAvailableDMGMChannel()).toBe(false);
+            expect(isAvailableDMOrGMChannel()).toBe(true);
+            expect(mockHaveICurrentTeamPermission).toHaveBeenCalledTimes(2);
+            expect(mockHaveICurrentTeamPermission).toHaveBeenCalledWith(expect.anything(), Permissions.CREATE_DIRECT_CHANNEL);
+            expect(mockHaveICurrentTeamPermission).toHaveBeenCalledWith(expect.anything(), Permissions.CREATE_GROUP_CHANNEL);
         });
 
-        test('should return false when GM creation permission is denied', () => {
-            // Change return value for each call: 1st(DM) is True, 2nd(GM) is False
-            mockHaveICurrentTeamPermission.
-                mockReturnValueOnce(true).
-                mockReturnValueOnce(false);
+        test('should return true when GM creation permission is denied but DM is granted', () => {
+            // Short-circuits: 1st(DM) is True, so GM check is never performed.
+            mockHaveICurrentTeamPermission.mockReturnValueOnce(true);
 
-            expect(isAvailableDMGMChannel()).toBe(false);
+            expect(isAvailableDMOrGMChannel()).toBe(true);
+            expect(mockHaveICurrentTeamPermission).toHaveBeenCalledTimes(1);
+            expect(mockHaveICurrentTeamPermission).toHaveBeenCalledWith(expect.anything(), Permissions.CREATE_DIRECT_CHANNEL);
+            expect(mockHaveICurrentTeamPermission).not.toHaveBeenCalledWith(expect.anything(), Permissions.CREATE_GROUP_CHANNEL);
+        });
+
+        test('should return false when both DM and GM creation permissions are denied', () => {
+            mockHaveICurrentTeamPermission.mockReturnValue(false);
+            expect(isAvailableDMOrGMChannel()).toBe(false);
+            expect(mockHaveICurrentTeamPermission).toHaveBeenCalledTimes(2);
+        });
+    });
+
+    describe('isAvailableDMChannel', () => {
+        test('should return true when DM creation permission is granted', () => {
+            mockPermissionResult = true;
+            expect(isAvailableDMChannel()).toBe(true);
+            expect(mockHaveICurrentTeamPermission).toHaveBeenCalledWith(expect.anything(), Permissions.CREATE_DIRECT_CHANNEL);
+        });
+
+        test('should return false when DM creation permission is denied', () => {
+            mockPermissionResult = false;
+            expect(isAvailableDMChannel()).toBe(false);
         });
     });
 });
