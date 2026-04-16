@@ -10,7 +10,6 @@ import {
 } from 'actions/channel_actions';
 
 import mockStore from 'tests/test_store';
-import {getHistory} from 'utils/browser_history';
 import {TestHelper} from 'utils/test_helper';
 
 const initialState = {
@@ -89,12 +88,6 @@ jest.mock('mattermost-redux/actions/errors', () => ({
     LogErrorBarMode: {
         Always: 'always',
     },
-}));
-
-jest.mock('utils/browser_history', () => ({
-    getHistory: jest.fn().mockReturnValue({
-        push: jest.fn(),
-    }),
 }));
 
 describe('Actions.Channel (Error cases)', () => {
