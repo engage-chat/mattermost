@@ -10,7 +10,6 @@ import type {UserProfile} from '@mattermost/types/users';
 import {PreferenceTypes} from 'mattermost-redux/action_types';
 import * as ChannelActions from 'mattermost-redux/actions/channels';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {logError, LogErrorBarMode} from 'mattermost-redux/actions/errors';
 import {getChannelByName, getUnreadChannelIds, getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamUrl, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
@@ -32,11 +31,7 @@ export function openDirectChannelToUserId(userId: UserProfile['id']): ActionFunc
         const channel = getChannelByName(state, channelName);
 
         if (!channel) {
-            const result = await dispatch(ChannelActions.createDirectChannel(currentUserId, userId));
-            if (result.error) {
-                dispatch(logError(result.error, {errorBarMode: LogErrorBarMode.Always}));
-            }
-            return result;
+            return dispatch(ChannelActions.createDirectChannel(currentUserId, userId));
         }
 
         trackEvent('api', 'api_channels_join_direct');
@@ -74,7 +69,6 @@ export function openGroupChannelToUserIds(userIds: Array<UserProfile['id']>): Ac
         const result = await dispatch(ChannelActions.createGroupChannel(userIds));
 
         if (result.error) {
-            dispatch(logError(result.error, {errorBarMode: LogErrorBarMode.Always}));
             getHistory().push(getCurrentTeamUrl(getState()));
         }
 
