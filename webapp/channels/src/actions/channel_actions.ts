@@ -9,8 +9,8 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {PreferenceTypes} from 'mattermost-redux/action_types';
 import * as ChannelActions from 'mattermost-redux/actions/channels';
-import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {logError, LogErrorBarMode} from 'mattermost-redux/actions/errors';
+import {savePreferences} from 'mattermost-redux/actions/preferencet sts';
 import {getChannelByName, getUnreadChannelIds, getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamUrl, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
