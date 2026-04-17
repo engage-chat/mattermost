@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "@mattermost/client": "file:../../webapp/platform/client",
-    "@mattermost/playwright-lib": "*",
+    "@mattermost/playwright-lib": "11.3.0",
     "@mattermost/types": "file:../../webapp/platform/types",
     "@playwright/test": "1.53.2",
     "cross-env": "7.0.3",
