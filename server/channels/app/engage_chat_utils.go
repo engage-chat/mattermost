@@ -16,13 +16,13 @@ import (
 // It returns true if accessible, false if not.
 // Open and Private channels are always accessible.
 // DM and Group channels are subject to permission and exception checks.
-func (a *App) IsChannelAccessible(c request.CTX, channelID string) (bool, *model.AppError) {
-	session := c.Session()
+func (a *App) IsChannelAccessible(rctx request.CTX, channelID string) (bool, *model.AppError) {
+	session := rctx.Session()
 	if session == nil {
 		return false, model.NewAppError("IsChannelAccessible", "api.context.session_expired.app_error", nil, "", http.StatusUnauthorized)
 	}
 
-	channel, err := a.GetChannel(c, channelID)
+	channel, err := a.GetChannel(rctx, channelID)
 	if err != nil {
 		return false, err
 	}

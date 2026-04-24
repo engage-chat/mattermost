@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {act, screen} from '@testing-library/react';
+import {screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
@@ -116,9 +116,7 @@ describe('ChannelSettingsInfoTab Private to Public Conversion (Engage Chat)', ()
         await userEvent.click(publicButton);
 
         // Click Save button
-        await act(async () => {
-            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
-        });
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         // Verify the modal is shown
         expect(screen.getByTestId('convert-confirm-modal')).toBeInTheDocument();
@@ -138,14 +136,10 @@ describe('ChannelSettingsInfoTab Private to Public Conversion (Engage Chat)', ()
         await userEvent.click(publicButton);
 
         // Click Save button to show modal
-        await act(async () => {
-            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
-        });
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         // Click confirm button in modal
-        await act(async () => {
-            await userEvent.click(screen.getByText(/Yes, Convert Channel/i));
-        });
+        await userEvent.click(screen.getByText(/Yes, Convert Channel/i));
 
         // Verify updateChannelPrivacy was called with 'O' (Open)
         expect(updateChannelPrivacy).toHaveBeenCalledWith('channel1', 'O');
@@ -164,14 +158,10 @@ describe('ChannelSettingsInfoTab Private to Public Conversion (Engage Chat)', ()
         await userEvent.click(publicButton);
 
         // Click Save button to show modal
-        await act(async () => {
-            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
-        });
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         // Click cancel button in modal
-        await act(async () => {
-            await userEvent.click(screen.getByText(/Cancel/i));
-        });
+        await userEvent.click(screen.getByText(/Cancel/i));
 
         // Verify updateChannelPrivacy was not called
         expect(updateChannelPrivacy).not.toHaveBeenCalled();
@@ -193,14 +183,10 @@ describe('ChannelSettingsInfoTab Private to Public Conversion (Engage Chat)', ()
         await userEvent.click(publicButton);
 
         // Click Save button to show modal
-        await act(async () => {
-            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
-        });
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         // Click confirm button in modal
-        await act(async () => {
-            await userEvent.click(screen.getByText(/Yes, Convert Channel/i));
-        });
+        await userEvent.click(screen.getByText(/Yes, Convert Channel/i));
 
         // Verify error state is shown in the save panel
         expect(screen.getByText(/There are errors in the form above/)).toBeInTheDocument();
