@@ -11,12 +11,12 @@ type EngageChatStore struct {
 	mock.Mock
 }
 
-// HasDMGMChannelMemberWithEngageAdmin provides a mock function with given fields: channelID
-func (_m *EngageChatStore) HasDMGMChannelMemberWithEngageAdmin(channelID string) (bool, error) {
+// HasDMChannelBotMember provides a mock function with given fields: channelID
+func (_m *EngageChatStore) HasDMChannelBotMember(channelID string) (bool, error) {
 	ret := _m.Called(channelID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for HasDMGMChannelMemberWithEngageAdmin")
+		panic("no return value specified for HasDMChannelBotMember")
 	}
 
 	var r0 bool
@@ -39,12 +39,12 @@ func (_m *EngageChatStore) HasDMGMChannelMemberWithEngageAdmin(channelID string)
 	return r0, r1
 }
 
-// HasDMChannelBotMember provides a mock function with given fields: channelID
-func (_m *EngageChatStore) HasDMChannelBotMember(channelID string) (bool, error) {
+// HasDMGMChannelMemberWithEngageAdmin provides a mock function with given fields: channelID
+func (_m *EngageChatStore) HasDMGMChannelMemberWithEngageAdmin(channelID string) (bool, error) {
 	ret := _m.Called(channelID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for HasDMChannelBotMember")
+		panic("no return value specified for HasDMGMChannelMemberWithEngageAdmin")
 	}
 
 	var r0 bool

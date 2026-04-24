@@ -3763,22 +3763,6 @@ func (s *TimerLayerEmojiStore) Search(name string, prefixOnly bool, limit int) (
 	return result, err
 }
 
-func (s *TimerLayerEngageChatStore) HasDMGMChannelMemberWithEngageAdmin(channelID string) (bool, error) {
-	start := time.Now()
-
-	result, err := s.EngageChatStore.HasDMGMChannelMemberWithEngageAdmin(channelID)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("EngageChatStore.HasDMGMChannelMemberWithEngageAdmin", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerEngageChatStore) HasDMChannelBotMember(channelID string) (bool, error) {
 	start := time.Now()
 
@@ -3791,6 +3775,22 @@ func (s *TimerLayerEngageChatStore) HasDMChannelBotMember(channelID string) (boo
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("EngageChatStore.HasDMChannelBotMember", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerEngageChatStore) HasDMGMChannelMemberWithEngageAdmin(channelID string) (bool, error) {
+	start := time.Now()
+
+	result, err := s.EngageChatStore.HasDMGMChannelMemberWithEngageAdmin(channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("EngageChatStore.HasDMGMChannelMemberWithEngageAdmin", success, elapsed)
 	}
 	return result, err
 }

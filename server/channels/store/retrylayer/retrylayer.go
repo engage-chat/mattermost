@@ -4638,11 +4638,11 @@ func (s *RetryLayerEmojiStore) Search(name string, prefixOnly bool, limit int) (
 
 }
 
-func (s *RetryLayerEngageChatStore) HasDMGMChannelMemberWithEngageAdmin(channelID string) (bool, error) {
+func (s *RetryLayerEngageChatStore) HasDMChannelBotMember(channelID string) (bool, error) {
 
 	tries := 0
 	for {
-		result, err := s.EngageChatStore.HasDMGMChannelMemberWithEngageAdmin(channelID)
+		result, err := s.EngageChatStore.HasDMChannelBotMember(channelID)
 		if err == nil {
 			return result, nil
 		}
@@ -4659,11 +4659,11 @@ func (s *RetryLayerEngageChatStore) HasDMGMChannelMemberWithEngageAdmin(channelI
 
 }
 
-func (s *RetryLayerEngageChatStore) HasDMChannelBotMember(channelID string) (bool, error) {
+func (s *RetryLayerEngageChatStore) HasDMGMChannelMemberWithEngageAdmin(channelID string) (bool, error) {
 
 	tries := 0
 	for {
-		result, err := s.EngageChatStore.HasDMChannelBotMember(channelID)
+		result, err := s.EngageChatStore.HasDMGMChannelMemberWithEngageAdmin(channelID)
 		if err == nil {
 			return result, nil
 		}
