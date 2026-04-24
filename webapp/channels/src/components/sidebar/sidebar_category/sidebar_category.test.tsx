@@ -33,7 +33,7 @@ jest.mock('utils/available_unofficial_channel', () => ({
 }));
 
 jest.mock('utils/available_unofficial_channel', () => ({
-    isAvailableDMGMChannel: jest.fn().mockReturnValue(true),
+    isAvailableDMOrGMChannel: jest.fn().mockReturnValue(true),
 }));
 
 describe('components/sidebar/sidebar_category', () => {
