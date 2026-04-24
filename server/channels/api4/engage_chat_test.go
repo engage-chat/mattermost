@@ -97,8 +97,7 @@ func TestCreatePublicChannelWithTeamEngageAdmin(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// Save and restore default role permissions around the test.
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
-	defer th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	defer th.AddPermissionToRole(model.PermissionCreatePublicChannel.Id, model.TeamUserRoleId)
 
 	// Remove PermissionCreatePublicChannel from team_user so regular users cannot create public channels.
 	th.RemovePermissionFromRole(model.PermissionCreatePublicChannel.Id, model.TeamUserRoleId)

@@ -96,8 +96,8 @@ func testHasDMGMChannelMemberWithEngageAdminMatch(t *testing.T, rctx request.CTX
 	user := engageChatCreateUser(t, rctx, ss, model.SystemUserRoleId+" "+model.SystemEngageAdmin)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, user.Id)) }()
 
-	// Create a DM channel and add the user as a member.
-	channel := engageChatCreateChannel(t, rctx, ss, team.Id, model.ChannelTypeDirect)
+	// Create a GM channel and add the user as a member.
+	channel := engageChatCreateChannel(t, rctx, ss, team.Id, model.ChannelTypeGroup)
 	engageChatAddTeamMember(t, rctx, ss, team.Id, user.Id, "")
 	engageChatAddChannelMember(t, rctx, ss, channel.Id, user.Id)
 
@@ -114,7 +114,7 @@ func testHasDMGMChannelMemberWithEngageAdminNoMatch(t *testing.T, rctx request.C
 	user := engageChatCreateUser(t, rctx, ss, model.SystemUserRoleId)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, user.Id)) }()
 
-	channel := engageChatCreateChannel(t, rctx, ss, team.Id, model.ChannelTypeDirect)
+	channel := engageChatCreateChannel(t, rctx, ss, team.Id, model.ChannelTypeGroup)
 	engageChatAddTeamMember(t, rctx, ss, team.Id, user.Id, "")
 	engageChatAddChannelMember(t, rctx, ss, channel.Id, user.Id)
 
