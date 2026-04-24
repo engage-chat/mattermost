@@ -11,7 +11,7 @@ import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import SidebarCategory from 'components/sidebar/sidebar_category/sidebar_category';
 
 jest.mock('utils/available_unofficial_channel', () => ({
-    isAvailableDMGMChannel: jest.fn().mockReturnValue(true),
+    isAvailableDMOrGMChannel: jest.fn().mockReturnValue(true),
 }));
 
 describe('components/sidebar/sidebar_category', () => {
