@@ -45,6 +45,16 @@ func (a *App) IsChannelAccessible(c request.CTX, channelID string) (bool, *model
 	switch channel.Type {
 	case model.ChannelTypeDirect:
 		hasPermission = a.SessionHasPermissionTo(*session, model.PermissionCreateDirectChannel)
+		if !hasPermission {
+			// Allow access if the DM channel has a bot member (e.g. system-generated bot messages)
+			hasBotMember, botErr := a.Srv().Store().EngageChat().HasDMChannelBotMember(channelID)
+			if botErr != nil {
+				return false, model.NewAppError("IsChannelAccessible", "app.channel.has_bot_member.app_error", nil, "", http.StatusInternalServerError).Wrap(botErr)
+			}
+			if hasBotMember {
+				return true, nil
+			}
+		}
 	case model.ChannelTypeGroup:
 		hasPermission = a.SessionHasPermissionTo(*session, model.PermissionCreateGroupChannel)
 	default:

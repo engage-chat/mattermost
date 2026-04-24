@@ -3779,6 +3779,22 @@ func (s *TimerLayerEngageChatStore) HasDMGMChannelMemberWithEngageAdmin(channelI
 	return result, err
 }
 
+func (s *TimerLayerEngageChatStore) HasDMChannelBotMember(channelID string) (bool, error) {
+	start := time.Now()
+
+	result, err := s.EngageChatStore.HasDMChannelBotMember(channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("EngageChatStore.HasDMChannelBotMember", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerFileInfoStore) AttachToPost(c request.CTX, fileID string, postID string, channelID string, creatorID string) error {
 	start := time.Now()
 

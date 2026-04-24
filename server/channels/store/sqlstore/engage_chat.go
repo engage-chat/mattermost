@@ -47,3 +47,29 @@ func (s *SqlEngageChatStore) HasDMGMChannelMemberWithEngageAdmin(channelID strin
 
 	return exists, nil
 }
+
+// HasDMChannelBotMember checks if a Direct Message channel has any bot as a member.
+func (s *SqlEngageChatStore) HasDMChannelBotMember(channelID string) (bool, error) {
+	subQuery := s.getQueryBuilder().Select("1").
+		From("ChannelMembers cm").
+		Join("Channels c ON cm.ChannelId = c.Id").
+		Join("Bots b ON cm.UserId = b.UserId AND b.DeleteAt = 0").
+		Where(sq.Eq{"cm.ChannelId": channelID}).
+		Where(sq.Eq{"c.Type": string(model.ChannelTypeDirect)}).
+		Limit(1)
+
+	subQueryString, args, err := subQuery.ToSql()
+	if err != nil {
+		return false, errors.Wrap(err, "failed to build query")
+	}
+
+	existsQuery := "SELECT EXISTS(" + subQueryString + ")"
+
+	var exists bool
+	err = s.GetReplica().Get(&exists, existsQuery, args...)
+	if err != nil {
+		return false, errors.Wrap(err, "failed to query for bot channel member")
+	}
+
+	return exists, nil
+}

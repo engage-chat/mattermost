@@ -39,6 +39,34 @@ func (_m *EngageChatStore) HasDMGMChannelMemberWithEngageAdmin(channelID string)
 	return r0, r1
 }
 
+// HasDMChannelBotMember provides a mock function with given fields: channelID
+func (_m *EngageChatStore) HasDMChannelBotMember(channelID string) (bool, error) {
+	ret := _m.Called(channelID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for HasDMChannelBotMember")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (bool, error)); ok {
+		return rf(channelID)
+	}
+	if rf, ok := ret.Get(0).(func(string) bool); ok {
+		r0 = rf(channelID)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(channelID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // NewEngageChatStore creates a new instance of EngageChatStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewEngageChatStore(t interface {

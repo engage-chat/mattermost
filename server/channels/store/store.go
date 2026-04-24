@@ -521,6 +521,7 @@ type BotStore interface {
 
 type EngageChatStore interface {
 	HasDMGMChannelMemberWithEngageAdmin(channelID string) (bool, error)
+	HasDMChannelBotMember(channelID string) (bool, error)
 }
 
 type SessionStore interface {
