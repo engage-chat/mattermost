@@ -15,7 +15,6 @@ import (
 
 func TestEnableCustomRoles(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	roleNames := []string{model.SystemEngageAdmin, model.TeamEngageAdmin}
 
@@ -52,7 +51,7 @@ func TestEnableCustomRoles(t *testing.T) {
 		assertExpectedWebsocketEvent(t, webSocketClient, model.WebsocketEventRoleUpdated, func(event *model.WebSocketEvent) {})
 
 		// Soft-delete the role
-		role, err2 := th.App.GetRoleByName(context.Background(), model.TeamEngageAdmin)
+		role, err2 := th.App.GetRoleByName(th.Context, model.TeamEngageAdmin)
 		require.Nil(t, err2)
 		_, err2 = th.App.DeleteRole(role.Id)
 		require.Nil(t, err2)
@@ -89,26 +88,25 @@ func TestEnableCustomRoles(t *testing.T) {
 }
 
 func TestCreatePublicChannelWithTeamEngageAdmin(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	// Enable custom roles and create the TeamEngageAdmin role.
 	_, appErr := th.App.EnableCustomRoles(th.Context, []string{model.TeamEngageAdmin})
 	require.Nil(t, appErr)
 
 	// Save and restore default role permissions around the test.
-	defer th.AddPermissionToRole(model.PermissionCreatePublicChannel.Id, model.TeamUserRoleId)
+	defer th.AddPermissionToRole(t, model.PermissionCreatePublicChannel.Id, model.TeamUserRoleId)
 
 	// Remove PermissionCreatePublicChannel from team_user so regular users cannot create public channels.
-	th.RemovePermissionFromRole(model.PermissionCreatePublicChannel.Id, model.TeamUserRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionCreatePublicChannel.Id, model.TeamUserRoleId)
 
 	// Create a user without special roles — should be blocked.
-	regularUser := th.CreateUser()
-	th.LinkUserToTeam(regularUser, th.BasicTeam)
+	regularUser := th.CreateUser(t)
+	th.LinkUserToTeam(t, regularUser, th.BasicTeam)
 
 	// Create a user with TeamEngageAdmin as a team member role — should be allowed.
-	engageUser := th.CreateUser()
-	th.LinkUserToTeam(engageUser, th.BasicTeam)
+	engageUser := th.CreateUser(t)
+	th.LinkUserToTeam(t, engageUser, th.BasicTeam)
 	resp, err := th.SystemAdminClient.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, engageUser.Id, model.TeamUserRoleId+" "+model.TeamEngageAdmin)
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
@@ -147,16 +145,15 @@ func TestCreatePublicChannelWithTeamEngageAdmin(t *testing.T) {
 }
 
 func TestGetChannelAccessible(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	// Enable custom roles
 	_, appErr := th.App.EnableCustomRoles(th.Context, []string{model.SystemEngageAdmin, model.TeamEngageAdmin})
 	require.Nil(t, appErr)
 
 	// Setup exception user with SystemEngageAdmin
-	exceptionUser := th.CreateUser()
-	th.LinkUserToTeam(exceptionUser, th.BasicTeam)
+	exceptionUser := th.CreateUser(t)
+	th.LinkUserToTeam(t, exceptionUser, th.BasicTeam)
 	_, appErr = th.App.UpdateUserRoles(th.Context, exceptionUser.Id, model.SystemUserRoleId+" "+model.SystemEngageAdmin, false)
 	require.Nil(t, appErr)
 
@@ -202,8 +199,8 @@ func TestGetChannelAccessible(t *testing.T) {
 	})
 
 	t.Run("under restriction: DM without exception is not accessible", func(t *testing.T) {
-		th.RemovePermissionFromRole(model.PermissionCreateDirectChannel.Id, model.SystemUserRoleId)
-		defer th.AddPermissionToRole(model.PermissionCreateDirectChannel.Id, model.SystemUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionCreateDirectChannel.Id, model.SystemUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionCreateDirectChannel.Id, model.SystemUserRoleId)
 
 		accessible, resp, err := th.Client.GetChannelAccessible(context.Background(), dmChannel.Id)
 		require.NoError(t, err)
@@ -212,8 +209,8 @@ func TestGetChannelAccessible(t *testing.T) {
 	})
 
 	t.Run("under restriction: DM with exception member is accessible", func(t *testing.T) {
-		th.RemovePermissionFromRole(model.PermissionCreateDirectChannel.Id, model.SystemUserRoleId)
-		defer th.AddPermissionToRole(model.PermissionCreateDirectChannel.Id, model.SystemUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionCreateDirectChannel.Id, model.SystemUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionCreateDirectChannel.Id, model.SystemUserRoleId)
 
 		accessible, resp, err := th.Client.GetChannelAccessible(context.Background(), dmWithException.Id)
 		require.NoError(t, err)

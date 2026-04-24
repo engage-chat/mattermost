@@ -11,7 +11,7 @@ import (
 
 // EnableCustomRoles ensures that the given custom roles are active.
 // It creates them if they don't exist, or restores them if they were soft-deleted.
-func (a *App) EnableCustomRoles(c request.CTX, roleNames []string) ([]*model.Role, *model.AppError) {
+func (a *App) EnableCustomRoles(rctx request.CTX, roleNames []string) ([]*model.Role, *model.AppError) {
 	if len(roleNames) == 0 {
 		return []*model.Role{}, nil
 	}
@@ -38,7 +38,7 @@ func (a *App) EnableCustomRoles(c request.CTX, roleNames []string) ([]*model.Rol
 			enabledRoles = append(enabledRoles, role)
 			continue
 		} else if exists && role.DeleteAt > 0 {
-			restoredRole, err := a.restoreCustomRole(c, role)
+			restoredRole, err := a.restoreCustomRole(rctx, role)
 			if err != nil {
 				return nil, err
 			}
@@ -46,10 +46,10 @@ func (a *App) EnableCustomRoles(c request.CTX, roleNames []string) ([]*model.Rol
 		} else if !exists {
 			customRole, ok := customRoleTemplates[rolename]
 			if !ok {
-				c.Logger().Warn("Custom role definition not found, skipping creation.", mlog.String("rolename", rolename))
+				rctx.Logger().Warn("Custom role definition not found, skipping creation.", mlog.String("rolename", rolename))
 				continue
 			}
-			createdRole, err := a.createCustomRole(c, &customRole)
+			createdRole, err := a.createCustomRole(rctx, &customRole)
 			if err != nil {
 				return nil, err
 			}
@@ -60,7 +60,7 @@ func (a *App) EnableCustomRoles(c request.CTX, roleNames []string) ([]*model.Rol
 	return enabledRoles, nil
 }
 
-func (a *App) createCustomRole(c request.CTX, role *model.Role) (*model.Role, *model.AppError) {
+func (a *App) createCustomRole(rctx request.CTX, role *model.Role) (*model.Role, *model.AppError) {
 	role, err := a.CreateRole(role)
 	if err != nil {
 		return nil, err
@@ -70,7 +70,7 @@ func (a *App) createCustomRole(c request.CTX, role *model.Role) (*model.Role, *m
 		return nil, appErr
 	}
 
-	c.Logger().Info("Created custom role for engage-chat",
+	rctx.Logger().Info("Created custom role for engage-chat",
 		mlog.String("role_id", role.Id),
 		mlog.String("rolename", role.Name),
 		mlog.String("display_name", role.DisplayName),
@@ -82,7 +82,7 @@ func (a *App) createCustomRole(c request.CTX, role *model.Role) (*model.Role, *m
 	return role, nil
 }
 
-func (a *App) restoreCustomRole(c request.CTX, role *model.Role) (*model.Role, *model.AppError) {
+func (a *App) restoreCustomRole(rctx request.CTX, role *model.Role) (*model.Role, *model.AppError) {
 	role.DeleteAt = 0
 	role, err := a.UpdateRole(role)
 	if err != nil {
@@ -93,7 +93,7 @@ func (a *App) restoreCustomRole(c request.CTX, role *model.Role) (*model.Role, *
 		return nil, appErr
 	}
 
-	c.Logger().Info("Restored custom role for engage-chat",
+	rctx.Logger().Info("Restored custom role for engage-chat",
 		mlog.String("role_id", role.Id),
 		mlog.String("rolename", role.Name),
 		mlog.String("display_name", role.DisplayName),

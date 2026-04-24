@@ -11,8 +11,7 @@ import (
 )
 
 func TestEnableCustomRoles(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	assertRolesMatch := func(t *testing.T, actualRoles []*model.Role, expectedRoleTemplates map[string]model.Role) {
 		t.Helper()

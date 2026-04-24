@@ -13,29 +13,28 @@ import (
 )
 
 func TestIsChannelAccessible(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	// 1. --- Roles and Test Users Setup ---
 	_, err := th.App.EnableCustomRoles(th.Context, []string{model.SystemEngageAdmin, model.TeamEngageAdmin})
 	require.Nil(t, err)
 
-	restrictedUser := th.CreateUser()
-	th.LinkUserToTeam(restrictedUser, th.BasicTeam)
+	restrictedUser := th.CreateUser(t)
+	th.LinkUserToTeam(t, restrictedUser, th.BasicTeam)
 
-	botRec := th.CreateBot()
+	botRec := th.CreateBot(t)
 	botUser, err := th.App.GetUser(botRec.UserId)
 	require.Nil(t, err)
 
 	// User with SystemEngageAdmin role
-	systemExceptionUser := th.CreateUser()
-	th.LinkUserToTeam(systemExceptionUser, th.BasicTeam)
+	systemExceptionUser := th.CreateUser(t)
+	th.LinkUserToTeam(t, systemExceptionUser, th.BasicTeam)
 	_, err = th.App.UpdateUserRoles(th.Context, systemExceptionUser.Id, model.SystemUserRoleId+" "+model.SystemEngageAdmin, false)
 	require.Nil(t, err)
 
 	// User with no special roles
-	regularUser := th.CreateUser()
-	th.LinkUserToTeam(regularUser, th.BasicTeam)
+	regularUser := th.CreateUser(t)
+	th.LinkUserToTeam(t, regularUser, th.BasicTeam)
 
 	session, err := th.App.CreateSession(th.Context, &model.Session{
 		UserId: restrictedUser.Id,
@@ -56,15 +55,15 @@ func TestIsChannelAccessible(t *testing.T) {
 		TeamId: th.BasicTeam.Id, DisplayName: "Public Channel", Name: "public-channel-" + model.NewId(), Type: model.ChannelTypeOpen,
 	}, false)
 	require.Nil(t, err)
-	th.AddUserToChannel(restrictedUser, publicChannel)
+	th.AddUserToChannel(t, restrictedUser, publicChannel)
 
 	// --- Channels for permission tests ---
 	dmChannel, _ := th.App.GetOrCreateDirectChannel(ctxWithSession, restrictedUser.Id, regularUser.Id)
 	dmWithException, _ := th.App.GetOrCreateDirectChannel(ctxWithSession, restrictedUser.Id, systemExceptionUser.Id)
-	gmChannel := th.CreateGroupChannel(th.Context, restrictedUser, regularUser)
-	gmWithException := th.CreateGroupChannel(th.Context, restrictedUser, systemExceptionUser)
-	privateChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
-	th.AddUserToChannel(restrictedUser, privateChannel)
+	gmChannel := th.CreateGroupChannel(t, restrictedUser, regularUser)
+	gmWithException := th.CreateGroupChannel(t, restrictedUser, systemExceptionUser)
+	privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+	th.AddUserToChannel(t, restrictedUser, privateChannel)
 
 	// 3. --- Run Test Cases ---
 	t.Run("General Access Scenarios", func(t *testing.T) {
@@ -114,13 +113,13 @@ func TestIsChannelAccessible(t *testing.T) {
 
 	t.Run("Situation under restriction", func(t *testing.T) {
 		// Remove permissions for the restricted user (setup once for all sub-scenarios)
-		th.RemovePermissionFromRole(model.PermissionCreateDirectChannel.Id, model.SystemUserRoleId)
-		th.RemovePermissionFromRole(model.PermissionCreateGroupChannel.Id, model.SystemUserRoleId)
-		th.RemovePermissionFromRole(model.PermissionCreatePrivateChannel.Id, model.TeamUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionCreateDirectChannel.Id, model.SystemUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionCreateGroupChannel.Id, model.SystemUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionCreatePrivateChannel.Id, model.TeamUserRoleId)
 		defer func() {
-			th.AddPermissionToRole(model.PermissionCreateDirectChannel.Id, model.SystemUserRoleId)
-			th.AddPermissionToRole(model.PermissionCreateGroupChannel.Id, model.SystemUserRoleId)
-			th.AddPermissionToRole(model.PermissionCreatePrivateChannel.Id, model.TeamUserRoleId)
+			th.AddPermissionToRole(t, model.PermissionCreateDirectChannel.Id, model.SystemUserRoleId)
+			th.AddPermissionToRole(t, model.PermissionCreateGroupChannel.Id, model.SystemUserRoleId)
+			th.AddPermissionToRole(t, model.PermissionCreatePrivateChannel.Id, model.TeamUserRoleId)
 		}()
 
 		t.Run("without exception", func(t *testing.T) {
