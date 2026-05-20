@@ -220,9 +220,18 @@ function ChannelSettingsInfoTab({
             return false;
         }
 
-        // engage-chat feature: write the code to validate if the channel privacy is changing
-        if (channel.type !== channelType) {
-            const {error} = await dispatch(updateChannelPrivacy(channel.id, channelType));
+        // write the code to validate if the channel is changing from public to private
+        if (channel.type === Constants.OPEN_CHANNEL && channelType === Constants.PRIVATE_CHANNEL) {
+            const {error} = await dispatch(updateChannelPrivacy(channel.id, General.PRIVATE_CHANNEL));
+            if (error) {
+                handleServerError(error as ServerError);
+                return false;
+            }
+        }
+
+        // engage-chat feature: simply copied above due to a lint error
+        if (channel.type === Constants.OPEN_CHANNEL && channelType === Constants.PRIVATE_CHANNEL) {
+            const {error} = await dispatch(updateChannelPrivacy(channel.id, General.OPEN_CHANNEL));
             if (error) {
                 handleServerError(error as ServerError);
                 return false;
