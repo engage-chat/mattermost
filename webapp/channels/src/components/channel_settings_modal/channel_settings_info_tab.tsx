@@ -135,8 +135,8 @@ function ChannelSettingsInfoTab({
     }, [dispatch, shouldShowPreviewHeader]);
 
     const handleChannelTypeChange = (type: ChannelType) => {
-        // Never allow conversion from private to public, regardless of permissions
-        if (channel.type === Constants.PRIVATE_CHANNEL && type === Constants.OPEN_CHANNEL) {
+        // engage-chat feature: Allow conversion if user has necessary permission
+        if (channel.type === Constants.PRIVATE_CHANNEL && type === Constants.OPEN_CHANNEL && !canConvertToPublic) {
             return;
         }
 
@@ -220,9 +220,9 @@ function ChannelSettingsInfoTab({
             return false;
         }
 
-        // write the code to validate if the channel is changing from public to private
-        if (channel.type === Constants.OPEN_CHANNEL && channelType === Constants.PRIVATE_CHANNEL) {
-            const {error} = await dispatch(updateChannelPrivacy(channel.id, General.PRIVATE_CHANNEL));
+        // engage-chat feature: write the code to validate if the channel privacy is changing
+        if (channel.type !== channelType) {
+            const {error} = await dispatch(updateChannelPrivacy(channel.id, channelType));
             if (error) {
                 handleServerError(error as ServerError);
                 return false;
@@ -255,9 +255,8 @@ function ChannelSettingsInfoTab({
 
     // Handle save changes panel actions
     const handleSaveChanges = useCallback(async () => {
-        // Check if privacy is changing from public to private
-        const isPrivacyChanging = channel.type === Constants.OPEN_CHANNEL &&
-                                 channelType === Constants.PRIVATE_CHANNEL;
+        // engage-chat feature: Check if privacy is changing
+        const isPrivacyChanging = channel.type !== channelType;
 
         // If privacy is changing, show confirmation modal
         if (isPrivacyChanging) {
@@ -341,7 +340,7 @@ function ChannelSettingsInfoTab({
                     setSaveChangesPanelState('saved');
                 }}
                 displayName={channel?.display_name || ''}
-                toPublic={false} // Always false since we're only converting from public to private
+                toPublic={channelType === Constants.OPEN_CHANNEL} // engage-chat feature: not always false
             />
 
             {/* Channel Name Section*/}
@@ -376,8 +375,8 @@ function ChannelSettingsInfoTab({
                     title: formatMessage({id: 'channel_modal.type.public.title', defaultMessage: 'Public Channel'}),
                     description: formatMessage({id: 'channel_modal.type.public.description', defaultMessage: 'Anyone can join'}),
 
-                    // Always disable public button if current channel is private, regardless of permissions
-                    disabled: channel.type === Constants.PRIVATE_CHANNEL || !canConvertToPublic,
+                    // engage-chat feature: enable public button if user has necessary permission
+                    disabled: !canConvertToPublic,
                 }}
                 privateButtonProps={{
                     title: formatMessage({id: 'channel_modal.type.private.title', defaultMessage: 'Private Channel'}),
