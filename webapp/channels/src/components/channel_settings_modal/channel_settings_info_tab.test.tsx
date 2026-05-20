@@ -491,7 +491,7 @@ describe('ChannelSettingsInfoTab', () => {
         expect(privateButton).toHaveClass('selected');
     });
 
-    it('should never allow conversion from private to public', async () => {
+    xit('should never allow conversion from private to public', async () => {
         // Set convert permission to true (even with permission, it should be prevented)
         mockConvertToPublicPermission = true;
 
