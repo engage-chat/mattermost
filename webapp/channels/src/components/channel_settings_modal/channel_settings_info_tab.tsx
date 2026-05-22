@@ -229,8 +229,9 @@ function ChannelSettingsInfoTab({
             }
         }
 
-        // engage-chat feature: simply copied above due to a lint error
-        if (channel.type === Constants.OPEN_CHANNEL && channelType === Constants.PRIVATE_CHANNEL) {
+        // engage-chat feature: enable convert from private to public
+        // simply copied above due to a lint error
+        if (channel.type === Constants.PRIVATE_CHANNEL && channelType === Constants.OPEN_CHANNEL) {
             const {error} = await dispatch(updateChannelPrivacy(channel.id, General.OPEN_CHANNEL));
             if (error) {
                 handleServerError(error as ServerError);

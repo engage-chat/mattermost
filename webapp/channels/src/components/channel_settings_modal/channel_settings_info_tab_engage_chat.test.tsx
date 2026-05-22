@@ -126,8 +126,9 @@ describe('ChannelSettingsInfoTab Private to Public Conversion (Engage Chat)', ()
     it('should convert channel when confirming in ConvertConfirmModal (private to public)', async () => {
         mockConvertToPublicPermission = true;
 
-        const {updateChannelPrivacy} = require('mattermost-redux/actions/channels');
+        const {updateChannelPrivacy, patchChannel} = require('mattermost-redux/actions/channels');
         updateChannelPrivacy.mockReturnValue({type: 'MOCK_ACTION', data: {}});
+        patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
 
         renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
 
