@@ -143,9 +143,12 @@ const PostOptions = (props: Props): JSX.Element => {
 
     let showRecentReactions: ReactNode;
     if (showRecentlyUsedReactions) {
-        const showMoreReactions = props.isExpanded ||
-            props.location === 'CENTER' ||
-            (document.getElementById('sidebar-right')?.getBoundingClientRect().width ?? 0) > Constants.SIDEBAR_MINIMUM_WIDTH;
+        // const showMoreReactions = props.isExpanded ||
+        //     props.location === 'CENTER' ||
+        //     (document.getElementById('sidebar-right')?.getBoundingClientRect().width ?? 0) > Constants.SIDEBAR_MINIMUM_WIDTH;
+
+        // engage-chat feature: always show 3 suggestions
+        const showMoreReactions = true;
 
         showRecentReactions = (
             <PostRecentReactions
