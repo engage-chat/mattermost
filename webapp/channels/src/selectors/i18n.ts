@@ -37,19 +37,21 @@ export function getTranslations(state: GlobalState, locale: string): Translation
     const localeInfo = I18n.getLanguageInfo(locale);
 
     let translations;
+    let activeLang: string;
     if (localeInfo) {
         translations = state.views.i18n.translations[locale];
+        activeLang = locale;
     } else {
         // Default to English if an unsupported locale is specified
         translations = state.views.i18n.translations.en;
+        activeLang = 'en';
     }
 
     if (!translations) {
         return translations;
     }
 
-    const lang = locale.split('-')[0];
-    const custom = customTranslations[locale] || customTranslations[lang] || {};
+    const custom = customTranslations[activeLang] || {};
 
     if (Object.keys(custom).length === 0) {
         return translations;
