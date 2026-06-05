@@ -49,10 +49,12 @@ export function getTranslations(state: GlobalState, locale: string): Translation
     const lang = locale.split('-')[0];
     const custom = customTranslations[locale] || customTranslations[lang] || {};
 
-    const merged = {
+    if (Object.keys(custom).length === 0) {
+        return translations;
+    }
+
+    return {
         ...translations,
         ...custom,
     };
-
-    return merged;
 }
