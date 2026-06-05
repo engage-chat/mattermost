@@ -12,10 +12,12 @@ import customTranslationsJa from 'i18n/ja-engage-chat.json';
 import type {GlobalState} from 'types/store';
 import type {Translations} from 'types/store/i18n';
 
-const customTranslations: Record<string, Record<string, string>> = {
+export const customTranslations: Record<string, Record<string, string>> = {
     en: customTranslationsEn,
     ja: customTranslationsJa,
 };
+
+const mergedCache = new WeakMap<Translations, Translations>();
 
 // This is a placeholder for if we ever implement browser-locale detection
 export function getCurrentLocale(state: GlobalState): string {
@@ -53,8 +55,14 @@ export function getTranslations(state: GlobalState, locale: string): Translation
         return translations;
     }
 
-    return {
-        ...translations,
-        ...custom,
-    };
+    let merged = mergedCache.get(translations);
+    if (!merged) {
+        merged = {
+            ...translations,
+            ...custom,
+        };
+        mergedCache.set(translations, merged);
+    }
+
+    return merged;
 }
