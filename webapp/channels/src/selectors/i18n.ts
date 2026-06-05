@@ -5,10 +5,17 @@ import {General} from 'mattermost-redux/constants';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserLocale} from 'mattermost-redux/selectors/entities/i18n';
 
+import customTranslationsEn from 'i18n/en-engage-chat.json';
 import * as I18n from 'i18n/i18n';
+import customTranslationsJa from 'i18n/ja-engage-chat.json';
 
 import type {GlobalState} from 'types/store';
 import type {Translations} from 'types/store/i18n';
+
+const customTranslations: Record<string, Record<string, string>> = {
+    en: customTranslationsEn,
+    ja: customTranslationsJa,
+};
 
 // This is a placeholder for if we ever implement browser-locale detection
 export function getCurrentLocale(state: GlobalState): string {
@@ -35,5 +42,17 @@ export function getTranslations(state: GlobalState, locale: string): Translation
         translations = state.views.i18n.translations.en;
     }
 
-    return translations;
+    if (!translations) {
+        return translations;
+    }
+
+    const lang = locale.split('-')[0];
+    const custom = customTranslations[locale] || customTranslations[lang] || {};
+
+    const merged = {
+        ...translations,
+        ...custom,
+    };
+
+    return merged;
 }
