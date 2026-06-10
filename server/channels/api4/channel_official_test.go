@@ -383,22 +383,36 @@ func TestOfficialChannelValidation(t *testing.T) {
 	})
 
 	t.Run("updateChannelPrivacy - Official Channel Restriction", func(t *testing.T) {
-		// 1. Official admin cannot change the privacy of an official channel
-		_, _, err := th.Client.Login(context.Background(), officialAdmin.Email, "Pa$$word11")
-		require.NoError(t, err)
+		// Grant permissions for regular users to convert channel privacy
+		th.AddPermissionToRole(model.PermissionConvertPublicChannelToPrivate.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(model.PermissionConvertPrivateChannelToPublic.Id, model.SystemUserRoleId)
 
-		_, resp, err := th.Client.UpdateChannelPrivacy(context.Background(), officialChannel.Id, model.ChannelTypePrivate)
+		// 1. Official Channel Privacy Update Restrictions (Should fail)
+		// 1-a. System admin trying to change official channel privacy
+		_, resp, err := th.SystemAdminClient.UpdateChannelPrivacy(context.Background(), officialChannel.Id, model.ChannelTypePrivate)
 		assert.Error(t, err)
 		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
 
-		// 2. Regular user cannot change the privacy of an official channel
+		// 1-b. Regular user trying to change official channel privacy
 		th.LoginBasic()
 		_, resp, err = th.Client.UpdateChannelPrivacy(context.Background(), officialChannel.Id, model.ChannelTypePrivate)
 		assert.Error(t, err)
 		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
 
-		// 3. Regular channel privacy can be updated normally
+		// 1-c. Official admin trying to change official channel privacy
+		_, _, err = th.Client.Login(context.Background(), officialAdmin.Email, "Pa$$word11")
+		require.NoError(t, err)
+		_, resp, err = th.Client.UpdateChannelPrivacy(context.Background(), officialChannel.Id, model.ChannelTypePrivate)
+		assert.Error(t, err)
+		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+
+		// 2. Regular Channel Privacy Update (Should succeed)
+		// 2-a. System admin trying to change regular channel privacy
 		_, _, err = th.SystemAdminClient.UpdateChannelPrivacy(context.Background(), regularChannel.Id, model.ChannelTypePrivate)
+		assert.NoError(t, err)
+
+		// 2-b. System admin trying to change regular channel privacy back to public
+		_, _, err = th.SystemAdminClient.UpdateChannelPrivacy(context.Background(), regularChannel.Id, model.ChannelTypeOpen)
 		assert.NoError(t, err)
 	})
 }
