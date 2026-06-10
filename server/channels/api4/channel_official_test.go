@@ -32,7 +32,7 @@ func TestOfficialChannelValidation(t *testing.T) {
 	// Create official admin user
 	officialAdmin := th.CreateUser()
 	officialAdmin.Username = officialAdminUsername
-	var err error
+	var setupErr error
 	_, appErr := th.App.UpdateUser(th.Context, officialAdmin, false)
 	require.Nil(t, appErr)
 	_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, officialAdmin.Id, "")
@@ -43,16 +43,16 @@ func TestOfficialChannelValidation(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// Create official channel (created by official admin)
-	_, _, err = th.Client.Login(context.Background(), officialAdmin.Email, "Pa$$word11")
-	require.NoError(t, err)
+	_, _, setupErr = th.Client.Login(context.Background(), officialAdmin.Email, "Pa$$word11")
+	require.NoError(t, setupErr)
 	officialChannel := &model.Channel{
 		DisplayName: "Official Test Channel",
 		Name:        "official-test-channel",
 		Type:        model.ChannelTypeOpen,
 		TeamId:      th.BasicTeam.Id,
 	}
-	officialChannel, _, err = th.Client.CreateChannel(context.Background(), officialChannel)
-	require.NoError(t, err)
+	officialChannel, _, setupErr = th.Client.CreateChannel(context.Background(), officialChannel)
+	require.NoError(t, setupErr)
 
 	// Create non-official channel (created by regular user)
 	th.LoginBasic()
@@ -62,8 +62,8 @@ func TestOfficialChannelValidation(t *testing.T) {
 		Type:        model.ChannelTypeOpen,
 		TeamId:      th.BasicTeam.Id,
 	}
-	regularChannel, _, err = th.Client.CreateChannel(context.Background(), regularChannel)
-	require.NoError(t, err)
+	regularChannel, _, setupErr = th.Client.CreateChannel(context.Background(), regularChannel)
+	require.NoError(t, setupErr)
 
 	t.Run("updateChannel - Official Channel Title Restriction", func(t *testing.T) {
 		// Debug: Check if channel is really official
@@ -82,7 +82,7 @@ func TestOfficialChannelValidation(t *testing.T) {
 		}
 
 		// Test 1: Official admin can update title
-		_, _, err = th.Client.Login(context.Background(), officialAdmin.Username, "Pa$$word11")
+		_, _, err := th.Client.Login(context.Background(), officialAdmin.Username, "Pa$$word11")
 		require.NoError(t, err)
 		updatedChannel := *officialChannel
 		updatedChannel.DisplayName = "Updated Official Title"
@@ -384,7 +384,7 @@ func TestOfficialChannelValidation(t *testing.T) {
 
 	t.Run("updateChannelPrivacy - Official Channel Restriction", func(t *testing.T) {
 		// 1. Official admin cannot change the privacy of an official channel
-		_, _, err = th.Client.Login(context.Background(), officialAdmin.Email, "Pa$$word11")
+		_, _, err := th.Client.Login(context.Background(), officialAdmin.Email, "Pa$$word11")
 		require.NoError(t, err)
 
 		_, resp, err := th.Client.UpdateChannelPrivacy(context.Background(), officialChannel.Id, model.ChannelTypePrivate)
