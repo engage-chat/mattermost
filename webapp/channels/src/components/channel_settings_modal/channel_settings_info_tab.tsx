@@ -90,8 +90,8 @@ function ChannelSettingsInfoTab({
     // SaveChangesPanel state
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
 
-    // Compute official channel check locally and cache it via useMemo
-    const isOfficial = useMemo(() => isOfficialTunagChannel(channel), [channel?.id]);
+    // Compute official channel check locally
+    const isOfficial = isOfficialTunagChannel(channel);
 
     // Handler for channel name validation errors
     const handleChannelNameError = useCallback((isError: boolean, errorMessage?: string) => {
