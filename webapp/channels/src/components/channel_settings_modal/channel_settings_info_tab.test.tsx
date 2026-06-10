@@ -8,10 +8,10 @@ import React from 'react';
 import type {ChannelType} from '@mattermost/types/channels';
 
 import {renderWithContext} from 'tests/react_testing_utils';
+import * as officialChannelUtils from 'utils/official_channel_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsInfoTab from './channel_settings_info_tab';
-import * as officialChannelUtils from 'utils/official_channel_utils';
 
 // Mock the redux actions and selectors
 jest.mock('mattermost-redux/actions/channels', () => ({
