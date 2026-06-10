@@ -390,21 +390,21 @@ func TestOfficialChannelValidation(t *testing.T) {
 		// 1. Official Channel Privacy Update Restrictions (Should fail)
 		// 1-a. System admin trying to change official channel privacy
 		_, resp, err := th.SystemAdminClient.UpdateChannelPrivacy(context.Background(), officialChannel.Id, model.ChannelTypePrivate)
-		assert.Error(t, err)
-		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 
 		// 1-b. Regular user trying to change official channel privacy
 		th.LoginBasic()
 		_, resp, err = th.Client.UpdateChannelPrivacy(context.Background(), officialChannel.Id, model.ChannelTypePrivate)
-		assert.Error(t, err)
-		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 
 		// 1-c. Official admin trying to change official channel privacy
 		_, _, err = th.Client.Login(context.Background(), officialAdmin.Email, "Pa$$word11")
 		require.NoError(t, err)
 		_, resp, err = th.Client.UpdateChannelPrivacy(context.Background(), officialChannel.Id, model.ChannelTypePrivate)
-		assert.Error(t, err)
-		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 
 		// 2. Regular Channel Privacy Update (Should succeed)
 		// 2-a. System admin trying to change regular channel privacy
