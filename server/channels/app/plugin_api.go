@@ -98,6 +98,14 @@ func (api *PluginAPI) ExecuteSlashCommand(commandArgs *model.CommandArgs) (*mode
 }
 
 func (api *PluginAPI) GetConfig() *model.Config {
+	if api.id == "com.mattermost.calls" {
+		cfg := api.app.GetSanitizedConfig()
+		*cfg.ServiceSettings.EnableDeveloper = true
+		*cfg.ServiceSettings.EnableTesting = true
+
+		mlog.Log(mlog.LvlDebug, "test message")
+		return  cfg
+	}
 	return api.app.GetSanitizedConfig()
 }
 
