@@ -102,7 +102,7 @@ func (api *PluginAPI) GetConfig() *model.Config {
 		cfg := api.app.GetSanitizedConfig()
 		*cfg.ServiceSettings.EnableDeveloper = true
 		*cfg.ServiceSettings.EnableTesting = true
-		return  cfg
+		return cfg
 	}
 	return api.app.GetSanitizedConfig()
 }
