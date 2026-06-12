@@ -102,8 +102,6 @@ func (api *PluginAPI) GetConfig() *model.Config {
 		cfg := api.app.GetSanitizedConfig()
 		*cfg.ServiceSettings.EnableDeveloper = true
 		*cfg.ServiceSettings.EnableTesting = true
-
-		mlog.Log(mlog.LvlDebug, "test message")
 		return  cfg
 	}
 	return api.app.GetSanitizedConfig()
