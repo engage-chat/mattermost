@@ -12,6 +12,7 @@ import LeaveChannelModal from 'components/leave_channel_modal';
 import SidebarChannelLink from 'components/sidebar/sidebar_channel/sidebar_channel_link';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
+import {isOfficialTunagChannel} from 'utils/official_channel_utils';
 
 import SidebarBaseChannelIcon from './sidebar_base_channel_icon';
 
@@ -48,7 +49,10 @@ const SidebarBaseChannel = ({
         channelLeaveHandler = handleLeavePrivateChannel;
     }
 
-    const channelIcon = (
+    const channelIcon = isOfficialTunagChannel(channel) ? (
+        // TODO:
+        <i className='icon icon-globe'/>
+    ) : (
         <SidebarBaseChannelIcon
             channelType={channel.type}
         />

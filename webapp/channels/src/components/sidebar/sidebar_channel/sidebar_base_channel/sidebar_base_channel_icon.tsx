@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import type {ChannelType} from '@mattermost/types/channels';
+import type { ChannelType } from '@mattermost/types/channels';
 
 import Constants from 'utils/constants';
 
@@ -16,12 +16,14 @@ const SidebarBaseChannelIcon = ({
 }: Props) => {
     if (channelType === Constants.OPEN_CHANNEL) {
         return (
-            <i className='icon icon-globe'/>
+            // <i className='icon icon-globe'/>
+            // <i className='fa fa-plus' />
+            <i className='icon fa-regular fa-building' />
         );
     }
     if (channelType === Constants.PRIVATE_CHANNEL) {
         return (
-            <i className='icon icon-lock-outline'/>
+            <i className='icon icon-lock-outline' />
         );
     }
     return null;
