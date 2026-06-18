@@ -3,6 +3,7 @@
 
 import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
 
@@ -11,6 +12,8 @@ import {trackEvent} from 'actions/telemetry_actions';
 import LeaveChannelModal from 'components/leave_channel_modal';
 import SidebarChannelLink from 'components/sidebar/sidebar_channel/sidebar_channel_link';
 import BuildingIcon from 'components/widgets/icons/building_icon';
+
+import type {GlobalState} from 'types/store';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {isOfficialTunagChannel} from 'utils/official_channel_utils';
@@ -30,7 +33,7 @@ const SidebarBaseChannel = ({
     actions,
 }: Props) => {
     const intl = useIntl();
-    const isOfficial = isOfficialTunagChannel(channel);
+    const isOfficial = useSelector((state: GlobalState) => isOfficialTunagChannel(channel, state));
 
     const handleLeavePublicChannel = useCallback((callback: () => void) => {
         actions.leaveChannel(channel.id);
@@ -51,7 +54,6 @@ const SidebarBaseChannel = ({
         channelLeaveHandler = handleLeavePrivateChannel;
     }
 
-    // const channelIcon = (channel.type === Constants.OPEN_CHANNEL) ? (
     const channelIcon = isOfficial ? (
         <BuildingIcon/>
     ) : (

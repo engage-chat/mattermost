@@ -5,11 +5,42 @@ import {screen, waitFor} from '@testing-library/react';
 import {shallow} from 'enzyme';
 import React from 'react';
 
+import * as reactRedux from 'react-redux';
+
 import type {ChannelType} from '@mattermost/types/channels';
 
 import SidebarBaseChannel from 'components/sidebar/sidebar_channel/sidebar_base_channel/sidebar_base_channel';
 
 import {renderWithContext, userEvent} from 'tests/react_testing_utils';
+
+jest.mock('react-redux', () => ({
+    ...jest.requireActual('react-redux'),
+    useSelector: jest.fn((selector) => {
+        try {
+            return selector({
+                entities: {
+                    preferences: {
+                        myPreferences: {},
+                    },
+                    users: {
+                        profiles: {},
+                    },
+                    teams: {
+                        currentTeamId: '',
+                    },
+                    general: {
+                        config: {},
+                    },
+                    roles: {
+                        roles: {},
+                    },
+                },
+            });
+        } catch {
+            return false;
+        }
+    }),
+}));
 
 describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
     const baseProps = {

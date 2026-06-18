@@ -7,6 +7,8 @@ import {getUser} from 'mattermost-redux/selectors/entities/users';
 
 import store from 'stores/redux_store';
 
+import type {GlobalState} from 'types/store';
+
 /**
  * Regex pattern for official tunag integration admin usernames.
  * Pattern: tunag-{5digits}-{lowercase_alphanumeric_hyphens}-admin
@@ -19,6 +21,7 @@ const OFFICIAL_INTEGRATION_ADMIN_PATTERN = /^tunag-\d{5}-[a-z0-9-]+-admin$/;
 // We do not cache non-official creator IDs since there is typically only one official user per tenant,
 // making a non-official cache unnecessary, and looking up users in the Redux store is fast enough.
 const officialCreatorIdsCache = new Set<string>();
+const pendingFetchCreatorIds = new Set<string>();
 
 /**
  * Check if a channel is an official tunag channel based on its creator's username.
@@ -26,9 +29,10 @@ const officialCreatorIdsCache = new Set<string>();
  * tunag-{company_id}-{subdomain}-admin
  *
  * @param {Channel | string | null | undefined} channel - Channel object (string input not supported for creator validation)
+ * @param {GlobalState} [state] - Optional Redux state. If not provided, it uses the global store state.
  * @returns {boolean} - true if channel is an official tunag channel, false otherwise
  */
-export function isOfficialTunagChannel(channel: Channel | string | null | undefined): boolean {
+export function isOfficialTunagChannel(channel: Channel | string | null | undefined, state?: GlobalState): boolean {
     // If it's a string, we cannot validate creator, so return false
     if (typeof channel === 'string' || !channel) {
         return false;
@@ -45,10 +49,18 @@ export function isOfficialTunagChannel(channel: Channel | string | null | undefi
     }
 
     // Get the creator user from Redux store
-    const state = store.getState();
-    const creator = getUser(state, channel.creator_id);
+    const currentState = state || store.getState();
+    const creator = getUser(currentState, channel.creator_id);
 
     if (!creator || !creator.username) {
+        // Fetch creator user if we haven't already
+        if (!pendingFetchCreatorIds.has(channel.creator_id)) {
+            pendingFetchCreatorIds.add(channel.creator_id);
+            setTimeout(() => {
+                const {getUser: fetchUserAction} = require('mattermost-redux/actions/users');
+                store.dispatch(fetchUserAction(channel.creator_id) as any);
+            }, 0);
+        }
         return false;
     }
 
@@ -63,4 +75,5 @@ export function isOfficialTunagChannel(channel: Channel | string | null | undefi
 
 export function clearOfficialCreatorIdsCache() {
     officialCreatorIdsCache.clear();
+    pendingFetchCreatorIds.clear();
 }
