@@ -17,9 +17,6 @@ import type {GlobalState} from 'types/store';
  */
 const OFFICIAL_INTEGRATION_ADMIN_PATTERN = /^tunag-\d{5}-[a-z0-9-]+-admin$/;
 
-const officialCreatorIdsCache = new Set<string>();
-const pendingFetchCreatorIds = new Set<string>();
-
 /**
  * Check if a channel is an official tunag channel based on its creator's username.
  * Official channels are created by integration admin users with usernames matching the pattern:
@@ -40,11 +37,6 @@ export function isOfficialTunagChannel(channel: Channel | string | null | undefi
         return false;
     }
 
-    // Check cache first
-    if (officialCreatorIdsCache.has(channel.creator_id)) {
-        return true;
-    }
-
     // Get the creator user from Redux store
     const currentState = state || store.getState();
     const creator = getUser(currentState, channel.creator_id);
@@ -54,15 +46,5 @@ export function isOfficialTunagChannel(channel: Channel | string | null | undefi
     }
 
     // Check if creator's username matches the integration admin pattern
-    const isOfficial = OFFICIAL_INTEGRATION_ADMIN_PATTERN.test(creator.username);
-    if (isOfficial) {
-        officialCreatorIdsCache.add(channel.creator_id);
-    }
-
-    return isOfficial;
-}
-
-export function clearOfficialCreatorIdsCache() {
-    officialCreatorIdsCache.clear();
-    pendingFetchCreatorIds.clear();
+    return OFFICIAL_INTEGRATION_ADMIN_PATTERN.test(creator.username);
 }

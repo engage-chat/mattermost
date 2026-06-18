@@ -15,6 +15,8 @@ export default function BuildingIcon({className, size}: Props) {
         return (
             <svg
                 viewBox='0 0 384 512'
+                role='img'
+                aria-label='Building icon'
                 fill='currentColor'
                 className={className}
                 style={{
@@ -44,6 +46,8 @@ export default function BuildingIcon({className, size}: Props) {
         >
             <svg
                 viewBox='0 0 384 512'
+                role='img'
+                aria-label='Building icon'
                 fill='currentColor'
                 style={{
                     width: '0.95em',
