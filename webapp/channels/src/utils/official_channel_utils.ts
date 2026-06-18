@@ -15,6 +15,11 @@ import store from 'stores/redux_store';
  */
 const OFFICIAL_INTEGRATION_ADMIN_PATTERN = /^tunag-\d{5}-[a-z0-9-]+-admin$/;
 
+// Cache to store IDs of official creators. We use a Set to support multiple official creators.
+// We do not cache non-official creator IDs since there is typically only one official user per tenant,
+// making a non-official cache unnecessary, and looking up users in the Redux store is fast enough.
+const officialCreatorIdsCache = new Set<string>();
+
 /**
  * Check if a channel is an official tunag channel based on its creator's username.
  * Official channels are created by integration admin users with usernames matching the pattern:
@@ -34,6 +39,11 @@ export function isOfficialTunagChannel(channel: Channel | string | null | undefi
         return false;
     }
 
+    // Check cache first
+    if (officialCreatorIdsCache.has(channel.creator_id)) {
+        return true;
+    }
+
     // Get the creator user from Redux store
     const state = store.getState();
     const creator = getUser(state, channel.creator_id);
@@ -43,5 +53,14 @@ export function isOfficialTunagChannel(channel: Channel | string | null | undefi
     }
 
     // Check if creator's username matches the integration admin pattern
-    return OFFICIAL_INTEGRATION_ADMIN_PATTERN.test(creator.username);
+    const isOfficial = OFFICIAL_INTEGRATION_ADMIN_PATTERN.test(creator.username);
+    if (isOfficial) {
+        officialCreatorIdsCache.add(channel.creator_id);
+    }
+
+    return isOfficial;
+}
+
+export function clearOfficialCreatorIdsCache() {
+    officialCreatorIdsCache.clear();
 }

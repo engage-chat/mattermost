@@ -30,6 +30,7 @@ const SidebarBaseChannel = ({
     actions,
 }: Props) => {
     const intl = useIntl();
+    const isOfficial = isOfficialTunagChannel(channel);
 
     const handleLeavePublicChannel = useCallback((callback: () => void) => {
         actions.leaveChannel(channel.id);
@@ -51,7 +52,7 @@ const SidebarBaseChannel = ({
     }
 
     // const channelIcon = (channel.type === Constants.OPEN_CHANNEL) ? (
-    const channelIcon = isOfficialTunagChannel(channel) ? (
+    const channelIcon = isOfficial ? (
         <BuildingIcon/>
     ) : (
         <SidebarBaseChannelIcon

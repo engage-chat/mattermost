@@ -27,6 +27,7 @@ describe('Official Channel Utils', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockStore.getState.mockReturnValue({} as any);
+        OfficialChannelUtils.clearOfficialCreatorIdsCache();
     });
 
     describe('isOfficialTunagChannel', () => {
@@ -160,6 +161,73 @@ describe('Official Channel Utils', () => {
 
             mockGetUser.mockReturnValue(userWithEmptyUsername as UserProfile);
             expect(OfficialChannelUtils.isOfficialTunagChannel(channel as Channel)).toBe(false);
+        });
+
+        test('caches official creator IDs and supports multiple official creators', () => {
+            const channel1: Partial<Channel> = {
+                name: 'channel-1',
+                id: 'channel_id_1',
+                creator_id: 'official_creator_1',
+            };
+            const channel2: Partial<Channel> = {
+                name: 'channel-2',
+                id: 'channel_id_2',
+                creator_id: 'official_creator_2',
+            };
+
+            const officialUser1: Partial<UserProfile> = {
+                id: 'official_creator_1',
+                username: 'tunag-00001-company-admin',
+            };
+            const officialUser2: Partial<UserProfile> = {
+                id: 'official_creator_2',
+                username: 'tunag-00002-stmn-admin',
+            };
+
+            // First lookup for official_creator_1: should call getUser
+            mockGetUser.mockReturnValue(officialUser1 as UserProfile);
+            expect(OfficialChannelUtils.isOfficialTunagChannel(channel1 as Channel)).toBe(true);
+            expect(mockGetUser).toHaveBeenCalledTimes(1);
+
+            // Second lookup for official_creator_1: should use cache (not call getUser)
+            mockGetUser.mockClear();
+            expect(OfficialChannelUtils.isOfficialTunagChannel(channel1 as Channel)).toBe(true);
+            expect(mockGetUser).not.toHaveBeenCalled();
+
+            // First lookup for official_creator_2: should call getUser
+            mockGetUser.mockClear();
+            mockGetUser.mockReturnValue(officialUser2 as UserProfile);
+            expect(OfficialChannelUtils.isOfficialTunagChannel(channel2 as Channel)).toBe(true);
+            expect(mockGetUser).toHaveBeenCalledTimes(1);
+
+            // Second lookup for official_creator_2: should use cache (not call getUser)
+            mockGetUser.mockClear();
+            expect(OfficialChannelUtils.isOfficialTunagChannel(channel2 as Channel)).toBe(true);
+            expect(mockGetUser).not.toHaveBeenCalled();
+        });
+
+        test('does not cache non-official creator IDs', () => {
+            const channel: Partial<Channel> = {
+                name: 'channel-regular',
+                id: 'channel_id_regular',
+                creator_id: 'regular_creator',
+            };
+
+            const regularUser: Partial<UserProfile> = {
+                id: 'regular_creator',
+                username: 'regular_user',
+            };
+
+            // First lookup: should call getUser
+            mockGetUser.mockReturnValue(regularUser as UserProfile);
+            expect(OfficialChannelUtils.isOfficialTunagChannel(channel as Channel)).toBe(false);
+            expect(mockGetUser).toHaveBeenCalledTimes(1);
+
+            // Second lookup: should still call getUser (not cached)
+            mockGetUser.mockClear();
+            mockGetUser.mockReturnValue(regularUser as UserProfile);
+            expect(OfficialChannelUtils.isOfficialTunagChannel(channel as Channel)).toBe(false);
+            expect(mockGetUser).toHaveBeenCalledTimes(1);
         });
     });
 });
