@@ -10,6 +10,11 @@ import type {ChannelType} from '@mattermost/types/channels';
 import SidebarBaseChannel from 'components/sidebar/sidebar_channel/sidebar_base_channel/sidebar_base_channel';
 
 import {renderWithContext, userEvent} from 'tests/react_testing_utils';
+import * as OfficialChannelUtils from 'utils/official_channel_utils';
+
+jest.mock('utils/official_channel_utils', () => ({
+    isOfficialTunagChannel: jest.fn(() => false),
+}));
 
 jest.mock('react-redux', () => ({
     ...jest.requireActual('react-redux'),
@@ -63,6 +68,15 @@ describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
     };
 
     test('should match snapshot', () => {
+        const wrapper = shallow(
+            <SidebarBaseChannel {...baseProps}/>,
+        );
+
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should match snapshot when official channel', () => {
+        (OfficialChannelUtils.isOfficialTunagChannel as jest.Mock).mockReturnValueOnce(true);
         const wrapper = shallow(
             <SidebarBaseChannel {...baseProps}/>,
         );
