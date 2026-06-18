@@ -10,6 +10,7 @@ import {trackEvent} from 'actions/telemetry_actions';
 
 import LeaveChannelModal from 'components/leave_channel_modal';
 import SidebarChannelLink from 'components/sidebar/sidebar_channel/sidebar_channel_link';
+import BuildingIcon from 'components/widgets/icons/building_icon';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {isOfficialTunagChannel} from 'utils/official_channel_utils';
@@ -49,9 +50,9 @@ const SidebarBaseChannel = ({
         channelLeaveHandler = handleLeavePrivateChannel;
     }
 
-    const channelIcon = isOfficialTunagChannel(channel) ? (
-        // TODO:
-        <i className='icon icon-globe'/>
+    // const channelIcon = isOfficialTunagChannel(channel) ? (
+    const channelIcon = (channel.type === Constants.OPEN_CHANNEL) ? (
+        <BuildingIcon/>
     ) : (
         <SidebarBaseChannelIcon
             channelType={channel.type}

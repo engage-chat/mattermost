@@ -1222,16 +1222,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
         font-size: 18px;
     }
 
-    .SidebarChannel .SidebarLink > i::before {
-        display: inline-block;
-        width: 1em;
-        height: 1em;
-        line-height: 1em;
-        text-align: center;
-        margin-left: 0.2em;
-        margin-right: 0.2em;
-    }
-
     .SidebarChannelLinkLabel_wrapper,
     .SidebarChannelLinkLabel_wrapper > div {
         display: flex;
