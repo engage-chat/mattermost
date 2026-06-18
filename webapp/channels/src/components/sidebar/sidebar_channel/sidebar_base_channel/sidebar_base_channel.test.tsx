@@ -14,29 +14,25 @@ import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 jest.mock('react-redux', () => ({
     ...jest.requireActual('react-redux'),
     useSelector: jest.fn((selector) => {
-        try {
-            return selector({
-                entities: {
-                    preferences: {
-                        myPreferences: {},
-                    },
-                    users: {
-                        profiles: {},
-                    },
-                    teams: {
-                        currentTeamId: '',
-                    },
-                    general: {
-                        config: {},
-                    },
-                    roles: {
-                        roles: {},
-                    },
+        return selector({
+            entities: {
+                preferences: {
+                    myPreferences: {},
                 },
-            });
-        } catch {
-            return false;
-        }
+                users: {
+                    profiles: {},
+                },
+                teams: {
+                    currentTeamId: '',
+                },
+                general: {
+                    config: {},
+                },
+                roles: {
+                    roles: {},
+                },
+            },
+        });
     }),
 }));
 
