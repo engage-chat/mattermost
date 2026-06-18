@@ -84,14 +84,18 @@ describe('Official Channel Utils', () => {
                 'tunag-12345-subdomain-123-admin',
             ];
 
-            validUsernames.forEach((username) => {
+            validUsernames.forEach((username, index) => {
                 const integrationAdminUser: Partial<UserProfile> = {
-                    id: 'user_id_1',
+                    id: `user_id_${index}`,
                     username,
                 };
 
                 mockGetUser.mockReturnValue(integrationAdminUser as UserProfile);
-                expect(OfficialChannelUtils.isOfficialTunagChannel(channel as Channel)).toBe(true);
+                const caseChannel = {
+                    ...channel,
+                    creator_id: `user_id_${index}`,
+                };
+                expect(OfficialChannelUtils.isOfficialTunagChannel(caseChannel as Channel)).toBe(true);
             });
         });
 
