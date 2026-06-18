@@ -17,9 +17,6 @@ import type {GlobalState} from 'types/store';
  */
 const OFFICIAL_INTEGRATION_ADMIN_PATTERN = /^tunag-\d{5}-[a-z0-9-]+-admin$/;
 
-// Cache to store IDs of official creators. We use a Set to support multiple official creators.
-// We do not cache non-official creator IDs since there is typically only one official user per tenant,
-// making a non-official cache unnecessary, and looking up users in the Redux store is fast enough.
 const officialCreatorIdsCache = new Set<string>();
 const pendingFetchCreatorIds = new Set<string>();
 
@@ -53,14 +50,6 @@ export function isOfficialTunagChannel(channel: Channel | string | null | undefi
     const creator = getUser(currentState, channel.creator_id);
 
     if (!creator || !creator.username) {
-        // Fetch creator user if we haven't already
-        if (!pendingFetchCreatorIds.has(channel.creator_id)) {
-            pendingFetchCreatorIds.add(channel.creator_id);
-            setTimeout(() => {
-                const {getUser: fetchUserAction} = require('mattermost-redux/actions/users');
-                store.dispatch(fetchUserAction(channel.creator_id) as any);
-            }, 0);
-        }
         return false;
     }
 

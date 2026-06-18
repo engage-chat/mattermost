@@ -5,8 +5,6 @@ import {screen, waitFor} from '@testing-library/react';
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import * as reactRedux from 'react-redux';
-
 import type {ChannelType} from '@mattermost/types/channels';
 
 import SidebarBaseChannel from 'components/sidebar/sidebar_channel/sidebar_base_channel/sidebar_base_channel';

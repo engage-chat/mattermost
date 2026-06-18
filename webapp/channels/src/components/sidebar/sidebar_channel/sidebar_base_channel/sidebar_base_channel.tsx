@@ -13,10 +13,10 @@ import LeaveChannelModal from 'components/leave_channel_modal';
 import SidebarChannelLink from 'components/sidebar/sidebar_channel/sidebar_channel_link';
 import BuildingIcon from 'components/widgets/icons/building_icon';
 
-import type {GlobalState} from 'types/store';
-
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {isOfficialTunagChannel} from 'utils/official_channel_utils';
+
+import type {GlobalState} from 'types/store';
 
 import SidebarBaseChannelIcon from './sidebar_base_channel_icon';
 

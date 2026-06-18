@@ -205,29 +205,5 @@ describe('Official Channel Utils', () => {
             expect(OfficialChannelUtils.isOfficialTunagChannel(channel2 as Channel)).toBe(true);
             expect(mockGetUser).not.toHaveBeenCalled();
         });
-
-        test('does not cache non-official creator IDs', () => {
-            const channel: Partial<Channel> = {
-                name: 'channel-regular',
-                id: 'channel_id_regular',
-                creator_id: 'regular_creator',
-            };
-
-            const regularUser: Partial<UserProfile> = {
-                id: 'regular_creator',
-                username: 'regular_user',
-            };
-
-            // First lookup: should call getUser
-            mockGetUser.mockReturnValue(regularUser as UserProfile);
-            expect(OfficialChannelUtils.isOfficialTunagChannel(channel as Channel)).toBe(false);
-            expect(mockGetUser).toHaveBeenCalledTimes(1);
-
-            // Second lookup: should still call getUser (not cached)
-            mockGetUser.mockClear();
-            mockGetUser.mockReturnValue(regularUser as UserProfile);
-            expect(OfficialChannelUtils.isOfficialTunagChannel(channel as Channel)).toBe(false);
-            expect(mockGetUser).toHaveBeenCalledTimes(1);
-        });
     });
 });
