@@ -50,8 +50,8 @@ const SidebarBaseChannel = ({
         channelLeaveHandler = handleLeavePrivateChannel;
     }
 
-    // const channelIcon = isOfficialTunagChannel(channel) ? (
-    const channelIcon = (channel.type === Constants.OPEN_CHANNEL) ? (
+    // const channelIcon = (channel.type === Constants.OPEN_CHANNEL) ? (
+    const channelIcon = isOfficialTunagChannel(channel) ? (
         <BuildingIcon/>
     ) : (
         <SidebarBaseChannelIcon
