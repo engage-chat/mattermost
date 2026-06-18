@@ -128,10 +128,10 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
         const ariaLabel = `${channel.display_name}, ${channel.purpose}`.toLowerCase();
         let channelTypeIcon;
 
-        if (isOfficialTunagChannel(channel)) {
-            channelTypeIcon = <BuildingIcon size={18}/>;
-        } else if (isArchivedChannel(channel)) {
+        if (isArchivedChannel(channel)) {
             channelTypeIcon = <ArchiveOutlineIcon size={18}/>;
+        } else if (isOfficialTunagChannel(channel)) {
+            channelTypeIcon = <BuildingIcon size={18}/>;
         } else if (isPrivateChannel(channel)) {
             channelTypeIcon = <LockOutlineIcon size={18}/>;
         } else {
