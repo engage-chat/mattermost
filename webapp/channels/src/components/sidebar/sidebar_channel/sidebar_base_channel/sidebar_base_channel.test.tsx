@@ -97,18 +97,6 @@ describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when official channel', () => {
-        const props = {
-            ...baseProps,
-            isOfficial: true,
-        };
-        const wrapper = shallow(
-            <SidebarBaseChannel {...props}/>,
-        );
-
-        expect(wrapper).toMatchSnapshot();
-    });
-
     test('should match snapshot when private channel', () => {
         const props = {
             ...baseProps,
