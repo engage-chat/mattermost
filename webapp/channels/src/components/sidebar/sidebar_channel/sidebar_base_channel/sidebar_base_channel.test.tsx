@@ -70,6 +70,7 @@ describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
             leaveChannel: jest.fn(),
             openModal: jest.fn(),
         },
+        isOfficial: false,
     };
 
     test('should match snapshot', () => {
@@ -94,6 +95,18 @@ describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
         );
 
         expect(container).toMatchSnapshot();
+    });
+
+    test('should match snapshot when official channel', () => {
+        const props = {
+            ...baseProps,
+            isOfficial: true,
+        };
+        const wrapper = shallow(
+            <SidebarBaseChannel {...props}/>,
+        );
+
+        expect(wrapper).toMatchSnapshot();
     });
 
     test('should match snapshot when private channel', () => {
