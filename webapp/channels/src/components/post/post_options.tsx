@@ -143,7 +143,7 @@ const PostOptions = (props: Props): JSX.Element => {
 
     let showRecentReactions: ReactNode;
     if (showRecentlyUsedReactions) {
-        // engage-chat feature: also show 3 reactions when props.location === 'RHS_ROOT'
+        // engage-chat feature: show 3 reactions in the threads(RHS_ROOT, RHS_COMMENT) as in the center
         const showMoreReactions = props.isExpanded ||
             props.location === 'CENTER' ||
             props.location === 'RHS_ROOT' ||
