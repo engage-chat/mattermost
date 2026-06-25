@@ -18,7 +18,7 @@ import SidebarBaseChannelIcon from './sidebar_base_channel_icon';
 
 import type {PropsFromRedux} from './index';
 
-export interface Props extends PropsFromRedux {
+export interface Props extends Omit<PropsFromRedux, 'isOfficial'> {
     channel: Channel;
     currentTeamName: string;
 }
@@ -27,7 +27,7 @@ const SidebarBaseChannel = ({
     channel,
     currentTeamName,
     actions,
-    isOfficial,
+    isOfficial = false,
 }: Props) => {
     const intl = useIntl();
 
