@@ -3,8 +3,12 @@
 
 import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
+
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getUser} from 'mattermost-redux/selectors/entities/users';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
@@ -13,10 +17,14 @@ import SidebarChannelLink from 'components/sidebar/sidebar_channel/sidebar_chann
 import BuildingIcon from 'components/widgets/icons/building_icon';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
+import {isOfficialTunagChannel} from 'utils/official_channel_utils';
+
+import type {GlobalState} from 'types/store';
 
 import SidebarBaseChannelIcon from './sidebar_base_channel_icon';
 
 import type {PropsFromRedux} from './index';
+import { Visibility } from '@tanstack/react-table';
 
 export interface Props extends PropsFromRedux {
     channel: Channel;
@@ -27,7 +35,6 @@ const SidebarBaseChannel = ({
     channel,
     currentTeamName,
     actions,
-    isOfficial,
 }: Props) => {
     const intl = useIntl();
 
@@ -50,13 +57,33 @@ const SidebarBaseChannel = ({
         channelLeaveHandler = handleLeavePrivateChannel;
     }
 
-    const channelIcon = isOfficial ? (
-        <BuildingIcon/>
-    ) : (
-        <SidebarBaseChannelIcon
-            channelType={channel.type}
-        />
-    );
+    const channelIconState = useSelector((state: GlobalState) => {
+        const ch = getChannel(state, channel.id) ?? channel;
+        if (!ch || !ch.creator_id || ch.type === Constants.DM_CHANNEL || ch.type === Constants.GM_CHANNEL) {
+            return 'unofficial';
+        }
+
+        const creator = getUser(state, ch.creator_id);
+        if (!creator || !creator.username) {
+            return 'pending';
+        }
+
+        return isOfficialTunagChannel(ch, state) ? 'official' : 'unofficial';
+    });
+
+    let channelIcon = null;
+    if (channelIconState === 'pending') {
+        const iconClass = channel.type === Constants.OPEN_CHANNEL ? 'icon-globe' : 'icon-lock-outline';
+        channelIcon = <i className={`icon ${iconClass}`} style={{visibility: 'hidden'}}/>;
+    } else if (channelIconState === 'official') {
+        channelIcon = <BuildingIcon/>;
+    } else if (channelIconState === 'unofficial') {
+        channelIcon = (
+            <SidebarBaseChannelIcon
+                channelType={channel.type}
+            />
+        );
+    }
 
     let ariaLabelPrefix;
     if (channel.type === Constants.OPEN_CHANNEL) {
