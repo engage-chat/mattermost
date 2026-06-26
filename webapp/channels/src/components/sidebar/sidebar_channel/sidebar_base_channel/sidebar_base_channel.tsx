@@ -58,7 +58,7 @@ const SidebarBaseChannel = ({
     const isOfficial = useSelector((state: GlobalState) => {
         const ch = getChannel(state, channel.id) ?? channel;
 
-        return isOfficialTunagChannel(ch);
+        return isOfficialTunagChannel(ch, state);
     });
 
     const channelIcon = isOfficial ? (
