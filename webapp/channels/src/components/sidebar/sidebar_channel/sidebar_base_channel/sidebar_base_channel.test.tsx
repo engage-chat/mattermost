@@ -10,6 +10,29 @@ import type {ChannelType} from '@mattermost/types/channels';
 import SidebarBaseChannel from 'components/sidebar/sidebar_channel/sidebar_base_channel/sidebar_base_channel';
 
 import {renderWithContext, userEvent} from 'tests/react_testing_utils';
+import * as officialChannelUtils from 'utils/official_channel_utils';
+
+const mockState = {
+    entities: {
+        channels: {
+            channels: {},
+        },
+    },
+};
+
+jest.mock('react-redux', () => {
+    const original = jest.requireActual('react-redux') as typeof import('react-redux');
+    return {
+        ...original,
+        useSelector: (selector: (state: any) => unknown, equalityFn?: any) => {
+            try {
+                return original.useSelector(selector, equalityFn);
+            } catch {
+                return selector(mockState);
+            }
+        },
+    };
+});
 
 describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
     const baseProps = {
@@ -35,8 +58,11 @@ describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
             leaveChannel: jest.fn(),
             openModal: jest.fn(),
         },
-        isOfficial: false,
     };
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
 
     test('should match snapshot', () => {
         const wrapper = shallow(
@@ -63,12 +89,9 @@ describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
     });
 
     test('should match snapshot when official channel', () => {
-        const props = {
-            ...baseProps,
-            isOfficial: true,
-        };
+        jest.spyOn(officialChannelUtils, 'isOfficialTunagChannel').mockReturnValue(true);
         const wrapper = shallow(
-            <SidebarBaseChannel {...props}/>,
+            <SidebarBaseChannel {...baseProps}/>,
         );
 
         expect(wrapper).toMatchSnapshot();

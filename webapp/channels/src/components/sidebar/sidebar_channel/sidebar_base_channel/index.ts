@@ -8,28 +8,14 @@ import type {Dispatch} from 'redux';
 
 import type {Channel} from '@mattermost/types/channels';
 
-import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-
 import {leaveChannel} from 'actions/views/channel';
 import {openModal} from 'actions/views/modals';
-
-import {isOfficialTunagChannel} from 'utils/official_channel_utils';
-
-import type {GlobalState} from 'types/store';
 
 import SidebarBaseChannel from './sidebar_base_channel';
 
 export type OwnProps = {
     channel: Channel;
     currentTeamName: string;
-}
-
-function mapStateToProps(state: GlobalState, ownProps: OwnProps): {isOfficial?: boolean} {
-    const channel = getChannel(state, ownProps.channel.id) || ownProps.channel;
-
-    return {
-        isOfficial: isOfficialTunagChannel(channel, state),
-    };
 }
 
 function mapDispatchToProps(dispatch: Dispatch) {
@@ -41,7 +27,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
     };
 }
 
-const connector = connect(mapStateToProps, mapDispatchToProps);
+const connector = connect(null, mapDispatchToProps);
 
 export type PropsFromRedux = ConnectedProps<typeof connector>;
 

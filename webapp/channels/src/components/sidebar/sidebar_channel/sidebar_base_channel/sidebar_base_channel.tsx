@@ -1,10 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {useIntl} from 'react-intl';
+import {shallowEqual, useSelector} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
+
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
@@ -13,6 +16,9 @@ import SidebarChannelLink from 'components/sidebar/sidebar_channel/sidebar_chann
 import BuildingIcon from 'components/widgets/icons/building_icon';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
+import {isOfficialTunagChannel} from 'utils/official_channel_utils';
+
+import type {GlobalState} from 'types/store';
 
 import SidebarBaseChannelIcon from './sidebar_base_channel_icon';
 
@@ -27,7 +33,6 @@ const SidebarBaseChannel = ({
     channel,
     currentTeamName,
     actions,
-    isOfficial = false,
 }: Props) => {
     const intl = useIntl();
 
@@ -49,6 +54,12 @@ const SidebarBaseChannel = ({
     } else if (channel.type === Constants.PRIVATE_CHANNEL) {
         channelLeaveHandler = handleLeavePrivateChannel;
     }
+
+    const isOfficial = useSelector((state: GlobalState) => {
+        const ch = getChannel(state, channel.id) ?? channel;
+
+        return isOfficialTunagChannel(ch);
+    });
 
     const channelIcon = isOfficial ? (
         <BuildingIcon/>
