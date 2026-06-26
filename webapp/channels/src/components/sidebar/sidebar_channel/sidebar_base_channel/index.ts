@@ -8,7 +8,7 @@ import type {Dispatch} from 'redux';
 
 import type {Channel} from '@mattermost/types/channels';
 
-import {getChannel} from 'mattermost-redux/selectors/entities/channels'
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 
 import {leaveChannel} from 'actions/views/channel';
 import {openModal} from 'actions/views/modals';
