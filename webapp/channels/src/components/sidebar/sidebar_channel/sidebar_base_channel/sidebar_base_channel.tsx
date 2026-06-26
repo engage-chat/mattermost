@@ -3,7 +3,7 @@
 
 import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
-import {shallowEqual, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
 
