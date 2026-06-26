@@ -6,17 +6,10 @@ import type {ConnectedProps} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import type {Channel} from '@mattermost/types/channels';
-
 import {leaveChannel} from 'actions/views/channel';
 import {openModal} from 'actions/views/modals';
 
 import SidebarBaseChannel from './sidebar_base_channel';
-
-export type OwnProps = {
-    channel: Channel;
-    currentTeamName: string;
-}
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
