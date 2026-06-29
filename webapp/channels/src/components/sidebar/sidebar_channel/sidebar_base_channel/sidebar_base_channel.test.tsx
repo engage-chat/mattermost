@@ -20,6 +20,10 @@ const mockState = {
     },
 };
 
+jest.mock('utils/official_channel_utils', () => ({
+    isOfficialTunagChannel: jest.fn(() => false),
+}));
+
 jest.mock('react-redux', () => {
     const original = jest.requireActual('react-redux') as typeof import('react-redux');
     return {
@@ -60,10 +64,6 @@ describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
         },
     };
 
-    afterEach(() => {
-        jest.restoreAllMocks();
-    });
-
     test('should match snapshot', () => {
         const wrapper = shallow(
             <SidebarBaseChannel {...baseProps}/>,
@@ -89,7 +89,7 @@ describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
     });
 
     test('should match snapshot when official channel', () => {
-        jest.spyOn(officialChannelUtils, 'isOfficialTunagChannel').mockReturnValue(true);
+        jest.spyOn(officialChannelUtils, 'isOfficialTunagChannel').mockReturnValueOnce(true);
         const wrapper = shallow(
             <SidebarBaseChannel {...baseProps}/>,
         );
