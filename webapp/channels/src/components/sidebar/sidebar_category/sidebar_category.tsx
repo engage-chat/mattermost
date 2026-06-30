@@ -45,6 +45,7 @@ type Props = {
     draggingState: DraggingState;
     currentUserId: string;
     isAdmin: boolean;
+    allCreatorsLoaded: boolean; //TODO
     actions: {
         setCategoryCollapsed: (categoryId: string, collapsed: boolean) => void;
         setCategorySorting: (categoryId: string, sorting: CategorySorting) => void;
@@ -240,6 +241,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
             categoryIndex,
             channelIds,
             isNewCategory,
+            allCreatorsLoaded,
         } = this.props;
 
         if (!category) {
@@ -250,7 +252,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
             return null;
         }
 
-        const renderedChannels = channelIds.map(this.renderChannel);
+        const renderedChannels = allCreatorsLoaded ? channelIds.map(this.renderChannel) : [];
 
         let categoryMenu: JSX.Element;
         let newLabel: JSX.Element;

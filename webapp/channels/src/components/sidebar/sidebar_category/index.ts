@@ -16,7 +16,11 @@ import {getDraggingState, makeGetFilteredChannelIdsForCategory} from 'selectors/
 
 import type {GlobalState} from 'types/store';
 
+import { getUser, getUsers } from 'mattermost-redux/selectors/entities/users';
 import SidebarCategory from './sidebar_category';
+import { CategoryTypes } from 'mattermost-redux/constants/channel_categories';
+import { getAllChannels } from 'mattermost-redux/selectors/entities/channels';
+import { createSelector } from 'mattermost-redux/selectors/create_selector';
 
 type OwnProps = {
     category: ChannelCategory;
@@ -25,12 +29,37 @@ type OwnProps = {
 function makeMapStateToProps() {
     const getChannelIdsForCategory = makeGetFilteredChannelIdsForCategory();
 
+    const selectAllCreatorsLoaded = createSelector(
+        'selectAllCreatorsLoaded',
+        (state: GlobalState, ownProps: OwnProps) => getChannelIdsForCategory(state, ownProps.category),
+        getAllChannels,
+        getUsers,
+        (channelIds, allChannels, users) => {
+            for (const channelId of channelIds) {
+                const channel = allChannels[channelId];
+                if (!channel || channel.type === 'D' || channel.type === 'G') {
+                    continue;
+                }
+                if (channel.creator_id) {
+                    const creator = users[channel.creator_id];
+                    if (!creator || !creator.username) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+    );
+
     return (state: GlobalState, ownProps: OwnProps) => {
+        const allCreatorsLoaded = ownProps.category.type === CategoryTypes.DIRECT_MESSAGES ? true : selectAllCreatorsLoaded(state, ownProps);
+
         return {
             channelIds: getChannelIdsForCategory(state, ownProps.category),
             draggingState: getDraggingState(state),
             currentUserId: getCurrentUserId(state),
             isAdmin: isAdmin(getCurrentUser(state).roles),
+            allCreatorsLoaded,
         };
     };
 }
