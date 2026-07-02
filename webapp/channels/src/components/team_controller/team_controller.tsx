@@ -5,6 +5,7 @@ import iNoBounce from 'inobounce';
 import React, {lazy, memo, useEffect, useRef, useState} from 'react';
 import {Route, Switch, useHistory, useParams} from 'react-router-dom';
 
+import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 import type {Team} from '@mattermost/types/teams';
 
@@ -25,7 +26,6 @@ import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {isIosSafari} from 'utils/user_agent';
 
 import type {OwnProps, PropsFromRedux} from './index';
-import type {Channel} from '@mattermost/types/channels';
 
 const BackstageController = makeAsyncComponent('BackstageController', lazy(() => import('components/backstage')));
 const Pluggable = makeAsyncPluggableComponent();
