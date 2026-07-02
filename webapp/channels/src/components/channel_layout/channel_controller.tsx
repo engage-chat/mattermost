@@ -74,7 +74,9 @@ export default function ChannelController(props: Props) {
         <>
             <CRTPostsChannelResetWatcher/>
             <QueryParamActionController/>
-            <Sidebar/>
+            <Sidebar
+                readyToRender={props.shouldRenderCenterChannel}
+            />
             <div
                 id='channel_view'
                 className='channel-view'

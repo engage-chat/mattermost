@@ -89,6 +89,7 @@ type Props = WrappedComponentProps & {
     hasUnreadThreads: boolean;
     currentStaticPageId: string;
     staticPages: StaticPage[];
+    readyToRender?: boolean;
 
     handleOpenMoreDirectChannelsModal: (e: Event) => void;
     onDragStart: (initial: DragStart) => void;
@@ -580,6 +581,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
                         extraClass='nav-pills__unread-indicator-bottom'
                         content={below}
                     />
+                    {this.props.readyToRender &&
                     <div
                         onPointerLeave={this.hideChannelListScrollbar}
                         onPointerOver={this.showChannelListScrollbar}
@@ -597,6 +599,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
                             {channelList}
                         </Scrollbars>
                     </div>
+                    }
                 </div>
             </>
         );

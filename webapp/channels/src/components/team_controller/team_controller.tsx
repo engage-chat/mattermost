@@ -25,6 +25,7 @@ import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {isIosSafari} from 'utils/user_agent';
 
 import type {OwnProps, PropsFromRedux} from './index';
+import type {Channel} from '@mattermost/types/channels';
 
 const BackstageController = makeAsyncComponent('BackstageController', lazy(() => import('components/backstage')));
 const Pluggable = makeAsyncPluggableComponent();
@@ -58,7 +59,17 @@ function TeamController(props: Props) {
         InitialLoadingScreen.stop('team_controller');
         DesktopApp.reactAppInitialized();
         async function fetchAllChannels() {
-            await props.fetchAllMyTeamsChannels();
+            const result = await props.fetchAllMyTeamsChannels();
+            const channels = result.data as Channel[] | undefined;
+            if (channels) {
+                const creatorIds = [...new Set(
+                    channels.map((ch: Channel) => ch.creator_id).filter(Boolean))];
+
+                if (creatorIds.length > 0) {
+                    await props.getMissingProfilesByIds(creatorIds);
+                }
+            }
+
             setInitialChannelsLoaded(true);
         }
 
