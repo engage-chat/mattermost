@@ -57,33 +57,14 @@ const SidebarBaseChannel = ({
         channelLeaveHandler = handleLeavePrivateChannel;
     }
 
-    const channelIconState = useSelector((state: GlobalState) => {
-        const ch = getChannel(state, channel.id) ?? channel;
-        if (!ch || !ch.creator_id || ch.type === Constants.DM_CHANNEL || ch.type === Constants.GM_CHANNEL) {
-            return 'unofficial';
-        }
-
-        const creator = getUser(state, ch.creator_id);
-        if (!creator || !creator.username) {
-            return 'pending';
-        }
-
-        return isOfficialTunagChannel(ch, state) ? 'official' : 'unofficial';
-    });
-
-    let channelIcon = null;
-    if (channelIconState === 'pending') {
-        const iconClass = channel.type === Constants.OPEN_CHANNEL ? 'icon-globe' : 'icon-lock-outline';
-        channelIcon = <i className={`icon ${iconClass}`} style={{visibility: 'hidden'}}/>;
-    } else if (channelIconState === 'official') {
-        channelIcon = <BuildingIcon/>;
-    } else if (channelIconState === 'unofficial') {
-        channelIcon = (
-            <SidebarBaseChannelIcon
-                channelType={channel.type}
-            />
-        );
-    }
+    const isOfficial = isOfficialTunagChannel(channel);
+    const channelIcon = isOfficial ? (
+        <BuildingIcon/>
+    ) : (
+        <SidebarBaseChannelIcon
+            channelType={channel.type}
+        />
+    );
 
     let ariaLabelPrefix;
     if (channel.type === Constants.OPEN_CHANNEL) {
