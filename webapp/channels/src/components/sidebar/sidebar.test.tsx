@@ -79,6 +79,7 @@ describe('components/sidebar', () => {
         isKeyBoardShortcutModalOpen: false,
         userGroupsEnabled: false,
         canCreateCustomGroups: true,
+        readyToRender: true,
         actions: {
             createCategory: jest.fn(),
             fetchMyCategories: jest.fn(),
