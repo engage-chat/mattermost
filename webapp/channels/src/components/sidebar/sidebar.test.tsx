@@ -15,7 +15,6 @@ import {TestHelper} from 'utils/test_helper';
 import type {GlobalState} from 'types/store';
 
 import Sidebar from './sidebar';
-import TestResultsModal from 'components/admin_console/access_control/modals/policy_test/test_modal';
 
 describe('components/sidebar', () => {
     const currentTeam = TestHelper.getTeamMock({
