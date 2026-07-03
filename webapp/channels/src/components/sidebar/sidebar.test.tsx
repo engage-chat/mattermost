@@ -15,6 +15,7 @@ import {TestHelper} from 'utils/test_helper';
 import type {GlobalState} from 'types/store';
 
 import Sidebar from './sidebar';
+import TestResultsModal from 'components/admin_console/access_control/modals/policy_test/test_modal';
 
 describe('components/sidebar', () => {
     const currentTeam = TestHelper.getTeamMock({
@@ -79,6 +80,7 @@ describe('components/sidebar', () => {
         isKeyBoardShortcutModalOpen: false,
         userGroupsEnabled: false,
         canCreateCustomGroups: true,
+        readyToRender: true,
         actions: {
             createCategory: jest.fn(),
             fetchMyCategories: jest.fn(),
