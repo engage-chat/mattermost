@@ -47,6 +47,7 @@ function TeamController(props: Props) {
     const {team: teamNameParam} = useParams<Props['match']['params']>();
 
     const [initialChannelsLoaded, setInitialChannelsLoaded] = useState(false);
+    const [sidebarProfilesLoaded, setSidebarProfilesLoaded] = useState(false);
 
     const [team, setTeam] = useState<Team | null>(getTeamFromTeamList(props.teamsList, teamNameParam));
 
@@ -61,6 +62,11 @@ function TeamController(props: Props) {
         async function fetchAllChannels() {
             const result = await props.fetchAllMyTeamsChannels();
             const channels = result.data as Channel[] | undefined;
+
+            // CenterChannel はチャンネル一覧フェッチ完了で表示解禁
+            setInitialChannelsLoaded(true);
+
+            // Sidebar は creator_id プロフィールフェッチ完了まで待機
             if (channels) {
                 const creatorIds = [...new Set(
                     channels.map((ch: Channel) => ch.creator_id).filter(Boolean))];
@@ -69,8 +75,7 @@ function TeamController(props: Props) {
                     await props.getMissingProfilesByIds(creatorIds);
                 }
             }
-
-            setInitialChannelsLoaded(true);
+            setSidebarProfilesLoaded(true);
         }
 
         props.fetchAllMyChannelMembers();
@@ -246,7 +251,10 @@ function TeamController(props: Props) {
                     )}
                 />
             ))}
-            <ChannelController shouldRenderCenterChannel={initialChannelsLoaded && teamLoaded}/>
+            <ChannelController
+                shouldRenderCenterChannel={initialChannelsLoaded && teamLoaded}
+                sidebarReadyToRender={sidebarProfilesLoaded && teamLoaded}
+            />
         </Switch>
     );
 }
