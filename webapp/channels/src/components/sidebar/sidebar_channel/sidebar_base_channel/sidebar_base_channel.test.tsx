@@ -12,32 +12,6 @@ import SidebarBaseChannel from 'components/sidebar/sidebar_channel/sidebar_base_
 import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 import * as officialChannelUtils from 'utils/official_channel_utils';
 
-const mockState = {
-    entities: {
-        channels: {
-            channels: {},
-        },
-    },
-};
-
-jest.mock('utils/official_channel_utils', () => ({
-    isOfficialTunagChannel: jest.fn(() => false),
-}));
-
-jest.mock('react-redux', () => {
-    const original = jest.requireActual('react-redux') as typeof import('react-redux');
-    return {
-        ...original,
-        useSelector: (selector: (state: any) => unknown, equalityFn?: any) => {
-            try {
-                return original.useSelector(selector, equalityFn);
-            } catch {
-                return selector(mockState);
-            }
-        },
-    };
-});
-
 describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
     const baseProps = {
         channel: {
