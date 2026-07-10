@@ -162,6 +162,10 @@ export class SidebarList extends React.PureComponent<Props, State> {
             return;
         }
 
+        if (!this.scrollbar.current) {
+            return;
+        }
+
         // reset the scrollbar upon switching teams
         if (this.props.currentTeam !== prevProps.currentTeam) {
             this.scrollbar.current!.scrollToTop();

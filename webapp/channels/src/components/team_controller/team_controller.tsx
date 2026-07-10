@@ -251,7 +251,7 @@ function TeamController(props: Props) {
             ))}
             <ChannelController
                 shouldRenderCenterChannel={initialChannelsLoaded && teamLoaded}
-                shouldRenderSidebarChannels={sidebarProfilesLoaded && teamLoaded}
+                shouldRenderSidebarChannels={sidebarProfilesLoaded}
             />
         </Switch>
     );
