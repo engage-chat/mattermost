@@ -51,7 +51,7 @@ type Props = {
     canCreateCustomGroups: boolean;
     rhsState?: RhsState;
     rhsOpen?: boolean;
-    readyToRender?: boolean;
+    shouldRender: boolean;
 };
 
 type State = {
@@ -270,7 +270,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
                     handleOpenMoreDirectChannelsModal={this.handleOpenMoreDirectChannelsModal}
                     onDragStart={this.onDragStart}
                     onDragEnd={this.onDragEnd}
-                    readyToRender={this.props.readyToRender}
+                    shouldRender={this.props.shouldRender}
                 />
                 <DataPrefetch/>
                 {this.renderModals()}

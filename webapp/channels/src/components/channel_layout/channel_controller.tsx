@@ -31,7 +31,7 @@ const BODY_CLASS_FOR_CHANNEL = ['app__body', 'channel-view'];
 
 type Props = {
     shouldRenderCenterChannel: boolean;
-    sidebarReadyToRender: boolean;
+    shouldRenderSidebarChannels: boolean;
 }
 
 export default function ChannelController(props: Props) {
@@ -76,7 +76,7 @@ export default function ChannelController(props: Props) {
             <CRTPostsChannelResetWatcher/>
             <QueryParamActionController/>
             <Sidebar
-                readyToRender={props.sidebarReadyToRender}
+                shouldRender={props.shouldRenderSidebarChannels}
             />
             <div
                 id='channel_view'

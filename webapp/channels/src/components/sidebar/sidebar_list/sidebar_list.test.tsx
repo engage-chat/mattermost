@@ -101,7 +101,7 @@ describe('SidebarList', () => {
         hasUnreadThreads: false,
         currentStaticPageId: '',
         staticPages: [],
-        readyToRender: true,
+        shouldRender: true,
         actions: {
             switchToChannelById: jest.fn(),
             switchToLhsStaticPage: jest.fn(),
