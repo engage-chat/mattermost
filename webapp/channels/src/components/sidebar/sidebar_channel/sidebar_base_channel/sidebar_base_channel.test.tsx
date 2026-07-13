@@ -4,15 +4,26 @@
 import {screen, waitFor} from '@testing-library/react';
 import {shallow} from 'enzyme';
 import React from 'react';
+import * as reactRedux from 'react-redux';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
 import SidebarBaseChannel from 'components/sidebar/sidebar_channel/sidebar_base_channel/sidebar_base_channel';
 
 import {renderWithContext, userEvent} from 'tests/react_testing_utils';
-import * as officialChannelUtils from 'utils/official_channel_utils';
 
 describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
+    let useSelectorMock: jest.SpyInstance;
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        useSelectorMock = jest.spyOn(reactRedux, 'useSelector').mockReturnValue(false);
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     const baseProps = {
         channel: {
             id: 'channel_id',
@@ -63,7 +74,7 @@ describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
     });
 
     test('should match snapshot when official channel', () => {
-        jest.spyOn(officialChannelUtils, 'isOfficialTunagChannel').mockReturnValueOnce(true);
+        useSelectorMock.mockReturnValue(true);
         const wrapper = shallow(
             <SidebarBaseChannel {...baseProps}/>,
         );
