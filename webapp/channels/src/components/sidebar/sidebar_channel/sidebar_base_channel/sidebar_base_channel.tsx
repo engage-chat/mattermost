@@ -8,7 +8,6 @@ import {useSelector} from 'react-redux';
 import type {Channel} from '@mattermost/types/channels';
 
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getUser} from 'mattermost-redux/selectors/entities/users';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
