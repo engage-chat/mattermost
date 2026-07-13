@@ -133,16 +133,7 @@ const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>((props, r
 
     const currentUserId = useSelector(getCurrentUserId);
 
-    const isOfficial = useSelector((state: GlobalState) => {
-        if (!isRealChannel(channel) || !channel.creator_id) {
-            return false;
-        }
-        const creator = getUser(state, channel.creator_id);
-        if (!creator || !creator.username) {
-            return false;
-        }
-        return isOfficialTunagChannel(channel);
-    });
+    const isOfficial = useSelector((state: GlobalState) => isRealChannel(channel) && isOfficialTunagChannel(channel, state));
 
     const member = props.channelMember;
     const teammate = props.dmChannelTeammate;

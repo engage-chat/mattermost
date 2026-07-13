@@ -58,14 +58,7 @@ const SidebarBaseChannel = ({
 
     const isOfficial = useSelector((state: GlobalState) => {
         const ch = getChannel(state, channel.id) ?? channel;
-        if (!ch || !ch.creator_id || ch.type === Constants.DM_CHANNEL || ch.type === Constants.GM_CHANNEL) {
-            return false;
-        }
-        const creator = getUser(state, ch.creator_id);
-        if (!creator || !creator.username) {
-            return false;
-        }
-        return isOfficialTunagChannel(ch);
+        return isOfficialTunagChannel(ch, state);
     });
 
     const channelIcon = isOfficial ? (
