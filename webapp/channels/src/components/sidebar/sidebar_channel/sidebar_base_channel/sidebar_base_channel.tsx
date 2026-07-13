@@ -65,7 +65,7 @@ const SidebarBaseChannel = ({
         if (!creator || !creator.username) {
             return false;
         }
-        return isOfficialTunagChannel(channel);
+        return isOfficialTunagChannel(ch);
     });
 
     const channelIcon = isOfficial ? (
