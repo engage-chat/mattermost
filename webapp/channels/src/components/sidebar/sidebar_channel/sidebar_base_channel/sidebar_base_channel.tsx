@@ -21,7 +21,6 @@ import type {GlobalState} from 'types/store';
 import SidebarBaseChannelIcon from './sidebar_base_channel_icon';
 
 import type {PropsFromRedux} from './index';
-import { constants } from 'buffer';
 
 export interface Props extends PropsFromRedux {
     channel: Channel;
