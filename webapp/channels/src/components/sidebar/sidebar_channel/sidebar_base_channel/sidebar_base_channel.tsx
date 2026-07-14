@@ -7,8 +7,6 @@ import {useSelector} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
 
-import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-
 import {trackEvent} from 'actions/telemetry_actions';
 
 import LeaveChannelModal from 'components/leave_channel_modal';
@@ -55,10 +53,7 @@ const SidebarBaseChannel = ({
         channelLeaveHandler = handleLeavePrivateChannel;
     }
 
-    const isOfficial = useSelector((state: GlobalState) => {
-        const ch = getChannel(state, channel.id) ?? channel;
-        return isOfficialTunagChannel(ch, state);
-    });
+    const isOfficial = useSelector((state: GlobalState) => isOfficialTunagChannel(channel, state));
 
     const channelIcon = isOfficial ? (
         <BuildingIcon/>
