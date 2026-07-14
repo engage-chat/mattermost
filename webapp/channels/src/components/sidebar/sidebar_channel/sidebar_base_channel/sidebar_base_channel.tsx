@@ -21,6 +21,7 @@ import type {GlobalState} from 'types/store';
 import SidebarBaseChannelIcon from './sidebar_base_channel_icon';
 
 import type {PropsFromRedux} from './index';
+import { constants } from 'buffer';
 
 export interface Props extends PropsFromRedux {
     channel: Channel;
@@ -53,7 +54,12 @@ const SidebarBaseChannel = ({
         channelLeaveHandler = handleLeavePrivateChannel;
     }
 
-    const isOfficial = useSelector((state: GlobalState) => isOfficialTunagChannel(channel, state));
+    const isOfficial = useSelector((state: GlobalState) => {
+        if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) {
+            return false;
+        }
+        return isOfficialTunagChannel(channel, state);
+    });
 
     const channelIcon = isOfficial ? (
         <BuildingIcon/>
