@@ -5,6 +5,7 @@ import iNoBounce from 'inobounce';
 import React, {lazy, memo, useEffect, useRef, useState} from 'react';
 import {Route, Switch, useHistory, useParams} from 'react-router-dom';
 
+import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 import type {Team} from '@mattermost/types/teams';
 
@@ -46,6 +47,7 @@ function TeamController(props: Props) {
     const {team: teamNameParam} = useParams<Props['match']['params']>();
 
     const [initialChannelsLoaded, setInitialChannelsLoaded] = useState(false);
+    const [sidebarProfilesLoaded, setSidebarProfilesLoaded] = useState(false);
 
     const [team, setTeam] = useState<Team | null>(getTeamFromTeamList(props.teamsList, teamNameParam));
 
@@ -58,8 +60,20 @@ function TeamController(props: Props) {
         InitialLoadingScreen.stop('team_controller');
         DesktopApp.reactAppInitialized();
         async function fetchAllChannels() {
-            await props.fetchAllMyTeamsChannels();
+            const result = await props.fetchAllMyTeamsChannels();
+            const channels = result.data as Channel[] | undefined;
+
             setInitialChannelsLoaded(true);
+
+            if (channels) {
+                const creatorIds = [...new Set(
+                    channels.map((ch: Channel) => ch.creator_id).filter(Boolean))];
+
+                if (creatorIds.length > 0) {
+                    await props.getMissingProfilesByIds(creatorIds);
+                }
+            }
+            setSidebarProfilesLoaded(true);
         }
 
         props.fetchAllMyChannelMembers();
@@ -235,7 +249,10 @@ function TeamController(props: Props) {
                     )}
                 />
             ))}
-            <ChannelController shouldRenderCenterChannel={initialChannelsLoaded && teamLoaded}/>
+            <ChannelController
+                shouldRenderCenterChannel={initialChannelsLoaded && teamLoaded}
+                shouldRenderSidebarChannels={sidebarProfilesLoaded}
+            />
         </Switch>
     );
 }
