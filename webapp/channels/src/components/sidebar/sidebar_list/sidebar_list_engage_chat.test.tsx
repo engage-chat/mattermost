@@ -9,12 +9,58 @@ import type {TeamType} from '@mattermost/types/teams';
 
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
-import SidebarList, {type SidebarList as SidebarListComponent} from './sidebar_list';
+import {SidebarList as SidebarListComponent} from './sidebar_list';
+
+jest.mock('components/async_load', () => ({
+    makeAsyncComponent: (displayName: string) => {
+        const Component = (props: {children?: React.ReactNode}) => (
+            <div data-testid={displayName}>{props.children}</div>
+        );
+        Component.displayName = displayName;
+        return Component;
+    },
+}));
+
+jest.mock('components/common/scrollbars', () => {
+    const React = require('react');
+
+    return React.forwardRef(({children, onScroll}: {children?: React.ReactNode; onScroll?: () => void}, ref: any) => {
+        const setRef = (node: HTMLDivElement | null) => {
+            if (!node) {
+                return;
+            }
+            if (!node.scrollTo) {
+                node.scrollTo = jest.fn();
+            }
+            if (typeof ref === 'function') {
+                ref(node);
+            } else if (ref) {
+                ref.current = node;
+            }
+        };
+
+        return (
+            <div
+                data-testid='scrollbars'
+                ref={setRef}
+                onScroll={onScroll}
+            >
+                {children}
+            </div>
+        );
+    });
+});
+
+jest.mock('components/sidebar/sidebar_category', () => () => <div data-testid='sidebar-category'/>);
 
 describe('SidebarList - when component is not rendered', () => {
+    const intl = {
+        formatMessage: ({defaultMessage}: {defaultMessage: string}) => defaultMessage,
+    } as any;
+
     const currentChannel = TestHelper.getChannelMock({
         id: 'channel_id',
         display_name: 'channel_display_name',
@@ -60,12 +106,12 @@ describe('SidebarList - when component is not rendered', () => {
                 type: CategoryTypes.CUSTOM,
                 display_name: 'custom_category_1',
                 sorting: CategorySorting.Alphabetical,
-                channel_ids: ['channel_id'],
+                channel_ids: ['channel_id', 'channel_id_2'],
                 muted: false,
                 collapsed: false,
             },
         ],
-        unreadChannelIds: [],
+        unreadChannelIds: ['channel_id_2'],
         displayedChannels: [currentChannel],
         newCategoryIds: [],
         multiSelectedChannelIds: [],
@@ -95,10 +141,15 @@ describe('SidebarList - when component is not rendered', () => {
     };
 
     test('should not throw error on team change in componentDidUpdate when scrollbar is null', () => {
-        const wrapper = shallowWithIntl(
-            <SidebarList {...baseProps}/>,
-        );
-        const instance = wrapper.instance() as SidebarListComponent;
+        const sidebarListRef = React.createRef<SidebarListComponent>();
+        const component = renderWithContext(
+            <SidebarListComponent
+                {...baseProps}
+                intl={intl}
+                ref={sidebarListRef}
+            />);
+
+        const instance = sidebarListRef.current!;
         instance.scrollbar = {current: null};
 
         const newCurrentTeam = {
@@ -107,15 +158,28 @@ describe('SidebarList - when component is not rendered', () => {
         };
 
         expect(() => {
-            wrapper.setProps({currentTeam: newCurrentTeam});
+            component.rerender(
+                <SidebarListComponent
+                    {...baseProps}
+                    intl={intl}
+                    ref={sidebarListRef}
+                    currentTeam={newCurrentTeam}
+                />,
+            );
         }).not.toThrow();
     });
 
     test('should not throw error on scroll animation update when scrollbar is null', () => {
-        const wrapper = shallowWithIntl(
-            <SidebarList {...baseProps}/>,
+        const sidebarListRef = React.createRef<SidebarListComponent>();
+        renderWithContext(
+            <SidebarListComponent
+                {...baseProps}
+                intl={intl}
+                ref={sidebarListRef}
+            />,
         );
-        const instance = wrapper.instance() as SidebarListComponent;
+
+        const instance = sidebarListRef.current!;
         instance.scrollbar = {current: null};
 
         const mockSpring = {
@@ -128,10 +192,16 @@ describe('SidebarList - when component is not rendered', () => {
     });
 
     test('should not throw error on scrolling to first unread channel when scrollbar is null', () => {
-        const wrapper = shallowWithIntl(
-            <SidebarList {...baseProps}/>,
+        const sidebarListRef = React.createRef<SidebarListComponent>();
+        renderWithContext(
+            <SidebarListComponent
+                {...baseProps}
+                intl={intl}
+                ref={sidebarListRef}
+            />,
         );
-        const instance = wrapper.instance() as SidebarListComponent;
+
+        const instance = sidebarListRef.current!;
         instance.scrollbar = {current: null};
 
         expect(() => {
@@ -140,10 +210,16 @@ describe('SidebarList - when component is not rendered', () => {
     });
 
     test('should not throw error on scrolling to position when scrollbar is null', () => {
-        const wrapper = shallowWithIntl(
-            <SidebarList {...baseProps}/>,
+        const sidebarListRef = React.createRef<SidebarListComponent>();
+        renderWithContext(
+            <SidebarListComponent
+                {...baseProps}
+                intl={intl}
+                ref={sidebarListRef}
+            />,
         );
-        const instance = wrapper.instance() as SidebarListComponent;
+
+        const instance = sidebarListRef.current!;
         instance.scrollbar = {current: null};
 
         expect(() => {
@@ -152,10 +228,16 @@ describe('SidebarList - when component is not rendered', () => {
     });
 
     test('should not throw error on updating unread indicators when scrollbar is null', () => {
-        const wrapper = shallowWithIntl(
-            <SidebarList {...baseProps}/>,
+        const sidebarListRef = React.createRef<SidebarListComponent>();
+        renderWithContext(
+            <SidebarListComponent
+                {...baseProps}
+                intl={intl}
+                ref={sidebarListRef}
+            />,
         );
-        const instance = wrapper.instance() as SidebarListComponent;
+
+        const instance = sidebarListRef.current!;
         instance.scrollbar = {current: null};
 
         expect(() => {
@@ -164,19 +246,25 @@ describe('SidebarList - when component is not rendered', () => {
     });
 
     test('should render Scrollbars by default (when shouldRender is not provided)', () => {
-        const wrapper = shallowWithIntl(
-            <SidebarList {...baseProps}/>,
+        renderWithContext(
+            <SidebarListComponent
+                {...baseProps}
+                intl={intl}
+            />,
         );
-        expect(wrapper.find('Scrollbars').exists()).toBe(true);
+
+        expect(screen.getByTestId('scrollbars')).toBeInTheDocument();
     });
 
     test('should not render Scrollbars when shouldRender is false', () => {
-        const wrapper = shallowWithIntl(
-            <SidebarList
+        renderWithContext(
+            <SidebarListComponent
                 {...baseProps}
+                intl={intl}
                 shouldRender={false}
             />,
         );
-        expect(wrapper.find('Scrollbars').exists()).toBe(false);
+
+        expect(screen.queryByTestId('scrollbars')).not.toBeInTheDocument();
     });
 });
