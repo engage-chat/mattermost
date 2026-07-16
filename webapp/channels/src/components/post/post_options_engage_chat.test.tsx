@@ -9,7 +9,6 @@ import {TestHelper} from 'utils/test_helper';
 
 import PostOptions from './post_options';
 
-// 子コンポーネントをモック化
 jest.mock('components/post_view/post_recent_reactions', () => {
     return jest.fn(({size}) => (
         <div
@@ -72,4 +71,3 @@ describe('PostOptions', () => {
         });
     });
 });
-
