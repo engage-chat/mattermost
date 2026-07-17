@@ -11,7 +11,7 @@ import (
 
 const (
 	maxUsersLimit     = 200
-	maxUsersHardLimit = 250
+	maxUsersHardLimit = 100_000
 )
 
 func (a *App) GetServerLimits() (*model.ServerLimits, *model.AppError) {

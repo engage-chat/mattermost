@@ -29,7 +29,7 @@ func TestGetServerLimits(t *testing.T) {
 		// InitBasic creates 3 users by default
 		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
 		require.Equal(t, int64(200), serverLimits.MaxUsersLimit)
-		require.Equal(t, int64(250), serverLimits.MaxUsersHardLimit)
+		require.Equal(t, int64(100000), serverLimits.MaxUsersHardLimit)
 	})
 
 	t.Run("user count should increase on creating new user and decrease on permanently deleting", func(t *testing.T) {
@@ -279,7 +279,7 @@ func TestIsAtUserLimit(t *testing.T) {
 			th.App.Srv().SetLicense(nil)
 
 			mockUserStore := storemocks.UserStore{}
-			mockUserStore.On("Count", mock.Anything).Return(int64(200), nil) // Under hard limit of 250
+			mockUserStore.On("Count", mock.Anything).Return(int64(200), nil) // Under hard limit of 100000
 			mockStore := th.App.Srv().Store().(*storemocks.Store)
 			mockStore.On("User").Return(&mockUserStore)
 
@@ -295,7 +295,7 @@ func TestIsAtUserLimit(t *testing.T) {
 			th.App.Srv().SetLicense(nil)
 
 			mockUserStore := storemocks.UserStore{}
-			mockUserStore.On("Count", mock.Anything).Return(int64(250), nil) // At hard limit of 250
+			mockUserStore.On("Count", mock.Anything).Return(int64(100000), nil) // At hard limit of 100000
 			mockStore := th.App.Srv().Store().(*storemocks.Store)
 			mockStore.On("User").Return(&mockUserStore)
 
@@ -311,7 +311,7 @@ func TestIsAtUserLimit(t *testing.T) {
 			th.App.Srv().SetLicense(nil)
 
 			mockUserStore := storemocks.UserStore{}
-			mockUserStore.On("Count", mock.Anything).Return(int64(300), nil) // Over hard limit of 250
+			mockUserStore.On("Count", mock.Anything).Return(int64(100001), nil) // Over hard limit of 100000
 			mockStore := th.App.Srv().Store().(*storemocks.Store)
 			mockStore.On("User").Return(&mockUserStore)
 
@@ -548,7 +548,7 @@ func TestExtraUsersBehavior(t *testing.T) {
 
 		// Unlicensed servers use hard-coded limits without extra users
 		require.Equal(t, int64(200), serverLimits.MaxUsersLimit)
-		require.Equal(t, int64(250), serverLimits.MaxUsersHardLimit)
+		require.Equal(t, int64(100000), serverLimits.MaxUsersHardLimit)
 	})
 }
 
