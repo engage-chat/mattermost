@@ -162,6 +162,8 @@ type Routes struct {
 	AccessControlPolicy   *mux.Router // 'api/v4/access_control_policies/{policy_id:[A-Za-z0-9]+}'
 
 	ContentFlagging *mux.Router // 'api/v4/content_flagging'
+	EngageChat        *mux.Router // 'api/v4/engage_chat'
+	EngageChatChannel *mux.Router // 'api/v4/engage_chat/channels/{channel_id:[A-Za-z0-9]+}'
 }
 
 type API struct {
@@ -310,6 +312,8 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.AccessControlPolicy = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies/{policy_id:[A-Za-z0-9]+}").Subrouter()
 
 	api.BaseRoutes.ContentFlagging = api.BaseRoutes.APIRoot.PathPrefix("/content_flagging").Subrouter()
+	api.BaseRoutes.EngageChat = api.BaseRoutes.APIRoot.PathPrefix("/engage_chat").Subrouter()
+	api.BaseRoutes.EngageChatChannel = api.BaseRoutes.EngageChat.PathPrefix("/channels/{channel_id:[A-Za-z0-9]+}").Subrouter()
 
 	api.InitUser()
 	api.InitBot()
@@ -364,6 +368,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitAuditLogging()
 	api.InitAccessControlPolicy()
 	api.InitContentFlagging()
+	api.InitEngageChat()
 
 	// If we allow testing then listen for manual testing URL hits
 	if *srv.Config().ServiceSettings.EnableTesting {
