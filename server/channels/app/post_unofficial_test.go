@@ -87,7 +87,7 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 		ChannelId: dmChannel.Id,
 		Message:   "original message",
 	}
-	createdPostInDM, _, appErr := th.App.CreatePostAsUser(ctxWithSession, post, session.Id, true)
+	createdPostInDM, appErr := th.App.CreatePostAsUser(ctxWithSession, post, session.Id, true)
 	require.Nil(t, appErr)
 	require.NotNil(t, createdPostInDM)
 
@@ -105,7 +105,7 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 			Message:   "test message",
 		}
 
-		_, _, err := th.App.CreatePostAsUser(ctxWithSession, post, session.Id, true)
+		_, err := th.App.CreatePostAsUser(ctxWithSession, post, session.Id, true)
 		require.NotNil(t, err)
 		require.Equal(t, http.StatusForbidden, err.StatusCode)
 	})
@@ -117,7 +117,7 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 			Message:   "test message",
 		}
 
-		_, _, err := th.App.CreatePostAsUser(ctxWithSession, post, session.Id, true)
+		_, err := th.App.CreatePostAsUser(ctxWithSession, post, session.Id, true)
 		require.NotNil(t, err)
 		require.Equal(t, http.StatusForbidden, err.StatusCode)
 	})
@@ -126,7 +126,7 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 		updatedPost := createdPostInDM.Clone()
 		updatedPost.Message = "updated message"
 
-		_, _, err := th.App.UpdatePost(ctxWithSession, updatedPost, nil)
+		_, err := th.App.UpdatePost(ctxWithSession, updatedPost, nil)
 		require.NotNil(t, err)
 		require.Equal(t, http.StatusForbidden, err.StatusCode)
 	})
@@ -137,7 +137,7 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 			Message: &patchedMessage,
 		}
 
-		_, _, err := th.App.PatchPost(ctxWithSession, createdPostInDM.Id, patch, nil)
+		_, err := th.App.PatchPost(ctxWithSession, createdPostInDM.Id, patch, nil)
 		require.NotNil(t, err)
 		require.Equal(t, http.StatusForbidden, err.StatusCode)
 	})
@@ -165,7 +165,7 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 		require.Nil(t, err)
 
 		botctxWithSession := th.Context.WithSession(botSession)
-		createdPostByBot, _, err := th.App.CreatePostAsUser(botctxWithSession, post, botSession.Id, true)
+		createdPostByBot, err := th.App.CreatePostAsUser(botctxWithSession, post, botSession.Id, true)
 		require.Nil(t, err)
 		require.NotNil(t, createdPostByBot)
 	})
@@ -178,7 +178,7 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 		}
 
 		adminctxWithSession := th.Context.WithSession(adminSession)
-		createdPostByAdmin, _, err := th.App.CreatePostAsUser(adminctxWithSession, post, adminSession.Id, true)
+		createdPostByAdmin, err := th.App.CreatePostAsUser(adminctxWithSession, post, adminSession.Id, true)
 		require.Nil(t, err)
 		require.NotNil(t, createdPostByAdmin)
 	})
@@ -194,7 +194,7 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 		}
 
 		adminctxWithSession := th.Context.WithSession(adminSession)
-		createdPostByAdmin, _, err := th.App.CreatePostAsUser(adminctxWithSession, post, adminSession.Id, true)
+		createdPostByAdmin, err := th.App.CreatePostAsUser(adminctxWithSession, post, adminSession.Id, true)
 		require.Nil(t, err)
 		require.NotNil(t, createdPostByAdmin)
 	})
