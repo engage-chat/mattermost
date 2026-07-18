@@ -284,6 +284,17 @@ func updateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.AddEventPriorState(channel)
 
+	// engage-chat feature:
+	isOfficial, appErr := c.App.IsOfficialChannel(c.AppContext, channel)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	if isOfficial {
+		c.Err = model.NewAppError("updateChannelPrivacy", "api.channel.official_channel.forbidden", nil, "", http.StatusForbidden)
+		return
+	}
+
 	if model.ChannelType(privacy) == model.ChannelTypeOpen && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionConvertPrivateChannelToPublic) {
 		c.SetPermissionError(model.PermissionConvertPrivateChannelToPublic)
 		return
