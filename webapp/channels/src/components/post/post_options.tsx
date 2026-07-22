@@ -143,9 +143,8 @@ const PostOptions = (props: Props): JSX.Element => {
 
     let showRecentReactions: ReactNode;
     if (showRecentlyUsedReactions) {
-        // engage-chat feature: show 3 reactions in the threads(RHS_ROOT, RHS_COMMENT) as in the center
         const showMoreReactions = props.isExpanded ||
-            props.location === 'CENTER' ||
+            props.location === Locations.CENTER ||
             props.location === Locations.RHS_ROOT ||
             props.location === Locations.RHS_COMMENT ||
             (document.getElementById('sidebar-right')?.getBoundingClientRect().width ?? 0) > Constants.SIDEBAR_MINIMUM_WIDTH;
