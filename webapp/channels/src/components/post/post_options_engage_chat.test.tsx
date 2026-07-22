@@ -33,7 +33,7 @@ describe('PostOptions', () => {
         channelIsShared: false,
         oneClickReactionsEnabled: true,
         recentEmojis: [],
-        hover: true, // directlry enable hover
+        hover: true, // directly enable hover
         isMobileView: false,
         location: Locations.CENTER,
         pluginActions: [],
