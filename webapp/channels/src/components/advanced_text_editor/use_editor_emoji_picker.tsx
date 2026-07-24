@@ -9,14 +9,12 @@ import {useSelector} from 'react-redux';
 
 import {EmoticonHappyOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Emoji, SystemEmoji} from '@mattermost/types/emojis';
-import type {UserProfile} from '@mattermost/types/users';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getEmojiName, isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
 
 import useEmojiPicker, {useEmojiPickerOffset} from 'components/emoji_picker/use_emoji_picker';
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import {generateDisplayValueFromRawValue, convertDisplayPositionToRawPosition} from 'components/textbox/util';
 import WithTooltip from 'components/with_tooltip';
 
 import {unifiedToUnicode} from 'utils/emoji_utils';
