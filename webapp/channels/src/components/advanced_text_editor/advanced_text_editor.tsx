@@ -349,9 +349,6 @@ const AdvancedTextEditor = ({
         textboxId,
         isDisabled,
         showPreview,
-        focusTextbox,
-        usersByUsername,
-        teammateNameDisplay,
     );
     const {
         labels: priorityLabels,
