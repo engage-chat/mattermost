@@ -64,7 +64,7 @@ func (a *App) CreatePostAsUser(rctx request.CTX, post *model.Post, currentSessio
 		return nil, false, model.NewAppError("createPost", "api.post.create_post.can_not_post_in_restricted_dm.error", nil, "", http.StatusBadRequest)
 	}
 
-	if permErr := a.CheckChannelPermissions(c, channel, post.UserId); permErr != nil {
+	if permErr := a.CheckChannelPermissions(rctx, channel, post.UserId); permErr != nil {
 		return nil, false, permErr
 	}
 
@@ -850,8 +850,9 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 	if restrictDM {
 		err := model.NewAppError("UpdatePost", "api.post.update_post.can_not_update_post_in_restricted_dm.error", nil, "", http.StatusBadRequest)
 		return nil, false, err
+	}
 
-	if permErr := a.CheckChannelPermissions(c, channel, oldPost.UserId); permErr != nil {
+	if permErr := a.CheckChannelPermissions(rctx, channel, oldPost.UserId); permErr != nil {
 		return nil, false, permErr
 	}
 
@@ -1219,7 +1220,7 @@ func (a *App) PatchPost(rctx request.CTX, postID string, patch *model.PostPatch,
 		return nil, false, model.NewAppError("PatchPost", "api.post.patch_post.can_not_update_post_in_restricted_dm.error", nil, "", http.StatusBadRequest)
 	}
 
-	if permErr := a.CheckChannelPermissions(c, channel, post.UserId); permErr != nil {
+	if permErr := a.CheckChannelPermissions(rctx, channel, post.UserId); permErr != nil {
 		return nil, false, permErr
 	}
 
