@@ -58,6 +58,11 @@ func (a *App) IsChannelAccessible(c request.CTX, channelID string) (bool, *model
 	case model.ChannelTypeGroup:
 		hasPermission = a.SessionHasPermissionTo(*session, model.PermissionCreateGroupChannel)
 	default:
+		// Read-only Town Square: only bots and system admins (already returned true above)
+		// may post to the default channel. Everyone else is denied.
+		if model.IsTownSquareReadOnlyEnabled() && channel.Name == model.DefaultChannelName {
+			return false, nil
+		}
 		// Open and Private channels are always accessible.
 		return true, nil
 	}

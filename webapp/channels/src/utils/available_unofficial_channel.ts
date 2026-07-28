@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Permissions} from 'mattermost-redux/constants';
+import {General, Permissions} from 'mattermost-redux/constants';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {haveIChannelPermission, haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
 
@@ -42,10 +42,16 @@ export const isAvailableUnofficialChannel = (channelId: string): boolean => {
             permission = Permissions.CREATE_GROUP_CHANNEL;
             break;
         default:
+            // Read-only Town Square: always consult the server accessibility check for the
+            // default channel; the server decides based on ENGAGECHAT_TOWNSQUARE_READONLY.
+            // Every other open/private channel remains immediately accessible.
+            if (channel.name === General.DEFAULT_CHANNEL) {
+                break;
+            }
             return true;
         }
 
-        if (haveIChannelPermission(state, channel.team_id, channel.id, permission)) {
+        if (permission && haveIChannelPermission(state, channel.team_id, channel.id, permission)) {
             return true;
         }
     }

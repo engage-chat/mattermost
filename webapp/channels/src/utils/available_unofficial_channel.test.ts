@@ -158,6 +158,23 @@ describe('available_unofficial_channel utils', () => {
                 });
             });
 
+            describe('read-only Town Square', () => {
+                test('routes the default channel through the API (server decides accessibility)', () => {
+                    mockChannel = {id: 'channel_id', team_id: 'team_id', type: 'O', name: 'town-square'};
+
+                    expect(isAvailableUnofficialChannel('channel_id')).toBe(false);
+                    expect(mockDispatch).toHaveBeenCalledTimes(1);
+                    expect(mockHaveIChannelPermission).not.toHaveBeenCalled();
+                });
+
+                test('returns true immediately for a non-default open channel', () => {
+                    mockChannel = {id: 'channel_id', team_id: 'team_id', type: 'O', name: 'some-other-channel'};
+
+                    expect(isAvailableUnofficialChannel('channel_id')).toBe(true);
+                    expect(mockDispatch).not.toHaveBeenCalled();
+                });
+            });
+
             describe('when local permission check fails — falls back to API', () => {
                 test('dispatches an API fetch and returns false while waiting', () => {
                     mockChannel.type = 'D';
