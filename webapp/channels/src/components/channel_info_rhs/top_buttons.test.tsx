@@ -214,7 +214,7 @@ describe('channel_info_rhs/top_buttons', () => {
         expect(screen.getByText('Add People')).toBeInTheDocument();
     });
 
-    test('can copy link', () => {
+    test('can copy link', async () => {
         renderWithContext(
             <TopButtons
                 {...topButtonDefaultProps}
