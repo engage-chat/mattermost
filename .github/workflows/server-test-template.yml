@@ -52,7 +52,7 @@ on:
         default: 1
 
 permissions:
-  id-token: write
+  # id-token: write
   contents: read
   actions: read    # for load-buildenv artifact listing
 

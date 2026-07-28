@@ -33,7 +33,7 @@ jobs:
       contents: read
       pull-requests: read
       actions: write
-      id-token: write  # for chainguard (FIPS base image pull)
+      # id-token: write  # for chainguard (FIPS base image pull)
     outputs:
       version: ${{ steps.calculate.outputs.GO_VERSION }}
       gomod-changed: ${{ steps.changed-files.outputs.any_changed }}
