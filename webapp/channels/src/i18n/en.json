@@ -3927,7 +3927,6 @@
   "create_post_button.option.schedule_message.options.teammate_user_hour": "{time} {user}’s time",
   "create_post_button.option.schedule_message.options.tomorrow": "Tomorrow at {9amTime}",
   "create_post_button.option.send_now": "Send Now",
-  "create_post.default_channel_read_only": "This is the default channel and cannot be used.",
   "create_post.dm_or_gm_remote": "Direct Messages and Group Messages with remote users are not supported.",
   "create_post.error_message": "Your message is too long. Character count: {length}/{limit}",
   "create_post.file_limit_sticky_banner.admin_message": "New uploads will automatically archive older files. To view them again, you can delete older files or <a>upgrade to a paid plan.</a>",
