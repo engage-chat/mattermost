@@ -165,6 +165,7 @@ const AdvancedTextEditor = ({
     const channel = useSelector((state: GlobalState) => getChannelSelector(state, channelId));
     const channelDisplayName = channel?.display_name || '';
     const channelType = channel?.type || '';
+    const isDefaultChannel = channel?.name === Constants.DEFAULT_CHANNEL;
     const isChannelShared = channel?.shared;
     const draftFromStore = useSelector((state: GlobalState) => getDraftSelector(state, channelId, rootId, storageKey));
     const badConnection = useSelector((state: GlobalState) => connectionErrorCount(state) > 1);
@@ -673,7 +674,12 @@ const AdvancedTextEditor = ({
             {channelDisplayName},
         );
     } else if (readOnlyChannel) {
-        createMessage = formatMessage(
+        createMessage = isDefaultChannel ? formatMessage(
+            {
+                id: 'create_post.default_channel_read_only',
+                defaultMessage: 'This is the default channel and cannot be used.',
+            },
+        ) : formatMessage(
             {
                 id: 'create_post.read_only',
                 defaultMessage: 'This channel is read-only. Only members with permission can post here.',
