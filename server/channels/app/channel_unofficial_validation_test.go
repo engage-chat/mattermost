@@ -14,8 +14,7 @@ import (
 )
 
 func TestCheckChannelPermissions(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	// Save original environment variable
 	originalValue := os.Getenv("INTEGRATION_ADMIN_USERNAME")
@@ -31,7 +30,7 @@ func TestCheckChannelPermissions(t *testing.T) {
 	user1 := th.BasicUser
 	user2 := th.BasicUser2
 	adminUser := th.SystemAdminUser
-	botUser := th.CreateUser()
+	botUser := th.CreateUser(t)
 	botUser.IsBot = true
 	_, err := th.App.UpdateUser(th.Context, botUser, false)
 	require.Nil(t, err)
@@ -120,8 +119,8 @@ func TestCheckChannelPermissions(t *testing.T) {
 		resetIntegrationAdminUsernameForTesting()
 		os.Setenv("INTEGRATION_ADMIN_USERNAME", adminUser.Username)
 
-		th.RemovePermissionFromRole(model.PermissionCreatePrivateChannel.Id, model.TeamUserRoleId)
-		defer th.AddPermissionToRole(model.PermissionCreatePrivateChannel.Id, model.TeamUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionCreatePrivateChannel.Id, model.TeamUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionCreatePrivateChannel.Id, model.TeamUserRoleId)
 
 		// Create a context with user1's session
 		ctxWithSession := th.Context.WithSession(user1Session)
@@ -134,8 +133,8 @@ func TestCheckChannelPermissions(t *testing.T) {
 		resetIntegrationAdminUsernameForTesting()
 		os.Setenv("INTEGRATION_ADMIN_USERNAME", adminUser.Username)
 
-		th.RemovePermissionFromRole(model.PermissionCreatePrivateChannel.Id, model.TeamUserRoleId)
-		defer th.AddPermissionToRole(model.PermissionCreatePrivateChannel.Id, model.TeamUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionCreatePrivateChannel.Id, model.TeamUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionCreatePrivateChannel.Id, model.TeamUserRoleId)
 
 		// Create a context with user1's session
 		ctxWithSession := th.Context.WithSession(user1Session)

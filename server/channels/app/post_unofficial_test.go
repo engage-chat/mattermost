@@ -14,8 +14,7 @@ import (
 )
 
 func TestChannelPermissionChecksForPosts(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	// Save original environment variable
 	originalValue := os.Getenv("INTEGRATION_ADMIN_USERNAME")
@@ -50,7 +49,7 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 	require.NotNil(t, dmChannel)
 
 	// Create GM channel (with permissions)
-	user3 := th.CreateUser()
+	user3 := th.CreateUser(t)
 	gmChannel, appErr := th.App.createGroupChannel(th.Context, []string{user1.Id, user2.Id, user3.Id}, user1.Id)
 	require.Nil(t, appErr)
 	require.NotNil(t, gmChannel)
@@ -102,14 +101,14 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 	require.NotNil(t, createdPostInUnofficial)
 
 	// Now remove permissions for testing
-	th.RemovePermissionFromRole(model.PermissionCreateDirectChannel.Id, model.SystemUserRoleId)
-	defer th.AddPermissionToRole(model.PermissionCreateDirectChannel.Id, model.SystemUserRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionCreateDirectChannel.Id, model.SystemUserRoleId)
+	defer th.AddPermissionToRole(t, model.PermissionCreateDirectChannel.Id, model.SystemUserRoleId)
 
-	th.RemovePermissionFromRole(model.PermissionCreateGroupChannel.Id, model.SystemUserRoleId)
-	defer th.AddPermissionToRole(model.PermissionCreateGroupChannel.Id, model.SystemUserRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionCreateGroupChannel.Id, model.SystemUserRoleId)
+	defer th.AddPermissionToRole(t, model.PermissionCreateGroupChannel.Id, model.SystemUserRoleId)
 
-	th.RemovePermissionFromRole(model.PermissionCreatePrivateChannel.Id, model.TeamUserRoleId)
-	defer th.AddPermissionToRole(model.PermissionCreatePrivateChannel.Id, model.TeamUserRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionCreatePrivateChannel.Id, model.TeamUserRoleId)
+	defer th.AddPermissionToRole(t, model.PermissionCreatePrivateChannel.Id, model.TeamUserRoleId)
 
 	t.Run("CreatePost denied in DM without permission", func(t *testing.T) {
 		post := &model.Post{
@@ -177,7 +176,7 @@ func TestChannelPermissionChecksForPosts(t *testing.T) {
 	})
 
 	t.Run("Bot can create post in DM without permission", func(t *testing.T) {
-		bot := th.CreateBot()
+		bot := th.CreateBot(t)
 		botUser, err := th.App.GetUser(bot.UserId)
 		require.Nil(t, err)
 

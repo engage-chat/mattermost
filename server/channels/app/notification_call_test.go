@@ -18,8 +18,7 @@ import (
 
 func TestSendNotificationCallEnd(t *testing.T) {
 	t.Run("should return early if post type is not custom_calls", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		post := &model.Post{
 			Id:        model.NewId(),
@@ -33,8 +32,7 @@ func TestSendNotificationCallEnd(t *testing.T) {
 	})
 
 	t.Run("should return early if end_at is not present in props", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		post := &model.Post{
 			Id:        model.NewId(),
@@ -48,8 +46,7 @@ func TestSendNotificationCallEnd(t *testing.T) {
 	})
 
 	t.Run("should return early if end_at is nil in props", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		post := &model.Post{
 			Id:        model.NewId(),
@@ -63,8 +60,7 @@ func TestSendNotificationCallEnd(t *testing.T) {
 	})
 
 	t.Run("should return early if channel is not direct or group", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		post := &model.Post{
 			Id:        model.NewId(),
@@ -79,7 +75,6 @@ func TestSendNotificationCallEnd(t *testing.T) {
 
 	t.Run("should handle error when getting channel", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		post := &model.Post{
 			Id:        model.NewId(),
@@ -99,7 +94,6 @@ func TestSendNotificationCallEnd(t *testing.T) {
 
 	t.Run("should handle error when getting channel members", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		directChannel := &model.Channel{
 			Id:   model.NewId(),
@@ -131,7 +125,6 @@ func TestSendNotificationCallEnd(t *testing.T) {
 
 	t.Run("should handle user with multiple sessions, some expired, some lacks VoIP ID for iOS", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockUserStore := mocks.UserStore{}
@@ -257,7 +250,6 @@ func TestSendNotificationCallEnd(t *testing.T) {
 
 	t.Run("should send notification to all channel members except post user", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		teamId := model.NewId()
 		directChannel := &model.Channel{
