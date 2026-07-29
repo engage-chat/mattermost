@@ -21,7 +21,7 @@ const (
 
 // SendNotificationCallEnd sends a notification to mobile app users when a call ends
 // This function is intended to be called from UpdatePost
-func (a *App) SendNotificationCallEnd(c request.CTX, post *model.Post) *model.AppError {
+func (a *App) SendNotificationCallEnd(rctx request.CTX, post *model.Post) *model.AppError {
 	if post.Type != PostTypeCallsPluginCustomCall {
 		return nil
 	}
@@ -31,9 +31,9 @@ func (a *App) SendNotificationCallEnd(c request.CTX, post *model.Post) *model.Ap
 		return nil
 	}
 
-	channel, err := a.GetChannel(c, post.ChannelId)
+	channel, err := a.GetChannel(rctx, post.ChannelId)
 	if err != nil {
-		c.Logger().Error("Failed to get channel for call notification",
+		rctx.Logger().Error("Failed to get channel for call notification",
 			mlog.String("channel_id", post.ChannelId), mlog.Err(err))
 		return err
 	}
@@ -42,16 +42,16 @@ func (a *App) SendNotificationCallEnd(c request.CTX, post *model.Post) *model.Ap
 		return nil
 	}
 
-	channelMembers, err := a.GetChannelMembersPage(c, post.ChannelId, 0, model.ChannelGroupMaxUsers)
+	channelMembers, err := a.GetChannelMembersPage(rctx, post.ChannelId, 0, model.ChannelGroupMaxUsers)
 	if err != nil {
-		c.Logger().Error("Failed to get channel members for call notification",
+		rctx.Logger().Error("Failed to get channel members for call notification",
 			mlog.String("channel_id", post.ChannelId), mlog.Err(err))
 		return err
 	}
 
 	postUserId := post.UserId
 	if postUserId == "" {
-		c.Logger().Error("Post user ID is empty for call notification",
+		rctx.Logger().Error("Post user ID is empty for call notification",
 			mlog.String("post_id", post.Id))
 		return nil
 	}
@@ -74,7 +74,7 @@ func (a *App) SendNotificationCallEnd(c request.CTX, post *model.Post) *model.Ap
 
 		sessions, appErr := a.getMobileAppSessions(member.UserId)
 		if appErr != nil {
-			c.Logger().Debug("Failed to get mobile sessions for user",
+			rctx.Logger().Debug("Failed to get mobile sessions for user",
 				mlog.String("user_id", member.UserId), mlog.Err(appErr))
 			continue
 		}
@@ -115,8 +115,8 @@ func (a *App) SendNotificationCallEnd(c request.CTX, post *model.Post) *model.Ap
 			}
 			tmpMessage.Signature = signature
 
-			if err := a.sendToPushProxy(c, tmpMessage, session); err != nil {
-				c.Logger().Error("Failed to send call end notification to session",
+			if err := a.sendToPushProxy(rctx, tmpMessage, session); err != nil {
+				rctx.Logger().Error("Failed to send call end notification to session",
 					mlog.String("user_id", member.UserId),
 					mlog.String("session_id", session.Id),
 					mlog.String("device_id", deviceID),

@@ -15,8 +15,8 @@ import (
 // the user is considered not to be allowed the corresponding TUNAG setting.
 //
 //   - unofficial channel:    channel not created via TUNAG. It can be checked by isOfficialChannel().
-func (a *App) CheckChannelPermissions(c request.CTX, channel *model.Channel, userID string) *model.AppError {
-	session := c.Session()
+func (a *App) CheckChannelPermissions(rctx request.CTX, channel *model.Channel, userID string) *model.AppError {
+	session := rctx.Session()
 	if session == nil || session.Id == "" {
 		return nil // No session means no permission check needed
 	}
@@ -66,7 +66,7 @@ func (a *App) CheckChannelPermissions(c request.CTX, channel *model.Channel, use
 
 	case model.ChannelTypePrivate:
 		// If channel is official channel, user always has permission to access.
-		isOfficial, err := a.IsOfficialChannel(c, channel)
+		isOfficial, err := a.IsOfficialChannel(rctx, channel)
 		if err != nil {
 			return err
 		}
