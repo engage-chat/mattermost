@@ -54,7 +54,7 @@ on:
 permissions:
   # id-token: write
   contents: read
-  actions: read    # for load-buildenv artifact listing
+  # actions: read    # for load-buildenv artifact listing
 
 jobs:
   test:
