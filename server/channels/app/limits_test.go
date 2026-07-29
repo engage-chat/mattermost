@@ -49,7 +49,6 @@ func TestGetServerLimits(t *testing.T) {
 		require.Equal(t, int64(0), withoutCounts.SingleChannelGuestCount)
 		require.Equal(t, int64(2500), withoutCounts.MaxUsersLimit)
 		require.Equal(t, int64(100000), withoutCounts.MaxUsersHardLimit)
-
 	})
 
 	t.Run("user count should increase on creating new user and decrease on permanently deleting", func(t *testing.T) {
