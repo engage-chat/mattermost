@@ -102,7 +102,7 @@ func (a *App) SendNotificationCallEnd(c request.CTX, post *model.Post) *model.Ap
 				DeviceId: tmpMessage.DeviceId,
 			}).SignedString(a.AsymmetricSigningKey())
 			if err != nil {
-				a.NotificationsLog().Error("Notification error",
+				a.Log().Error("Notification error",
 					mlog.String("ackId", tmpMessage.AckId),
 					mlog.String("type", tmpMessage.Type),
 					mlog.String("userId", session.UserId),
@@ -115,7 +115,7 @@ func (a *App) SendNotificationCallEnd(c request.CTX, post *model.Post) *model.Ap
 			}
 			tmpMessage.Signature = signature
 
-			if err := a.sendToPushProxy(tmpMessage, session); err != nil {
+			if err := a.sendToPushProxy(c, tmpMessage, session); err != nil {
 				c.Logger().Error("Failed to send call end notification to session",
 					mlog.String("user_id", member.UserId),
 					mlog.String("session_id", session.Id),
