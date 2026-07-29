@@ -139,7 +139,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivationAutocompleteExclusionMultipleCon
 
 	// Add user to team for autocomplete testing
 	s.th.LinkUserToTeam(s.T(), user, s.th.BasicTeam)
-	s.th.AddUserToChannel(s.T(),user, s.th.BasicChannel)
+	s.th.AddUserToChannel(s.T(), user, s.th.BasicChannel)
 
 	s.RunForSystemAdminAndLocal("Deactivated user should be excluded from all autocomplete contexts", func(c client.Client) {
 		printer.Clean()
