@@ -11,6 +11,7 @@ import (
 
 func TestIsTownSquareReadOnlyEnabled(t *testing.T) {
 	t.Run("unset defaults to false", func(t *testing.T) {
+		t.Setenv(TownSquareReadOnlyEnvVar, "")
 		ResetTownSquareReadOnlyCache()
 		defer ResetTownSquareReadOnlyCache()
 		require.False(t, IsTownSquareReadOnlyEnabled())

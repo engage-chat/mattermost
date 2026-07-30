@@ -178,6 +178,7 @@ func TestIsChannelAccessible(t *testing.T) {
 		ctxWithAdminSession := th.Context.WithSession(adminSession)
 
 		t.Run("disabled: everyone can access town-square", func(t *testing.T) {
+			t.Setenv(model.TownSquareReadOnlyEnvVar, "")
 			model.ResetTownSquareReadOnlyCache()
 			accessible, err := th.App.IsChannelAccessible(ctxWithSession, townSquare.Id)
 			require.Nil(t, err)
