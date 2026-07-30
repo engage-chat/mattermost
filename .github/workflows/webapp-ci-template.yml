@@ -45,6 +45,14 @@ jobs:
           # into en.json above, so exclude keys listed in en-engage-chat.json from both sides
           # before diffing. A new fork string then only needs en-engage-chat.json / ja-engage-chat.json;
           # any other drift between code and en.json is still caught.
+          # Guard: a fork ADDITION must not leak into en.json. Fail if a key exists in the
+          # committed en.json with a value identical to en-engage-chat.json. A deliberate
+          # override has a different value in en.json (upstream) and is allowed.
+          leaked=$(jq -rn --slurpfile en /tmp/en.json --slurpfile ov src/i18n/en-engage-chat.json '$ov[0] | to_entries | map(select($en[0][.key] == .value)) | .[].key')
+          if [ -n "$leaked" ]; then
+            printf 'Fork additions must live only in en-engage-chat.json, not en.json:\n%s\n' "$leaked"
+            exit 1
+          fi
           engage_keys=$(jq 'keys' src/i18n/en-engage-chat.json)
           jq --argjson k "$engage_keys" 'delpaths([$k[]|[.]])' src/i18n/en.json > /tmp/en-extracted.json
           jq --argjson k "$engage_keys" 'delpaths([$k[]|[.]])' /tmp/en.json > /tmp/en-committed.json
