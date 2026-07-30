@@ -159,10 +159,11 @@ describe('available_unofficial_channel utils', () => {
             });
 
             describe('read-only Town Square', () => {
-                test('routes the default channel through the API (server decides accessibility)', () => {
+                test('optimistically returns true for the default channel while fetching server accessibility', () => {
                     mockChannel = {id: 'channel_id', team_id: 'team_id', type: 'O', name: 'town-square'};
 
-                    expect(isAvailableUnofficialChannel('channel_id')).toBe(false);
+                    // Cache miss: render as available and fetch the authoritative result in the background.
+                    expect(isAvailableUnofficialChannel('channel_id')).toBe(true);
                     expect(mockDispatch).toHaveBeenCalledTimes(1);
                     expect(mockHaveIChannelPermission).not.toHaveBeenCalled();
                 });
