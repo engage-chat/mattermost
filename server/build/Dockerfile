@@ -1,5 +1,8 @@
-# First stage - Ubuntu with document processing dependencies and curl for downloading
-FROM ubuntu:noble-20250415.1@sha256:dc17125eaac86538c57da886e494a34489122fb6a3ebb6411153d742594c2ddc AS builder
+# First stage - Debian with document processing dependencies and curl for downloading.
+# Kept on debian:bookworm-slim (not ubuntu:noble) so the builder's glibc matches the
+# distroless final stage (both Debian 12 / glibc 2.36); Noble's glibc 2.39 libraries
+# fail to load on the base with "version `GLIBC_2.38' not found". See mattermost/mattermost#36182.
+FROM debian:bookworm-slim@sha256:7b140f374b289a7c2befc338f42ebe6441b7ea838a042bbd5acbfca6ec875818 AS builder
 # Setting bash as our shell, and enabling pipefail option
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -27,6 +30,29 @@ RUN apt-get update \
   tidy \
   tzdata \
   && rm -rf /var/lib/apt/lists/*
+
+# Resolve and stage the full runtime library closure of the document-extraction
+# utilities. These libraries live under the Debian multiarch path
+# /usr/lib/x86_64-linux-gnu/ (not /usr/lib/), and each binary also pulls in
+# transitive dependencies (libpoppler -> liblcms2, libopenjp2, libtiff, libjpeg,
+# libnss3, ...) that a hand-maintained COPY list misses. Resolve them with ldd so
+# nothing is left out. glibc and the dynamic loader are deliberately excluded so the
+# distroless base's own copies (identical Debian 12 versions) are left untouched for
+# the mattermost/mmctl Go binaries. ldd failures are ignored because some tools
+# (e.g. wvText) are shell-script wrappers, not ELF binaries; their real dependencies
+# come in via the binary they exec (wvWare). See mattermost/mattermost#36182.
+RUN set -eu \
+  && mkdir -p /deps \
+  && for bin in /usr/bin/pdftotext /usr/bin/wvText /usr/bin/wvWare /usr/bin/unrtf /usr/bin/tidy; do \
+       ldd "$bin" 2>/dev/null || true; \
+     done \
+     | awk '{ for (i = 1; i <= NF; i++) if ($i ~ /^\//) print $i }' \
+     | sort -u \
+     | grep -Ev '/(ld-linux[^/]*|libc|libm|libmvec|libdl|libpthread|librt|libresolv|libanl|libutil|libnsl|libBrokenLocale)\.so' \
+     | while read -r lib; do \
+         mkdir -p "/deps$(dirname "$lib")"; \
+         cp -aL "$lib" "/deps$lib"; \
+       done
 
 # Set mattermost group/user and download Mattermost
 RUN mkdir -p /mattermost/data /mattermost/plugins /mattermost/client/plugins \
@@ -62,13 +88,11 @@ COPY --from=builder /usr/bin/unrtf /usr/bin/unrtf
 COPY --from=builder /usr/bin/tidy /usr/bin/tidy
 COPY --from=builder /usr/share/wv /usr/share/wv
 
-# Copy necessary libraries for document processing utilities
-COPY --from=builder /usr/lib/libpoppler.so* /usr/lib/
-COPY --from=builder /usr/lib/libfreetype.so* /usr/lib/
-COPY --from=builder /usr/lib/libpng.so* /usr/lib/
-COPY --from=builder /usr/lib/libwv.so* /usr/lib/
-COPY --from=builder /usr/lib/libtidy.so* /usr/lib/
-COPY --from=builder /usr/lib/libfontconfig.so* /usr/lib/
+# Copy the resolved runtime library closure for the document-processing
+# utilities (staged via ldd in the builder stage). This replaces the previous
+# hand-listed COPY lines, which used the non-multiarch path /usr/lib/ and so
+# silently copied nothing on Ubuntu Noble. See mattermost/mattermost#36182.
+COPY --from=builder /deps/ /
 
 # Copy mattermost from builder stage
 COPY --from=builder --chown=2000:2000 /mattermost /mattermost
