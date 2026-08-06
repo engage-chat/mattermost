@@ -22,7 +22,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 	s := &SqlPostStore{}
 
 	t.Run("basic term search", func(t *testing.T) {
-		baseQuery := sq.Select("*").From("Posts")
+		baseQuery := sq.Select("Id").From("Posts")
 		params := &model.SearchParams{OrTerms: false}
 		phrases := []string{}
 		terms := "hello"
@@ -40,7 +40,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 	})
 
 	t.Run("multiple terms with AND operator", func(t *testing.T) {
-		baseQuery := sq.Select("*").From("Posts")
+		baseQuery := sq.Select("Id").From("Posts")
 		params := &model.SearchParams{OrTerms: false}
 		phrases := []string{}
 		terms := "hello world"
@@ -60,7 +60,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 	})
 
 	t.Run("multiple terms with OR operator", func(t *testing.T) {
-		baseQuery := sq.Select("*").From("Posts")
+		baseQuery := sq.Select("Id").From("Posts")
 		params := &model.SearchParams{OrTerms: true}
 		phrases := []string{}
 		terms := "hello world"
@@ -80,7 +80,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 	})
 
 	t.Run("phrase search with quotes", func(t *testing.T) {
-		baseQuery := sq.Select("*").From("Posts")
+		baseQuery := sq.Select("Id").From("Posts")
 		params := &model.SearchParams{OrTerms: false}
 		phrases := []string{`"hello world"`}
 		terms := ""
@@ -98,7 +98,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 	})
 
 	t.Run("multiple phrases", func(t *testing.T) {
-		baseQuery := sq.Select("*").From("Posts")
+		baseQuery := sq.Select("Id").From("Posts")
 		params := &model.SearchParams{OrTerms: false}
 		phrases := []string{`"hello world"`, `"test phrase"`}
 		terms := ""
@@ -118,7 +118,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 	})
 
 	t.Run("hashtag search with prefix", func(t *testing.T) {
-		baseQuery := sq.Select("*").From("Posts")
+		baseQuery := sq.Select("Id").From("Posts")
 		params := &model.SearchParams{OrTerms: false}
 		phrases := []string{}
 		terms := "#hashtag"
@@ -137,7 +137,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 	})
 
 	t.Run("mention search with @ prefix", func(t *testing.T) {
-		baseQuery := sq.Select("*").From("Posts")
+		baseQuery := sq.Select("Id").From("Posts")
 		params := &model.SearchParams{OrTerms: false}
 		phrases := []string{}
 		terms := "@username"
@@ -156,7 +156,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 	})
 
 	t.Run("multiple hashtags with OR", func(t *testing.T) {
-		baseQuery := sq.Select("*").From("Posts")
+		baseQuery := sq.Select("Id").From("Posts")
 		params := &model.SearchParams{OrTerms: true}
 		phrases := []string{}
 		terms := "#tag1 #tag2"
@@ -177,7 +177,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 	})
 
 	t.Run("wildcard suffix handling", func(t *testing.T) {
-		baseQuery := sq.Select("*").From("Posts")
+		baseQuery := sq.Select("Id").From("Posts")
 		params := &model.SearchParams{OrTerms: false}
 		phrases := []string{}
 		terms := "test*"
@@ -195,7 +195,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 	})
 
 	t.Run("excluded terms", func(t *testing.T) {
-		baseQuery := sq.Select("*").From("Posts")
+		baseQuery := sq.Select("Id").From("Posts")
 		params := &model.SearchParams{OrTerms: false}
 		phrases := []string{}
 		terms := "hello"
@@ -215,7 +215,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 	})
 
 	t.Run("multiple excluded terms", func(t *testing.T) {
-		baseQuery := sq.Select("*").From("Posts")
+		baseQuery := sq.Select("Id").From("Posts")
 		params := &model.SearchParams{OrTerms: false}
 		phrases := []string{}
 		terms := "hello"
@@ -239,7 +239,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 	})
 
 	t.Run("excluded hashtag with prefix", func(t *testing.T) {
-		baseQuery := sq.Select("*").From("Posts")
+		baseQuery := sq.Select("Id").From("Posts")
 		params := &model.SearchParams{OrTerms: false}
 		phrases := []string{}
 		terms := "hello"
@@ -260,7 +260,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 	})
 
 	t.Run("excluded mention with @ prefix", func(t *testing.T) {
-		baseQuery := sq.Select("*").From("Posts")
+		baseQuery := sq.Select("Id").From("Posts")
 		params := &model.SearchParams{OrTerms: false}
 		phrases := []string{}
 		terms := "hello"
@@ -281,7 +281,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 	})
 
 	t.Run("excluded term with wildcard", func(t *testing.T) {
-		baseQuery := sq.Select("*").From("Posts")
+		baseQuery := sq.Select("Id").From("Posts")
 		params := &model.SearchParams{OrTerms: false}
 		phrases := []string{}
 		terms := "hello"
@@ -301,7 +301,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 	})
 
 	t.Run("excluded phrases", func(t *testing.T) {
-		baseQuery := sq.Select("*").From("Posts")
+		baseQuery := sq.Select("Id").From("Posts")
 		params := &model.SearchParams{OrTerms: false}
 		phrases := []string{}
 		terms := "appear"
@@ -321,7 +321,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 	})
 
 	t.Run("case insensitive search", func(t *testing.T) {
-		baseQuery := sq.Select("*").From("Posts")
+		baseQuery := sq.Select("Id").From("Posts")
 		params := &model.SearchParams{OrTerms: false}
 		phrases := []string{}
 		terms := "HELLO"
@@ -340,7 +340,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 	})
 
 	t.Run("case insensitive phrase search", func(t *testing.T) {
-		baseQuery := sq.Select("*").From("Posts")
+		baseQuery := sq.Select("Id").From("Posts")
 		params := &model.SearchParams{OrTerms: false}
 		phrases := []string{`"HelLO WorLd"`}
 		terms := ""
@@ -359,7 +359,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 	})
 
 	t.Run("case insensitive excluded terms", func(t *testing.T) {
-		baseQuery := sq.Select("*").From("Posts")
+		baseQuery := sq.Select("Id").From("Posts")
 		params := &model.SearchParams{OrTerms: false}
 		phrases := []string{}
 		terms := "hello"
@@ -379,7 +379,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 	})
 
 	t.Run("combined phrases and terms", func(t *testing.T) {
-		baseQuery := sq.Select("*").From("Posts")
+		baseQuery := sq.Select("Id").From("Posts")
 		params := &model.SearchParams{OrTerms: false}
 		phrases := []string{`"hello world"`}
 		terms := "test"
@@ -399,7 +399,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 	})
 
 	t.Run("empty phrases should be ignored", func(t *testing.T) {
-		baseQuery := sq.Select("*").From("Posts")
+		baseQuery := sq.Select("Id").From("Posts")
 		params := &model.SearchParams{OrTerms: false}
 		phrases := []string{`""`, `"valid phrase"`}
 		terms := ""
@@ -418,7 +418,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 	})
 
 	t.Run("empty excluded terms should be ignored", func(t *testing.T) {
-		baseQuery := sq.Select("*").From("Posts")
+		baseQuery := sq.Select("Id").From("Posts")
 		params := &model.SearchParams{OrTerms: false}
 		phrases := []string{}
 		terms := "hello"
@@ -439,7 +439,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 	})
 
 	t.Run("no search terms results in no WHERE clause", func(t *testing.T) {
-		baseQuery := sq.Select("*").From("Posts")
+		baseQuery := sq.Select("Id").From("Posts")
 		params := &model.SearchParams{OrTerms: false}
 		phrases := []string{}
 		terms := ""
@@ -456,7 +456,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 	})
 
 	t.Run("only excluded terms without search terms", func(t *testing.T) {
-		baseQuery := sq.Select("*").From("Posts")
+		baseQuery := sq.Select("Id").From("Posts")
 		params := &model.SearchParams{OrTerms: false}
 		phrases := []string{}
 		terms := ""
@@ -474,7 +474,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 	})
 
 	t.Run("mixed hashtags, mentions and regular terms", func(t *testing.T) {
-		baseQuery := sq.Select("*").From("Posts")
+		baseQuery := sq.Select("Id").From("Posts")
 		params := &model.SearchParams{OrTerms: false}
 		phrases := []string{}
 		terms := "#hashtag @username regular"
@@ -497,7 +497,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 	})
 
 	t.Run("mixed hashtags, mentions and regular terms in japanese", func(t *testing.T) {
-		baseQuery := sq.Select("*").From("Posts")
+		baseQuery := sq.Select("Id").From("Posts")
 		params := &model.SearchParams{OrTerms: false}
 		phrases := []string{}
 		terms := "田中"
@@ -517,7 +517,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 	})
 
 	t.Run("complex query with all features", func(t *testing.T) {
-		baseQuery := sq.Select("*").From("Posts")
+		baseQuery := sq.Select("Id").From("Posts")
 		params := &model.SearchParams{OrTerms: false}
 		phrases := []string{`"exact phrase"`}
 		terms := "#hashtag @mention word test*"

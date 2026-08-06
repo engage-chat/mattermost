@@ -537,7 +537,7 @@ func (fs SqlFileInfoStore) likesearch(rctx request.CTX, paramsList []*model.Sear
 		limit = 60
 	}
 
-	// Fetch channel IDs separately first, then user them directly in the main query
+	// Fetch channel IDs separately first, then use them directly in the main query
 	channelQuery := fs.getQueryBuilder().
 		Select("DISTINCT Channels.Id").
 		From("Channels").
@@ -589,6 +589,7 @@ func (fs SqlFileInfoStore) likesearch(rctx request.CTX, paramsList []*model.Sear
 			sq.NotEq{"FileInfo.PostId": ""},
 		}).
 		Where(sq.Eq{"FileInfo.ChannelId": channelIds}).
+		Where(sq.Expr("NOT EXISTS (SELECT 1 FROM TemporaryPosts WHERE TemporaryPosts.PostId = FileInfo.PostId)")).
 		OrderBy("FileInfo.CreateAt DESC").
 		Limit(limit)
 
@@ -649,11 +650,6 @@ func (fs SqlFileInfoStore) likesearch(rctx request.CTX, paramsList []*model.Sear
 		terms := params.Terms
 		excludedTerms := params.ExcludedTerms
 
-		for _, c := range specialSearchChars {
-			terms = strings.Replace(terms, c, " ", -1)
-			excludedTerms = strings.Replace(excludedTerms, c, " ", -1)
-		}
-
 		if terms == "" && excludedTerms == "" {
 			// we've already confirmed that we have a channel or user to search for
 		} else if fs.DriverName() == model.DatabaseDriverPostgres {
@@ -675,8 +671,7 @@ func (fs SqlFileInfoStore) likesearch(rctx request.CTX, paramsList []*model.Sear
 			// Make args lowercase for case-insensitive search.
 			phrases, excludedPhrases, terms, excludedTerms = toLowerSearchTerms(phrases, excludedPhrases, terms, excludedTerms)
 
-			termWords := strings.Fields(terms)
-			for _, term := range termWords {
+			for term := range strings.FieldsSeq(terms) {
 				termQuery = append(termQuery, sq.Or{
 					sq.Expr("LOWER(FileInfo.Name) LIKE ? ESCAPE '\\'", addWildcardToTerm(term, false)),
 					sq.Expr("LOWER(FileInfo.Content) LIKE ? ESCAPE '\\'", addWildcardToTerm(term, false)),
@@ -693,7 +688,7 @@ func (fs SqlFileInfoStore) likesearch(rctx request.CTX, paramsList []*model.Sear
 				})
 			}
 
-			if (len(termQuery)) > 0 {
+			if len(termQuery) > 0 {
 				if params.OrTerms {
 					likeConditions = append(likeConditions, sq.Or(termQuery))
 				} else {
@@ -701,8 +696,7 @@ func (fs SqlFileInfoStore) likesearch(rctx request.CTX, paramsList []*model.Sear
 				}
 			}
 
-			excludedTermWord := strings.Fields(excludedTerms)
-			for _, term := range excludedTermWord {
+			for term := range strings.FieldsSeq(excludedTerms) {
 				likeConditions = append(likeConditions, sq.Expr("NOT (?)", sq.Or{
 					sq.Expr("LOWER(FileInfo.Name) LIKE ? ESCAPE '\\'", addWildcardToTerm(term, false)),
 					sq.Expr("LOWER(FileInfo.Content) LIKE ? ESCAPE '\\'", addWildcardToTerm(term, false)),
