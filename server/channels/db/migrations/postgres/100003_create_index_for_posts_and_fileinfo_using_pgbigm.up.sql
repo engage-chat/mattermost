@@ -1,5 +1,14 @@
--- CONCURRENTLY cannot be used because morph runs migrations inside a transaction, which causes failure.
-CREATE INDEX IF NOT EXISTS idx_posts_message_lower ON posts USING gin (LOWER(message) gin_bigm_ops);
-CREATE INDEX IF NOT EXISTS idx_posts_hashtags_lower ON posts USING gin (LOWER(hashtags) gin_bigm_ops);
-CREATE INDEX IF NOT EXISTS idx_fileinfo_name_lower ON fileinfo USING gin (LOWER(name) gin_bigm_ops);
-CREATE INDEX IF NOT EXISTS idx_fileinfo_content_lower ON fileinfo USING gin (LOWER(content) gin_bigm_ops);
+-- morph:nontransactional
+--
+-- [ Notice on Migration Splitting ]
+-- Split former 100003 into 100003-100006 to comply with linter rules
+-- (requiring 1 operation per file for CONCURRENTLY).
+-- Filename 100003 remains unchanged to prevent errors in applied DBs,
+-- causing a mismatch with its single-operation content.
+--
+-- Behavior:
+-- - Existing Tenants: 100004-100006 are bypassed via IF NOT EXISTS,
+--   updating only db_migrations history.
+-- - New Tenants: 100003-100006 execute sequentially,
+--   creating all indexes safely via CONCURRENTLY.
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_posts_hashtags_lower ON posts USING gin (LOWER(hashtags) gin_bigm_ops);
