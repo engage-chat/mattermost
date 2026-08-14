@@ -63,6 +63,10 @@ func (a *App) CreatePostAsUser(rctx request.CTX, post *model.Post, currentSessio
 		return nil, false, model.NewAppError("createPost", "api.post.create_post.can_not_post_in_restricted_dm.error", nil, "", http.StatusBadRequest)
 	}
 
+	if permErr := a.CheckChannelPermissions(rctx, channel, post.UserId); permErr != nil {
+		return nil, false, permErr
+	}
+
 	rp, isMemberForPreviews, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{TriggerWebhooks: true, SetOnline: setOnline})
 	if err != nil {
 		if err.Id == "api.post.create_post.root_id.app_error" ||
@@ -847,6 +851,10 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		return nil, false, err
 	}
 
+	if permErr := a.CheckChannelPermissions(rctx, channel, oldPost.UserId); permErr != nil {
+		return nil, false, permErr
+	}
+
 	newPost := oldPost.Clone()
 
 	if newPost.Message != receivedUpdatedPost.Message {
@@ -1209,6 +1217,10 @@ func (a *App) PatchPost(rctx request.CTX, postID string, patch *model.PostPatch,
 
 	if restrictDM {
 		return nil, false, model.NewAppError("PatchPost", "api.post.patch_post.can_not_update_post_in_restricted_dm.error", nil, "", http.StatusBadRequest)
+	}
+
+	if permErr := a.CheckChannelPermissions(rctx, channel, post.UserId); permErr != nil {
+		return nil, false, permErr
 	}
 
 	if ok, _ := a.HasPermissionToChannel(rctx, post.UserId, post.ChannelId, model.PermissionUseChannelMentions); !ok {
@@ -1884,6 +1896,10 @@ func (a *App) DeletePost(rctx request.CTX, postID, deleteByID string) (*model.Po
 	if restrictDM {
 		err := model.NewAppError("DeletePost", "api.post.delete_post.can_not_delete_from_restricted_dm.error", nil, "", http.StatusBadRequest)
 		return nil, err
+	}
+
+	if permErr := a.CheckChannelPermissions(rctx, channel, post.UserId); permErr != nil {
+		return nil, permErr
 	}
 
 	err = a.Srv().Store().Post().Delete(rctx, postID, model.GetMillis(), deleteByID)
