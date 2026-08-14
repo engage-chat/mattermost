@@ -57,7 +57,7 @@ permissions:
 jobs:
   test:
     name: ${{ inputs.name }}
-    runs-on: ubuntu-24.04
+    runs-on: blacksmith-8vcpu-ubuntu-2404
     continue-on-error: ${{ inputs.allow-failure }} # Used to avoid blocking PRs in case of flakiness
     env:
       COMPOSE_PROJECT_NAME: ghactions
