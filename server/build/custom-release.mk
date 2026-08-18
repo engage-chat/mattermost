@@ -48,6 +48,13 @@ customize-assets:
 	done
 
 	@echo "hiding loading screen icon..."
-	echo ".LoadingAnimation__compass { display: none; }" >> $(CUSTOMIZE_SOURCE_DIR)/css/initial_loading_screen.css
+	@target_css=$$(grep -l "LoadingAnimation__compass" $(CUSTOMIZE_SOURCE_DIR)/*.css 2>/dev/null | head -n 1); \
+	if [ -z "$${target_css}" ]; then \
+		echo "::error title=Hiding loading screen Error:: .LoadingAnimation__compass pattern not found in any CSS file. Upstream code might have changed."; \
+		exit 1; \
+	else \
+		echo "-> Appending loading screen hiding rules to $${target_css}..."; \
+		echo ".LoadingAnimation__compass { display: none !important; }" >> "$${target_css}"; \
+	fi
 
 	@echo "✅ Completed customize-assets"
