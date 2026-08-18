@@ -34,20 +34,23 @@ customize-assets:
 	done;
 
 	@echo "hiding Mattermost logo at the top left..."
-	hfroute_header='o().createElement("div",{className:c()("hfroute-header",{"has-free-banner":r,"has-custom-site-name":b})}'; \
-	echo "hfroute_header: $${hfroute_header}"; \
-	grep -l "$${hfroute_header}" $(CUSTOMIZE_SOURCE_DIR)/*.js | while read -r file_hfroute_header; do \
-		if [ -n "$${file_hfroute_header}" ]; then \
-			echo "-> Found file: $${file_hfroute_header}. Modifying content..."; \
-			hidden_hfroute_header='o().createElement("div",{className:c()("hfroute-header",{"has-free-banner":r,"has-custom-site-name":b}),style:{visibility:"hidden"}}'; \
-			sed -i'' -e "s|$${hfroute_header}|$${hidden_hfroute_header}|g" "$${file_hfroute_header}"; \
-		else \
-			echo "::error title=Hiding Mattermost logo Error::hfroute-header not found."; \
-			exit 1; \
-		fi; \
-	done
+	@target_css=$$(grep -l "hfroute-header" $(CUSTOMIZE_SOURCE_DIR)/*.css | head -n 1); \
+	if [ -z "$${target_css}" ]; then \
+		echo "::error title=Hiding Mattermost logo at the top left via CSS Error:: .hfroute-header pattern not found in any CSS file. Upstream code might have changed."; \
+		exit 1; \
+	else \
+		echo "-> Found CSS file: $${target_css}. Appending hide rule..."; \
+		echo ".hfroute-header { visibility: hidden !important; }" >> "$${target_css}"; \
+	fi
 
 	@echo "hiding loading screen icon..."
-	echo ".LoadingAnimation__compass { display: none; }" >> $(CUSTOMIZE_SOURCE_DIR)/css/initial_loading_screen.css
+	@target_css=$$(grep -l "LoadingAnimation__compass" $(CUSTOMIZE_SOURCE_DIR)/*.css 2>/dev/null | head -n 1); \
+	if [ -z "$${target_css}" ]; then \
+		echo "::error title=Hiding loading screen Error:: .LoadingAnimation__compass pattern not found in any CSS file. Upstream code might have changed."; \
+		exit 1; \
+	else \
+		echo "-> Appending loading screen hiding rules to $${target_css}..."; \
+		echo ".LoadingAnimation__compass { display: none !important; }" >> "$${target_css}"; \
+	fi
 
 	@echo "✅ Completed customize-assets"
