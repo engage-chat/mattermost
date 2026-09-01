@@ -132,7 +132,7 @@ func staticFilesHandler(handler http.Handler) http.Handler {
 		//wrap our ResponseWriter with our no-cache 404-handler
 		w = &notFoundNoCacheResponseWriter{ResponseWriter: w}
 
-		if path.Base(r.URL.Path) == "remote_entry.js" {
+		if path.Base(r.URL.Path) == "remote_entry.js" || path.Ext(r.URL.Path) == ".css" {
 			w.Header().Set("Cache-Control", "no-cache, max-age=31556926, public")
 		} else {
 			w.Header().Set("Cache-Control", "max-age=31556926, public")
