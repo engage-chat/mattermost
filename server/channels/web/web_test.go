@@ -414,6 +414,12 @@ func TestStaticFilesCaching(t *testing.T) {
 	require.Equal(t, fakeMainBundle, res.Body.String())
 	require.Equal(t, []string{"max-age=31556926, public"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
 
+	req, err = http.NewRequest("GET", "/static/main.css", nil)
+	require.NoError(t, err)
+	res = httptest.NewRecorder()
+	th.Web.MainRouter.ServeHTTP(res, req)
+	require.Equal(t, []string{"no-cache, max-age=31556926, public"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
+
 	req, err = http.NewRequest("GET", "/static/remote_entry.js", nil)
 	require.NoError(t, err)
 	res = httptest.NewRecorder()
