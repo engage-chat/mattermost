@@ -34,13 +34,13 @@ customize-assets:
 	done;
 
 	@echo "hiding Mattermost logo at the top left..."
-	@target_css=$$(grep -l "hfroute-header" $(CUSTOMIZE_SOURCE_DIR)/*.css | head -n 1); \
-	if [ -z "$${target_css}" ]; then \
-		echo "::error title=Hiding Mattermost logo at the top left via CSS Error:: .hfroute-header pattern not found in any CSS file. Upstream code might have changed."; \
+	@hfroute_target=$$(grep -l "hfroute-header" $(CUSTOMIZE_SOURCE_DIR)/*.js | head -n 1); \
+	if [ -z "$${hfroute_target}" ]; then \
+		echo "::error title=Hiding Mattermost logo Error::hfroute-header pattern not found in any JS file. Upstream code might have changed."; \
 		exit 1; \
 	else \
-		echo "-> Found CSS file: $${target_css}. Appending hide rule..."; \
-		echo ".hfroute-header { visibility: hidden !important; }" >> "$${target_css}"; \
+		echo "-> Found JS file: $${hfroute_target}. Modifying content..."; \
+		sed -i'' -E 's/(className:[^}]*hfroute-header)/style:{visibility:"hidden"},\1/g' "$${hfroute_target}"; \
 	fi
 
 	@echo "hiding ID/password login form..."
