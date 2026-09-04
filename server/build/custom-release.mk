@@ -1,3 +1,19 @@
+# ==============================================================================
+# Caching Constraints for Asset Customization
+# ==============================================================================
+# Static assets in dist/ (JS, CSS, ..etc) are served with long-term caching
+# headers (Cache-Control: max-age=31556926, public).
+#
+# Because content hashes in filenames are determined during the webpack build,
+# post-build modifications in this Makefile DO NOT change the asset filenames.
+#
+# NOTE:
+# Take note of browser caching behavior when editing this file.
+# For example, during version upgrades or updates, if component code (JS) changes
+# but CSS source does not, modifying CSS here will NOT bust the CSS cache, leading
+# to stale styles on clients.
+# ==============================================================================
+
 ifneq ($(origin CUSTOMIZE_SOURCE_DIR), undefined)
   $(error CUSTOMIZE_SOURCE_DIR is already set (origin=$(origin CUSTOMIZE_SOURCE_DIR)))
 endif
