@@ -34,24 +34,24 @@ customize-assets:
 	sed -i'' -e 's/{{.Service}}/$(CUSTOM_SERVICE_NAME)/g' -e 's/Mattermost/$(CUSTOM_PLATFORM_NAME)/g' i18n/*.json
 
 	@echo "removing GitLab icon from login screen..."
-	icon_str='"svg",\{width:"[0-9]+",height:"[0-9]+",viewBox:"0 0 [0-9]+ [0-9]+",fill:"none",xmlns:"http:\/\/www\.w3\.org\/2000\/svg","aria-label":t\(\{id:"generic_icons\.login\.gitlab",defaultMessage:"Gitlab Icon"\}\)\}'; \
+	@icon_str='"svg",\{width:"[0-9]+",height:"[0-9]+",viewBox:"0 0 [0-9]+ [0-9]+",fill:"none",xmlns:"http:\/\/www\.w3\.org\/2000\/svg","aria-label":t\(\{id:"generic_icons\.login\.gitlab",defaultMessage:"Gitlab Icon"\}\)\}'; \
 	echo "icon_str: $${icon_str}"; \
-	grep -l "generic_icons.login.gitlab" $(CUSTOMIZE_SOURCE_DIR)/*.js | while read -r file; do \
-		if [ -n "$${file}" ]; then \
-			echo "-> Found file: $${file}. Modifying content..."; \
-			sed -i'' -E \
-				-e "s|$${icon_str}|\"span\",\{\}|g" \
-				-e 's/external-login-button-label//g' \
-				"$${file}"; \
-			if grep -q -E "$${icon_str}" "$${file}"; then \
-				echo "::error title=Removing GitLab icon Verification Error::Failed to replace GitLab icon in $${file}."; \
-				exit 1; \
-			fi; \
-		else \
-			echo "::error title=Removing GitLab icon Error::GitLab icon pattern not found."; \
+	gitlab_files=$$(grep -l "generic_icons.login.gitlab" $(CUSTOMIZE_SOURCE_DIR)/*.js 2>/dev/null); \
+	if [ -z "$${gitlab_files}" ]; then \
+		echo "::error title=Removing GitLab icon Error::GitLab icon pattern not found in any JS file. Upstream code might have changed."; \
+		exit 1; \
+	fi; \
+	for file in $${gitlab_files}; do \
+		echo "-> Found file: $${file}. Modifying content..."; \
+		sed -i'' -E \
+			-e "s|$${icon_str}|\"span\",\{\}|g" \
+			-e 's/external-login-button-label//g' \
+			"$${file}"; \
+		if grep -q -E "$${icon_str}" "$${file}"; then \
+			echo "::error title=Removing GitLab icon Verification Error::Failed to replace GitLab icon in $${file}."; \
 			exit 1; \
 		fi; \
-	done;
+	done
 
 	@echo "hiding Mattermost logo at the top left..."
 	@files=$$(grep -l "hfroute-header" $(CUSTOMIZE_SOURCE_DIR)/*.js 2>/dev/null); \
@@ -69,16 +69,16 @@ customize-assets:
 	done
 
 	@echo "hiding ID/password login form..."
-	grep -l "login-body-card-form" $(CUSTOMIZE_SOURCE_DIR)/*.css | while read -r css_file; do \
-		if [ -n "$${css_file}" ]; then \
-			echo "-> Found file: $${css_file}. Appending login form hiding rules..."; \
-			echo ".login-body-card-form { display: none !important; } .login-body-card-form-divider { display: none !important; } .login-body-alternate-link { display: none !important; }" >> "$${css_file}"; \
-			if ! grep -q "\.login-body-card-form { display: none !important; }" "$${css_file}"; then \
-				echo "::error title=Hiding login form Verification Error::Failed to append rules to $${css_file}."; \
-				exit 1; \
-			fi; \
-		else \
-			echo "::error title=Hiding login form Error::login-body-card-form pattern not found in any CSS file."; \
+	@login_css_files=$$(grep -l "login-body-card-form" $(CUSTOMIZE_SOURCE_DIR)/*.css 2>/dev/null); \
+	if [ -z "$${login_css_files}" ]; then \
+		echo "::error title=Hiding login form Error::login-body-card-form pattern not found in any CSS file. Upstream code might have changed."; \
+		exit 1; \
+	fi; \
+	for css_file in $${login_css_files}; do \
+		echo "-> Found file: $${css_file}. Appending login form hiding rules..."; \
+		echo ".login-body-card-form { display: none !important; } .login-body-card-form-divider { display: none !important; } .login-body-alternate-link { display: none !important; }" >> "$${css_file}"; \
+		if ! grep -q "\.login-body-card-form { display: none !important; }" "$${css_file}"; then \
+			echo "::error title=Hiding login form Verification Error::Failed to append rules to $${css_file}."; \
 			exit 1; \
 		fi; \
 	done
