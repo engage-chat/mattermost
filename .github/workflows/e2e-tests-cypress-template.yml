@@ -112,7 +112,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: ci/set-initial-status
-        uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
+        uses: mattermost/actions/delivery/update-commit-status@ec00f39dab9ee31b6dc7f36671d5c8afcf74cc54
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -136,7 +136,7 @@ jobs:
           echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
 
       - name: ci/checkout-repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           ref: ${{ inputs.commit_sha }}
@@ -144,7 +144,7 @@ jobs:
       - name: ci/restore-npm-cache
         uses: ./.github/actions/restore-e2e-npm-cache
       - name: ci/setup-node
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: ".nvmrc"
 
@@ -198,7 +198,7 @@ jobs:
       CWS_EXTRA_HTTP_HEADERS: "${{ secrets.CWS_EXTRA_HTTP_HEADERS }}"
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           ref: ${{ inputs.commit_sha }}
@@ -206,7 +206,7 @@ jobs:
       - name: ci/restore-npm-cache
         uses: ./.github/actions/restore-e2e-npm-cache
       - name: ci/setup-node
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: ".nvmrc"
       - name: ci/npm-cache-verify
@@ -225,7 +225,7 @@ jobs:
         if: always()
         run: make cloud-teardown
       - name: ci/upload-results
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
           name: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-results-${{ matrix.worker_index }}
@@ -256,11 +256,11 @@ jobs:
       end_time: ${{ steps.record-end-time.outputs.end_time }}
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: ci/download-results
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           pattern: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-results-*
           path: e2e-tests/cypress/
@@ -303,7 +303,7 @@ jobs:
       CWS_EXTRA_HTTP_HEADERS: "${{ secrets.CWS_EXTRA_HTTP_HEADERS }}"
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           ref: ${{ inputs.commit_sha }}
@@ -311,7 +311,7 @@ jobs:
       - name: ci/restore-npm-cache
         uses: ./.github/actions/restore-e2e-npm-cache
       - name: ci/setup-node
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: ".nvmrc"
       - name: ci/run-failed-specs
@@ -325,7 +325,7 @@ jobs:
         if: always()
         run: make cloud-teardown
       - name: ci/upload-retest-results
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
           name: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-retest-results
@@ -354,20 +354,20 @@ jobs:
         working-directory: e2e-tests
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: ci/restore-npm-cache
         uses: ./.github/actions/restore-e2e-npm-cache
       - name: ci/setup-node
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: ".nvmrc"
 
       # PATH A: run-failed-tests was skipped (no failures to retest)
       - name: ci/download-results-path-a
         if: needs.run-failed-tests.result == 'skipped'
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           pattern: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-results-*
           path: e2e-tests/cypress/
@@ -396,14 +396,14 @@ jobs:
       # PATH B: run-failed-tests ran, need to merge and recalculate
       - name: ci/download-original-results
         if: needs.run-failed-tests.result != 'skipped'
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           pattern: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-results-*
           path: e2e-tests/cypress/
           merge-multiple: true
       - name: ci/download-retest-results
         if: needs.run-failed-tests.result != 'skipped'
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-retest-results
           path: e2e-tests/cypress/retest-results/
@@ -510,7 +510,7 @@ jobs:
 
       - name: ci/upload-combined-results
         if: inputs.workers > 1
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-results
           path: |
@@ -633,7 +633,7 @@ jobs:
       - calculate-results
       - report
     steps:
-      - uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
+      - uses: mattermost/actions/delivery/update-commit-status@ec00f39dab9ee31b6dc7f36671d5c8afcf74cc54
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -652,7 +652,7 @@ jobs:
       - calculate-results
       - report
     steps:
-      - uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
+      - uses: mattermost/actions/delivery/update-commit-status@ec00f39dab9ee31b6dc7f36671d5c8afcf74cc54
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
