@@ -529,16 +529,11 @@ export function fetchAllMyChannelMembers(): ActionFuncAsync {
             dispatch(loadRolesIfNeeded(roles));
         }
 
-        dispatch(batchActions([
-            {
-                type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBERS,
-                data: channelMembers,
-                currentUserId,
-            },
-            {
-                type: ChannelTypes.INIT_CHANNEL_MEMBERSHIPS_LOADED,
-            },
-        ]));
+        dispatch({
+            type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBERS,
+            data: channelMembers,
+            currentUserId,
+        });
         return {data: channelMembers};
     };
 }
@@ -554,15 +549,10 @@ export function fetchAllMyTeamsChannels(): ActionFuncAsync {
             return {error};
         }
 
-        dispatch(batchActions([
-            {
-                type: ChannelTypes.RECEIVED_CHANNELS,
-                data: channels,
-            },
-            {
-                type: ChannelTypes.INIT_CHANNELS_LOADED,
-            },
-        ]));
+        dispatch({
+            type: ChannelTypes.RECEIVED_CHANNELS,
+            data: channels,
+        });
         return {data: channels};
     };
 }
