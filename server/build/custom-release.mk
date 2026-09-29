@@ -99,3 +99,83 @@ customize-assets:
 	done
 
 	@echo "✅ Completed customize-assets"
+
+# ------------------------------------------------------------------------------
+# Favicon replacement
+# ------------------------------------------------------------------------------
+# The PNGs under build/custom-assets/favicon/ replace the Mattermost favicons in
+# the built webapp so that no volumeMount override is needed at deploy time.
+#
+# The webapp references favicons in two ways:
+#   1. <link rel="icon"> in root.html -> dist/images/favicon/favicon-<variant>-<size>.png
+#   2. unreads_status_handler.tsx imports the same PNGs, which webpack emits as
+#      dist/files/<contenthash>.png and swaps into <link rel="icon"> at runtime
+#      whenever the unread/mention state changes.
+# The content hashes in (2) are computed from the upstream PNGs and change with
+# the webpack toolchain, so they are resolved from the chunk containing the
+# handler instead of being hard-coded. The handler imports the icons in the
+# order default -> mentions -> unread, each in 16, 24, 32, 64, 96, and webpack
+# emits the module constants in that order; the size of every target is
+# verified before it is overwritten so a change in that order fails the build.
+CUSTOM_ASSETS_DIR := $(dir $(lastword $(MAKEFILE_LIST)))custom-assets
+CUSTOM_FAVICON_VARIANTS := default mentions unread
+CUSTOM_FAVICON_SIZES := 16 24 32 64 96
+
+customize-assets: customize-favicons
+
+customize-favicons:
+	@echo "replacing favicons..."
+	@echo "CUSTOM_ASSETS_DIR = $(CUSTOM_ASSETS_DIR)"
+	@for variant in $(CUSTOM_FAVICON_VARIANTS); do \
+		for size in $(CUSTOM_FAVICON_SIZES); do \
+			name="favicon-$${variant}-$${size}x$${size}.png"; \
+			src="$(CUSTOM_ASSETS_DIR)/favicon/$${name}"; \
+			dst="$(CUSTOMIZE_SOURCE_DIR)/images/favicon/$${name}"; \
+			if [ ! -f "$${src}" ]; then \
+				echo "::error title=Replacing favicon Error::$${src} not found."; \
+				exit 1; \
+			fi; \
+			if [ ! -f "$${dst}" ]; then \
+				echo "::error title=Replacing favicon Error::$${dst} not found. Upstream code might have changed."; \
+				exit 1; \
+			fi; \
+			echo "-> $${dst} <- $${name}"; \
+			cp "$${src}" "$${dst}"; \
+		done; \
+	done
+	@handler_files=$$(grep -l 'link\[rel="icon"\]\[sizes="16x16"\]' $(CUSTOMIZE_SOURCE_DIR)/*.js 2>/dev/null); \
+	if [ "$$(echo "$${handler_files}" | grep -c .)" -ne 1 ]; then \
+		echo "::error title=Replacing favicon Error::Expected exactly one JS chunk containing the favicon handler, got: $${handler_files}. Upstream code might have changed."; \
+		exit 1; \
+	fi; \
+	echo "-> Found handler chunk: $${handler_files}"; \
+	hashed=$$(grep -oE 'files/[0-9a-f]+\.png' "$${handler_files}"); \
+	if [ "$$(echo "$${hashed}" | grep -c .)" -ne 15 ]; then \
+		echo "::error title=Replacing favicon Error::Expected 15 hashed favicon references in $${handler_files}, got: $${hashed}. Upstream code might have changed."; \
+		exit 1; \
+	fi; \
+	i=0; \
+	for variant in $(CUSTOM_FAVICON_VARIANTS); do \
+		for size in $(CUSTOM_FAVICON_SIZES); do \
+			i=$$((i + 1)); \
+			name="favicon-$${variant}-$${size}x$${size}.png"; \
+			src="$(CUSTOM_ASSETS_DIR)/favicon/$${name}"; \
+			dst="$(CUSTOMIZE_SOURCE_DIR)/$$(echo "$${hashed}" | sed -n "$${i}p")"; \
+			if [ ! -f "$${dst}" ]; then \
+				echo "::error title=Replacing favicon Error::$${dst} not found."; \
+				exit 1; \
+			fi; \
+			actual=$$(od -An -tu1 -j16 -N8 "$${dst}" | awk 'NR==1{printf "%dx%d", $$1*16777216+$$2*65536+$$3*256+$$4, $$5*16777216+$$6*65536+$$7*256+$$8}'); \
+			if [ "$${actual}" != "$${size}x$${size}" ]; then \
+				echo "::error title=Replacing favicon Verification Error::$${dst} is $${actual}, expected $${size}x$${size} for $${name}. Import order in unreads_status_handler might have changed."; \
+				exit 1; \
+			fi; \
+			echo "-> $${dst} <- $${name}"; \
+			cp "$${src}" "$${dst}"; \
+			if ! cmp -s "$${src}" "$${dst}"; then \
+				echo "::error title=Replacing favicon Verification Error::$${dst} differs from $${src} after copy."; \
+				exit 1; \
+			fi; \
+		done; \
+	done
+	@echo "✅ Completed customize-favicons"
