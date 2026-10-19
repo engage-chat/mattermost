@@ -1465,7 +1465,7 @@ func (api *PluginAPI) GetUploadSession(uploadID string) (*model.UploadSession, e
 
 func (api *PluginAPI) SendPushNotification(notification *model.PushNotification, userID string) *model.AppError {
 	// Ignoring skipSessionId because it's only used internally to clear push notifications
-	return api.app.sendPushNotificationToAllSessions(api.ctx, notification, userID, "")
+	return api.app.sendPushNotificationToAllSessions(api.ctx, withLegacyCallsTransport(notification), userID, "")
 }
 
 func (api *PluginAPI) RegisterPluginForSharedChannels(opts model.RegisterPluginOpts) (remoteID string, err error) {
