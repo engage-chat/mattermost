@@ -319,6 +319,7 @@ var standardDevicePlatforms = []string{
 var voIPDevicePlatforms = []string{
 	PushNotifyAppleReactNative,
 	PushNotifyAppleReactNative + "beta",
+	PushNotifyAppleVoip, // Engage Chat mobile, see engage_chat_push.go
 }
 
 // IsValidDeviceId checks that deviceId has the "<platform>[-v<N>]:<token>"
