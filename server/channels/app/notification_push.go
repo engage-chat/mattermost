@@ -159,6 +159,9 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 		return appErr
 	}
 
+	// Engage Chat: VoIP tokens already rung for this push, see below
+	sentVoIPDeviceIds := make(map[string]struct{})
+
 	for _, session := range sessions {
 		// Don't send notifications to this session if it's expired or we want to skip it
 		if session.IsExpired() || (skipSessionId != "" && skipSessionId == session.Id) {
@@ -203,6 +206,16 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 				continue
 			}
 			deviceId = session.DeviceId
+		}
+		// Engage Chat: ring each VoIP device only once per call. Several sessions
+		// of a user can hold the same VoIP token (e.g. re-logins made before
+		// upstream started revoking them), and each would ring the device again.
+		// The token is recorded before sending so a failed send is not retried.
+		if tmpMessage.Transport == model.PushTransportVoIP {
+			if _, sent := sentVoIPDeviceIds[deviceId]; sent {
+				continue
+			}
+			sentVoIPDeviceIds[deviceId] = struct{}{}
 		}
 		tmpMessage.SetDeviceIdAndPlatform(deviceId)
 		tmpMessage.AckId = model.NewId()

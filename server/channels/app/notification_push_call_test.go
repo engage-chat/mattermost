@@ -6,6 +6,7 @@ package app
 import (
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 	"time"
 
@@ -165,5 +166,105 @@ func TestPluginAPISendPushNotificationLegacyCallsRouting(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.Equal(t, iOSVoIPToken, updated.Props[model.SessionPropLastRemovedVoIPDeviceId])
 		assert.Empty(t, updated.Props[model.SessionPropLastRemovedDeviceId], "chat pushes must keep using the standard token")
+	})
+}
+
+func TestSendPushNotificationsRingEachVoIPDeviceOnce(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	const (
+		sharedVoIPToken = model.PushNotifyAppleVoip + ":123"
+		otherVoIPToken  = model.PushNotifyAppleVoip + ":456"
+	)
+
+	setup := func(t *testing.T, sessions []*model.Session) (*TestHelper, *testPushNotificationHandler) {
+		th := Setup(t).InitBasic(t)
+
+		handler := &testPushNotificationHandler{t: t, behavior: "simple"}
+		pushServer := httptest.NewServer(http.HandlerFunc(handler.handleReq))
+		t.Cleanup(pushServer.Close)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+		})
+
+		for i, session := range sessions {
+			session.UserId = th.BasicUser.Id
+			session.DeviceId = model.PushNotifyAppleReactNative + "-v2:device" + strconv.Itoa(i+1)
+			if session.ExpiresAt == 0 {
+				session.ExpiresAt = model.GetMillis() + 100000
+			}
+			_, appErr := th.App.CreateSession(th.Context, session)
+			require.Nil(t, appErr)
+		}
+		return th, handler
+	}
+
+	waitForPushes := func(t *testing.T, handler *testPushNotificationHandler, expected int) []*model.PushNotification {
+		require.Eventually(t, func() bool {
+			return len(handler.notifications()) >= expected
+		}, 2*time.Second, 10*time.Millisecond)
+		assert.Never(t, func() bool {
+			return len(handler.notifications()) > expected
+		}, 300*time.Millisecond, 10*time.Millisecond)
+		return handler.notifications()
+	}
+
+	t.Run("sessions sharing a VoIP token ring the device once", func(t *testing.T) {
+		th, handler := setup(t, []*model.Session{
+			{VoIPDeviceId: sharedVoIPToken},
+			{VoIPDeviceId: sharedVoIPToken},
+			{VoIPDeviceId: sharedVoIPToken},
+			{VoIPDeviceId: otherVoIPToken},
+		})
+
+		appErr := th.SetupPluginAPI().SendPushNotification(&model.PushNotification{
+			Type:    model.PushTypeMessage,
+			SubType: model.PushSubTypeCalls,
+		}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		var deviceIds []string
+		for _, sent := range waitForPushes(t, handler, 2) {
+			assert.Equal(t, model.PushTransportVoIP, sent.Transport)
+			deviceIds = append(deviceIds, sent.DeviceId)
+		}
+		assert.ElementsMatch(t, []string{"123", "456"}, deviceIds)
+	})
+
+	t.Run("chat pushes are not deduplicated", func(t *testing.T) {
+		th, handler := setup(t, []*model.Session{
+			{VoIPDeviceId: sharedVoIPToken},
+			{VoIPDeviceId: sharedVoIPToken},
+		})
+
+		appErr := th.App.sendPushNotificationToAllSessions(th.Context, &model.PushNotification{
+			Type: model.PushTypeMessage,
+		}, th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		for _, sent := range waitForPushes(t, handler, 2) {
+			assert.Equal(t, model.PushTransportStandard, sent.Transport)
+		}
+	})
+
+	t.Run("a session downgraded to the standard token does not block the shared VoIP token", func(t *testing.T) {
+		th, handler := setup(t, []*model.Session{
+			{VoIPDeviceId: sharedVoIPToken, Props: map[string]string{model.SessionPropLastRemovedVoIPDeviceId: sharedVoIPToken}},
+			{VoIPDeviceId: sharedVoIPToken},
+		})
+
+		appErr := th.SetupPluginAPI().SendPushNotification(&model.PushNotification{
+			Type:    model.PushTypeMessage,
+			SubType: model.PushSubTypeCalls,
+		}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		transports := map[model.PushTransport]string{}
+		for _, sent := range waitForPushes(t, handler, 2) {
+			transports[sent.Transport] = sent.DeviceId
+		}
+		assert.Equal(t, "device1", transports[model.PushTransportStandard])
+		assert.Equal(t, "123", transports[model.PushTransportVoIP])
 	})
 }
