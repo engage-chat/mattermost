@@ -4,6 +4,7 @@
 package app
 
 import (
+	"github.com/Masterminds/semver/v3"
 	"github.com/golang-jwt/jwt/v5"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -18,6 +19,23 @@ const (
 	PostTypeCallsPluginCustomCall = "custom_calls"
 	PostPropsCallsPluginEndAt     = "end_at"
 )
+
+// iOS apps from this version on ring through the upstream CallKit implementation,
+// which dismisses the incoming call on websocket events instead of the call end
+// push. The push is not harmless there: handled as a clear push, it removes the
+// channel's notifications and marks the channel as viewed on the device.
+var iOSMinVersionWithoutCallEndPush = semver.MustParse("2.44.0")
+
+// dismissesCallWithoutCallEndPush reports whether the session's iOS app no longer
+// needs the call end push. Sessions without a parsable mobile version keep
+// receiving it, as older apps rely on it to dismiss the incoming call.
+func dismissesCallWithoutCallEndPush(session *model.Session) bool {
+	version, err := semver.NewVersion(session.Props[model.SessionPropMobileVersion])
+	if err != nil {
+		return false
+	}
+	return !version.LessThan(iOSMinVersionWithoutCallEndPush)
+}
 
 // SendNotificationCallEnd sends a notification to mobile app users when a call ends
 // This function is intended to be called from UpdatePost
@@ -96,7 +114,7 @@ func (a *App) SendNotificationCallEnd(rctx request.CTX, post *model.Post) *model
 
 			// Do not send notifications to devices that do not ring
 			voIPUsable := session.VoIPDeviceId != "" && session.Props[model.SessionPropLastRemovedVoIPDeviceId] != session.VoIPDeviceId
-			if session.Props[model.SessionPropOs] == "iOS" && !voIPUsable {
+			if session.Props[model.SessionPropOs] == "iOS" && (!voIPUsable || dismissesCallWithoutCallEndPush(session)) {
 				continue
 			}
 
