@@ -210,7 +210,10 @@ func loginSSOCodeExchange(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	isMobile := utils.IsMobileRequest(r)
-	session, err2 := c.App.DoLogin(c.AppContext, w, r, user, "", "", isMobile, false, true)
+	session, err2 := c.App.DoLogin(c.AppContext, w, r, user, model.LoginOptions{
+		IsMobile: isMobile,
+		IsSaml:   true,
+	})
 	if err2 != nil {
 		c.Err = err2
 		return
@@ -2045,13 +2048,14 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	password := props["password"]
 	mfaToken := props["token"]
 	deviceId := props["device_id"]
+	voIPDeviceId := props["voip_device_id"]
 	ldapOnly := props["ldap_only"] == "true"
 	magicLinkToken := props["magic_link_token"]
-	voipDeviceId := props["voip_device_id"]
 
 	auditRec := c.MakeAuditRecord(model.AuditEventLogin, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "device_id", deviceId)
+	model.AddEventParameterToAuditRec(auditRec, "device_id", model.RedactDeviceId(deviceId))
+	model.AddEventParameterToAuditRec(auditRec, "voip_device_id", model.RedactDeviceId(voIPDeviceId))
 
 	var user *model.User
 	var err *model.AppError
@@ -2116,7 +2120,11 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAuditWithUserId(user.Id, "authenticated")
 
 	isMobileDevice := utils.IsMobileRequest(r)
-	session, err := c.App.DoLogin(c.AppContext, w, r, user, deviceId, voipDeviceId, isMobileDevice, false, false)
+	session, err := c.App.DoLogin(c.AppContext, w, r, user, model.LoginOptions{
+		DeviceId:     deviceId,
+		VoIPDeviceId: voIPDeviceId,
+		IsMobile:     isMobileDevice,
+	})
 	if err != nil {
 		c.Err = err
 		return
@@ -2156,7 +2164,7 @@ func loginWithDesktopToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord(model.AuditEventLoginWithDesktopToken, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("login_method", "desktop_token")
-	model.AddEventParameterToAuditRec(auditRec, "device_id", deviceId)
+	model.AddEventParameterToAuditRec(auditRec, "device_id", model.RedactDeviceId(deviceId))
 
 	user, err := c.App.ValidateDesktopToken(token, time.Now().Add(-model.DesktopTokenTTL).Unix())
 	if err != nil {
@@ -2172,7 +2180,11 @@ func loginWithDesktopToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := c.App.DoLogin(c.AppContext, w, r, user, deviceId, "", false, isOAuthUser, isSamlUser)
+	session, err := c.App.DoLogin(c.AppContext, w, r, user, model.LoginOptions{
+		DeviceId:    deviceId,
+		IsOAuthUser: isOAuthUser,
+		IsSaml:      isSamlUser,
+	})
 	if err != nil {
 		c.Err = err
 		return
@@ -2241,7 +2253,9 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterAuditableToAuditRec(auditRec, "user", user)
 	c.LogAuditWithUserId(user.Id, "authenticated")
 	isMobileDevice := utils.IsMobileRequest(r)
-	session, err := c.App.DoLogin(c.AppContext, w, r, user, "", "", isMobileDevice, false, false)
+	session, err := c.App.DoLogin(c.AppContext, w, r, user, model.LoginOptions{
+		IsMobile: isMobileDevice,
+	})
 	if err != nil {
 		c.LogErrorByCode(err)
 		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, http.StatusFound)
@@ -2292,7 +2306,7 @@ func getLoginType(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord(model.AuditEventLogin, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "login_id", loginId)
-	model.AddEventParameterToAuditRec(auditRec, "device_id", deviceId)
+	model.AddEventParameterToAuditRec(auditRec, "device_id", model.RedactDeviceId(deviceId))
 
 	c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
 
@@ -2540,7 +2554,7 @@ func revokeAllSessionsAllUsers(c *Context, w http.ResponseWriter, r *http.Reques
 func handleDeviceProps(c *Context, w http.ResponseWriter, r *http.Request) {
 	receivedProps := model.MapFromJSON(r.Body)
 	deviceId := receivedProps["device_id"]
-	voipDeviceId := receivedProps["voip_device_id"]
+	voIPDeviceId := receivedProps["voip_device_id"]
 
 	newProps := map[string]string{}
 
@@ -2563,8 +2577,8 @@ func handleDeviceProps(c *Context, w http.ResponseWriter, r *http.Request) {
 		newProps[model.SessionPropMobileVersion] = mobileVersion
 	}
 
-	if deviceId != "" {
-		attachDeviceId(c, w, r, deviceId, voipDeviceId)
+	if deviceId != "" || voIPDeviceId != "" {
+		attachDeviceIds(c, w, r, deviceId, voIPDeviceId)
 	}
 
 	if c.Err != nil {
@@ -2580,15 +2594,33 @@ func handleDeviceProps(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
-func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request, deviceId string, voipDeviceId string) {
+func attachDeviceIds(c *Context, w http.ResponseWriter, r *http.Request, deviceId, voIPDeviceId string) {
 	auditRec := c.MakeAuditRecord(model.AuditEventAttachDeviceId, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "device_id", deviceId)
+	model.AddEventParameterToAuditRec(auditRec, "device_id", model.RedactDeviceId(deviceId))
+	model.AddEventParameterToAuditRec(auditRec, "voip_device_id", model.RedactDeviceId(voIPDeviceId))
 
-	// A special case where we logout of all other sessions with the same device id
-	if err := c.App.RevokeSessionsForDeviceId(c.AppContext, c.AppContext.Session().UserId, deviceId, c.AppContext.Session().Id); err != nil {
-		c.Err = err
+	if deviceId != "" && !model.IsValidStandardDeviceId(deviceId) {
+		c.SetInvalidParam("device_id")
 		return
+	}
+	if voIPDeviceId != "" && !model.IsValidVoIPDeviceId(voIPDeviceId) {
+		c.SetInvalidParam("voip_device_id")
+		return
+	}
+
+	// Logout other sessions for the same device(s).
+	if deviceId != "" {
+		if err := c.App.RevokeOtherSessionsForDeviceId(c.AppContext, c.AppContext.Session().UserId, deviceId, c.AppContext.Session().Id); err != nil {
+			c.Err = err
+			return
+		}
+	}
+	if voIPDeviceId != "" {
+		if err := c.App.RevokeOtherSessionsForVoIPDeviceId(c.AppContext, c.AppContext.Session().UserId, voIPDeviceId, c.AppContext.Session().Id); err != nil {
+			c.Err = err
+			return
+		}
 	}
 
 	c.App.ClearSessionCacheForUser(c.AppContext.Session().UserId)
@@ -2621,7 +2653,16 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request, deviceId
 
 	http.SetCookie(w, sessionCookie)
 
-	if err := c.App.AttachDeviceId(c.AppContext.Session().Id, deviceId, voipDeviceId, c.AppContext.Session().ExpiresAt); err != nil {
+	// Fall back to the existing column when the caller didn't send a new one,
+	// so an update of just one of the two doesn't wipe the other.
+	if deviceId == "" {
+		deviceId = c.AppContext.Session().DeviceId
+	}
+	if voIPDeviceId == "" {
+		voIPDeviceId = c.AppContext.Session().VoIPDeviceId
+	}
+
+	if err := c.App.AttachDeviceId(c.AppContext.Session().Id, deviceId, voIPDeviceId, c.AppContext.Session().ExpiresAt); err != nil {
 		c.Err = err
 		return
 	}

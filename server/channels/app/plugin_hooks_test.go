@@ -747,7 +747,7 @@ func TestUserWillLogIn_Blocked(t *testing.T) {
 
 	r := &http.Request{}
 	w := httptest.NewRecorder()
-	session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", "", false, false, false)
+	session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, model.LoginOptions{})
 
 	assert.Contains(t, err.Id, "Login rejected by plugin", "Expected Login rejected by plugin, got %s", err.Id)
 	assert.Nil(t, session)
@@ -788,7 +788,7 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 
 	r := &http.Request{}
 	w := httptest.NewRecorder()
-	session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", "", false, false, false)
+	session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, model.LoginOptions{})
 
 	assert.Nil(t, err, "Expected nil, got %s", err)
 	require.NotNil(t, session)
@@ -831,7 +831,7 @@ func TestUserHasLoggedIn(t *testing.T) {
 
 	r := &http.Request{}
 	w := httptest.NewRecorder()
-	session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", "", false, false, false)
+	session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, model.LoginOptions{})
 
 	assert.Nil(t, err, "Expected nil, got %s", err)
 	assert.NotNil(t, session)
@@ -1589,6 +1589,86 @@ func TestHookNotificationWillBePushed(t *testing.T) {
 				}
 			}
 			assert.Equal(t, tt.expectedNotifications, numMessages)
+		})
+	}
+}
+
+func TestHookNotificationWillBePushedTransportPreserved(t *testing.T) {
+	mainHelper.Parallel(t)
+	if testing.Short() {
+		t.Skip("skipping TestHookNotificationWillBePushedTransportPreserved test in short mode")
+	}
+
+	const (
+		standardToken = model.PushNotifyAppleReactNative + ":standardtoken"
+		voIPToken     = model.PushNotifyAppleReactNative + ":voiptoken"
+	)
+
+	// A plugin compiled against an older model.PushNotification struct can't see
+	// the Transport field, so returning a replacement notification would zero it.
+	// The server must ignore any plugin-driven change to Transport and keep the
+	// original routing (here, VoIP).
+	tests := []struct {
+		name     string
+		testCode string
+	}{
+		{
+			name: "plugin zeroing the transport keeps the original routing",
+			testCode: `notification.Transport = ""
+	return notification, ""`,
+		},
+		{
+			name: "plugin overriding the transport keeps the original routing",
+			testCode: `notification.Transport = model.PushTransportStandard
+	return notification, ""`,
+		},
+		{
+			name:     "plugin leaving the transport untouched keeps the original routing",
+			testCode: `return notification, ""`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mainHelper.Parallel(t)
+
+			th := Setup(t).InitBasic(t)
+
+			templatedPlugin := fmt.Sprintf(hookNotificationWillBePushedTmpl, tt.testCode)
+			tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{templatedPlugin}, th.App, th.NewPluginAPI)
+			defer tearDown()
+
+			handler := &testPushNotificationHandler{t: t, behavior: "simple"}
+			pushServer := httptest.NewServer(http.HandlerFunc(handler.handleReq))
+			defer pushServer.Close()
+
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+			})
+
+			_, err := th.App.CreateSession(th.Context, &model.Session{
+				UserId:       th.BasicUser.Id,
+				DeviceId:     standardToken,
+				VoIPDeviceId: voIPToken,
+				ExpiresAt:    model.GetMillis() + 100000,
+			})
+			require.Nil(t, err)
+
+			msg := &model.PushNotification{
+				Type:      model.PushTypeMessage,
+				SubType:   model.PushSubTypeCalls,
+				Transport: model.PushTransportVoIP,
+			}
+			appErr := th.App.sendPushNotificationToAllSessions(th.Context, msg, th.BasicUser.Id, "")
+			require.Nil(t, appErr)
+
+			require.Eventually(t, func() bool {
+				return len(handler.notifications()) == 1
+			}, 2*time.Second, 10*time.Millisecond, "expected exactly one push notification")
+
+			notifications := handler.notifications()
+			assert.Equal(t, model.PushTransportVoIP, notifications[0].Transport, "plugin must not be able to change the transport")
+			assert.Equal(t, "voiptoken", notifications[0].DeviceId, "VoIP routing must be preserved despite the plugin")
 		})
 	}
 }

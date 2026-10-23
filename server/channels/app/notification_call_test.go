@@ -193,7 +193,7 @@ func TestSendNotificationCallEnd(t *testing.T) {
 			UserId:       userId,
 			DeviceId:     "ios_device",
 			ExpiresAt:    model.GetMillis() + 100000, // Active
-			VoipDeviceId: "ios_voip_device",
+			VoIPDeviceId: "ios_voip_device",
 			Props:        model.StringMap{model.SessionPropOs: "iOS"},
 		}
 
@@ -202,8 +202,76 @@ func TestSendNotificationCallEnd(t *testing.T) {
 			UserId:       userId,
 			DeviceId:     "ios_device",
 			ExpiresAt:    model.GetMillis() + 100000, // Active
-			VoipDeviceId: "",
+			VoIPDeviceId: "",
 			Props:        model.StringMap{model.SessionPropOs: "iOS"},
+		}
+
+		// Sessions without a live standard token, or whose VoIP token is dead on iOS
+		voipOnlySession := &model.Session{
+			Id:           model.NewId(),
+			UserId:       userId,
+			ExpiresAt:    model.GetMillis() + 100000, // Active
+			VoIPDeviceId: "ios_voip_only_device",
+			Props:        model.StringMap{model.SessionPropOs: "iOS"},
+		}
+
+		removedStandardSession := &model.Session{
+			Id:        model.NewId(),
+			UserId:    userId,
+			DeviceId:  "removed_device",
+			ExpiresAt: model.GetMillis() + 100000, // Active
+			Props: model.StringMap{
+				model.SessionPropOs:                  "Android",
+				model.SessionPropLastRemovedDeviceId: "removed_device",
+			},
+		}
+
+		removedVoipSession := &model.Session{
+			Id:           model.NewId(),
+			UserId:       userId,
+			DeviceId:     "ios_device_with_removed_voip",
+			ExpiresAt:    model.GetMillis() + 100000, // Active
+			VoIPDeviceId: "ios_removed_voip_device",
+			Props: model.StringMap{
+				model.SessionPropOs:                      "iOS",
+				model.SessionPropLastRemovedVoIPDeviceId: "ios_removed_voip_device",
+			},
+		}
+
+		// iOS apps from 2.44.0 on dismiss the call without the call end push
+		newIOSAppSession := &model.Session{
+			Id:           model.NewId(),
+			UserId:       userId,
+			DeviceId:     "ios_device_new_app",
+			ExpiresAt:    model.GetMillis() + 100000, // Active
+			VoIPDeviceId: "ios_voip_device_new_app",
+			Props: model.StringMap{
+				model.SessionPropOs:            "iOS",
+				model.SessionPropMobileVersion: "2.44.101",
+			},
+		}
+
+		oldIOSAppSession := &model.Session{
+			Id:           model.NewId(),
+			UserId:       userId,
+			DeviceId:     "ios_device_old_app",
+			ExpiresAt:    model.GetMillis() + 100000, // Active
+			VoIPDeviceId: "ios_voip_device_old_app",
+			Props: model.StringMap{
+				model.SessionPropOs:            "iOS",
+				model.SessionPropMobileVersion: "2.38.104",
+			},
+		}
+
+		newAndroidAppSession := &model.Session{
+			Id:        model.NewId(),
+			UserId:    userId,
+			DeviceId:  "android_device_new_app",
+			ExpiresAt: model.GetMillis() + 100000, // Active
+			Props: model.StringMap{
+				model.SessionPropOs:            "Android",
+				model.SessionPropMobileVersion: "2.44.101",
+			},
 		}
 
 		mockChannelStore := mocks.ChannelStore{}
@@ -217,10 +285,16 @@ func TestSendNotificationCallEnd(t *testing.T) {
 		mockStore.On("Channel").Return(&mockChannelStore)
 
 		mockSessionStore.On("GetSessionsWithActiveDeviceIds", userId).Return([]*model.Session{
-			activeSession,      // shoud send
-			expiredSession,     // should not send
-			withVoipSession,    // should send
-			withoutVoipSession, // should not send
+			activeSession,          // shoud send
+			expiredSession,         // should not send
+			withVoipSession,        // should send
+			withoutVoipSession,     // should not send
+			voipOnlySession,        // should not send
+			removedStandardSession, // should not send
+			removedVoipSession,     // should not send
+			newIOSAppSession,       // should not send
+			oldIOSAppSession,       // should send
+			newAndroidAppSession,   // should send
 		}, nil)
 		mockStore.On("Session").Return(&mockSessionStore)
 
@@ -243,7 +317,7 @@ func TestSendNotificationCallEnd(t *testing.T) {
 		require.Nil(t, err)
 
 		time.Sleep(1 * time.Second)
-		assert.Equal(t, 2, handler.numReqs(), "The number of sessions that should send push notification does not match the actual number of requests")
+		assert.Equal(t, 4, handler.numReqs(), "The number of sessions that should send push notification does not match the actual number of requests")
 
 		mockChannelStore.AssertExpectations(t)
 		mockSessionStore.AssertExpectations(t)
@@ -309,4 +383,25 @@ func TestSendNotificationCallEnd(t *testing.T) {
 		mockChannelStore.AssertExpectations(t)
 		mockSessionStore.AssertExpectations(t)
 	})
+}
+
+func TestDismissesCallWithoutCallEndPush(t *testing.T) {
+	for _, tc := range []struct {
+		mobileVersion string
+		expected      bool
+	}{
+		{"", false},
+		{"not-a-version", false},
+		{"2.38.104", false},
+		{"2.43.999", false},
+		{"2.44.0", true},
+		{"2.44.101", true},
+		{"2.45.0", true},
+		{"3.0.0", true},
+	} {
+		t.Run("mobile version "+tc.mobileVersion, func(t *testing.T) {
+			session := &model.Session{Props: model.StringMap{model.SessionPropMobileVersion: tc.mobileVersion}}
+			assert.Equal(t, tc.expected, dismissesCallWithoutCallEndPush(session))
+		})
+	}
 }
